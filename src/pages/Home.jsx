@@ -1,10 +1,10 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import Navbar from '../components/Navigation/Navbar';
+import Navbar from '../components/navigation/Navbar';
 import HeroSection from '../components/Hero/HeroSection';
 import ServicesSection from '../components/Services/ServicesSection';
 import MediaGallery from '../components/Gallery/MediaGallery';
-import SubscriptionTiers from '../components/Subscription/SubscriptionTiers';
+import SubscriptionTiers from '../components/subscription/SubscriptionTiers';
 import ContactSection from '../components/Contact/ContactSection';
 import Footer from '../components/Footer/Footer';
 

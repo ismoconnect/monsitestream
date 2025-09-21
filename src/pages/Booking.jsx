@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import BookingCalendar from '../components/Booking/BookingCalendar';
+import BookingCalendar from '../components/booking/BookingCalendar';
 import { ArrowLeft, Calendar, Heart, Shield } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
