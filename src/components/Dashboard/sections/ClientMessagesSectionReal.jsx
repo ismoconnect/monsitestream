@@ -300,9 +300,9 @@ const ClientMessagesSectionReal = ({ currentUser }) => {
   }
 
   return (
-    <div className="flex-1 flex flex-col items-center w-full p-2 sm:p-4 lg:p-6 overflow-hidden">
-      {/* Bloc de Chat Principal - Mobile Fixed Height 530px */}
-      <div className="w-full h-[530px] max-h-[100dvh] sm:h-[555px] max-w-5xl flex flex-col bg-white rounded-[2rem] sm:rounded-[3rem] shadow-[0_20px_70px_-10px_rgba(0,0,0,0.05)] border border-gray-100/80 overflow-hidden relative transition-all duration-300">
+    <div className="flex-1 flex flex-col w-full h-full sm:p-4 lg:p-6">
+      {/* Bloc de Chat Principal - Mobile Fullscreen Fixed */}
+      <div className="fixed inset-x-0 bottom-0 top-[56px] z-40 bg-white flex flex-col sm:static sm:z-auto sm:inset-auto sm:h-[555px] sm:max-w-5xl sm:mx-auto sm:rounded-[3rem] sm:shadow-[0_20px_70px_-10px_rgba(0,0,0,0.05)] sm:border sm:border-gray-100/80 overflow-hidden transition-all duration-300">
 
         {/* Header - Rose Officiel Liliana */}
         <div className="bg-gradient-to-r from-pink-500 to-purple-600 p-4 sm:p-5 flex-shrink-0 flex items-center justify-between z-20 shadow-sm">
