@@ -2,10 +2,10 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useUserStatus } from '../hooks/useUserStatus';
-import { 
-  LogOut, 
-  Bell, 
-  Settings, 
+import {
+  LogOut,
+  Bell,
+  Settings,
   User,
   Menu,
   X
@@ -28,7 +28,7 @@ const Dashboard = () => {
   const [activeSection, setActiveSection] = useState('overview');
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const navigate = useNavigate();
-  
+
   // Utiliser userStatus si disponible, sinon currentUser
   const displayUser = userStatus || currentUser;
 
@@ -48,48 +48,48 @@ const Dashboard = () => {
       subscription: <ClientSubscriptionSectionSimple currentUser={displayUser} />,
       profile: <ClientProfileSectionSimple currentUser={displayUser} />
     };
-    
+
     return sections[activeSection] || sections.overview;
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
+    <div className="h-[100dvh] w-full bg-gray-50 flex overflow-hidden overscroll-none">
       {/* Mobile Sidebar Overlay */}
       {isMobileSidebarOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
           onClick={() => setIsMobileSidebarOpen(false)}
         />
       )}
 
-      {/* Client Sidebar - Fixed on all devices */}
+      {/* Client Sidebar */}
       <div className={`
         fixed left-0 top-0 h-full w-64 z-50 transform transition-transform duration-300 ease-in-out
         ${isMobileSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
-        lg:translate-x-0
+        lg:translate-x-0 lg:relative lg:translate-x-0 flex-shrink-0
       `}>
-        <ClientSidebar 
-          activeSection={activeSection} 
-          setActiveSection={setActiveSection} 
+        <ClientSidebar
+          activeSection={activeSection}
+          setActiveSection={setActiveSection}
           currentUser={displayUser}
           onMobileClose={() => setIsMobileSidebarOpen(false)}
           onSignOut={handleSignOut}
         />
       </div>
 
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col ml-0 lg:ml-64">
-        {/* Client Header - Fixed on all devices */}
-        <div className="fixed top-0 right-0 left-0 lg:left-64 z-20">
-          <ClientHeader 
-            currentUser={displayUser} 
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
+        {/* Main Header - Fixed */}
+        <header className="flex-shrink-0 z-20">
+          <ClientHeader
+            currentUser={displayUser}
             onMobileMenuToggle={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
           />
-        </div>
+        </header>
 
-        {/* Content */}
-        <main className="flex-1 p-4 lg:p-6 overflow-y-auto mt-16 min-w-0">
-          <div className="w-full max-w-full overflow-hidden">
+        {/* Content Area - Filling the rest of the height */}
+        <main className="flex-1 min-h-0 relative overflow-hidden bg-[#F8F9FB]">
+          <div className="flex flex-col h-full w-full">
             {renderSection()}
           </div>
         </main>

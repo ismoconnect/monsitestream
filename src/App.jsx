@@ -9,15 +9,6 @@ import { NotificationProvider } from './contexts/NotificationContext';
 
 // Pages
 import Home from './pages/Home';
-import Booking from './pages/Booking';
-import Dashboard from './pages/Dashboard';
-import AdminDashboard from './pages/AdminDashboard';
-import AdminMessages from './pages/AdminMessages';
-import Messages from './pages/Messages';
-import TestMessaging from './pages/TestMessaging';
-import PaymentPage from './pages/PaymentPage';
-
-// Dashboard Pages
 import DashboardOverview from './pages/dashboard/DashboardOverview';
 import DashboardSubscription from './pages/dashboard/DashboardSubscription';
 import DashboardMessages from './pages/dashboard/DashboardMessages';
@@ -26,11 +17,10 @@ import DashboardStreaming from './pages/dashboard/DashboardStreaming';
 import DashboardAppointments from './pages/dashboard/DashboardAppointments';
 import DashboardProfile from './pages/dashboard/DashboardProfile';
 import DashboardNotFound from './pages/dashboard/DashboardNotFound';
+import PaymentPage from './pages/PaymentPage';
 import PaymentStatusPage from './pages/PaymentStatusPage';
 import PaymentTrackingPage from './pages/PaymentTrackingPage';
-import AdminPayments from './pages/AdminPayments';
-import AdminUserPayments from './pages/AdminUserPayments';
-
+import Messages from './pages/Messages';
 
 // Styles
 import './index.css';
@@ -51,10 +41,7 @@ const App = () => {
               <Routes>
                 {/* Main Route */}
                 <Route path="/" element={<Home />} />
-                
-                {/* Booking Route */}
-                <Route path="/booking" element={<Booking />} />
-                
+
                 {/* Dashboard Routes */}
                 <Route path="/dashboard" element={<DashboardOverview />} />
                 <Route path="/dashboard/overview" element={<DashboardOverview />} />
@@ -67,29 +54,13 @@ const App = () => {
                 <Route path="/dashboard/payment" element={<PaymentPage />} />
                 <Route path="/dashboard/payment-status" element={<PaymentStatusPage />} />
                 <Route path="/dashboard/payment-tracking" element={<PaymentTrackingPage />} />
-                
+
                 {/* Dashboard catch-all route */}
                 <Route path="/dashboard/*" element={<DashboardNotFound />} />
-                
-                {/* Legacy Dashboard Route */}
-                <Route path="/dashboard-old" element={<Dashboard />} />
-                
-                {/* Admin Route */}
-                <Route path="/admin" element={<AdminDashboard />} />
-                
-                {/* Admin Messages Route */}
-                <Route path="/admin/messages" element={<AdminMessages />} />
-                
-                {/* Admin Payments Route */}
-                <Route path="/admin/payments" element={<AdminPayments />} />
-                <Route path="/admin/payments/:userEmail" element={<AdminUserPayments />} />
-                
+
                 {/* Messages Route */}
                 <Route path="/messages" element={<Messages />} />
-                
-                {/* Test Route */}
-                <Route path="/test-messaging" element={<TestMessaging />} />
-                
+
                 {/* Catch all route */}
                 <Route path="*" element={<Home />} />
               </Routes>

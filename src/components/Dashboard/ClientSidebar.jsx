@@ -1,14 +1,14 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { 
-  Home, 
-  Image, 
-  MessageSquare, 
-  Calendar, 
-  Video, 
-  CreditCard, 
-  User, 
+import {
+  Home,
+  Image,
+  MessageSquare,
+  Calendar,
+  Video,
+  CreditCard,
+  User,
   Settings,
   Heart,
   Star,
@@ -92,8 +92,8 @@ const ClientSidebar = ({ currentUser, onMobileClose, onSignOut, isMobileMenuOpen
     }
   ];
 
-  const isPremium = currentUser?.subscription?.status === 'active' && 
-                   (currentUser?.subscription?.type === 'premium' || currentUser?.subscription?.type === 'vip');
+  const isPremium = currentUser?.subscription?.status === 'active' &&
+    (currentUser?.subscription?.type === 'premium' || currentUser?.subscription?.type === 'vip');
 
   // Contenu de la sidebar
   const SidebarContent = () => (
@@ -107,7 +107,7 @@ const ClientSidebar = ({ currentUser, onMobileClose, onSignOut, isMobileMenuOpen
               <Heart className="w-4 h-4 text-white" />
             </div>
             <div>
-              <h2 className="text-sm font-bold text-white">Sophie</h2>
+              <h2 className="text-sm font-bold text-white">Liliana</h2>
               <p className="text-xs text-white/80">Premium</p>
             </div>
           </div>
@@ -139,7 +139,7 @@ const ClientSidebar = ({ currentUser, onMobileClose, onSignOut, isMobileMenuOpen
           </div>
           <div className="w-2 h-2 bg-green-500 rounded-full"></div>
         </div>
-        
+
         {/* Validation Badge Mobile */}
         <div className="mt-2 lg:hidden">
           <ValidationBadge user={currentUser} />
@@ -152,7 +152,7 @@ const ClientSidebar = ({ currentUser, onMobileClose, onSignOut, isMobileMenuOpen
           const Icon = item.icon;
           const isActive = location.pathname === item.path || (location.pathname === '/dashboard' && item.id === 'overview');
           const isLocked = item.premium && !isPremium;
-          
+
           return (
             <motion.button
               key={item.id}
@@ -170,20 +170,18 @@ const ClientSidebar = ({ currentUser, onMobileClose, onSignOut, isMobileMenuOpen
               whileHover={{ scale: 1.01 }}
               whileTap={{ scale: 0.99 }}
               disabled={isLocked}
-              className={`w-full flex items-center space-x-2 px-2 py-1.5 rounded-lg transition-all duration-200 ${
-                isActive
-                  ? 'bg-gradient-to-r from-pink-500 to-purple-600 text-white shadow-md'
-                  : isLocked
+              className={`w-full flex items-center space-x-2 px-2 py-1.5 rounded-lg transition-all duration-200 ${isActive
+                ? 'bg-gradient-to-r from-pink-500 to-purple-600 text-white shadow-md'
+                : isLocked
                   ? 'text-gray-400 cursor-not-allowed'
                   : 'text-gray-600 hover:bg-gray-50 hover:text-gray-800'
-              }`}
+                }`}
             >
-              <Icon className={`w-4 h-4 ${
-                isActive ? 'text-white' : isLocked ? 'text-gray-400' : item.color
-              }`} />
-              
+              <Icon className={`w-4 h-4 ${isActive ? 'text-white' : isLocked ? 'text-gray-400' : item.color
+                }`} />
+
               <span className="font-medium text-xs flex-1 text-left truncate">{item.label}</span>
-              
+
               {item.premium && (
                 <div className="flex items-center">
                   {isLocked ? (
@@ -270,33 +268,33 @@ const ClientSidebar = ({ currentUser, onMobileClose, onSignOut, isMobileMenuOpen
       <AnimatePresence>
         {isMobileMenuOpen && (
           <div className="lg:hidden fixed inset-0 z-50 flex">
-          {/* Backdrop */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={() => setIsMobileMenuOpen(false)}
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm"
-          />
-          
-          {/* Sidebar */}
-          <motion.div
-            initial={{ x: -300 }}
-            animate={{ x: 0 }}
-            exit={{ x: -300 }}
-            transition={{ type: "spring", damping: 25, stiffness: 200 }}
-            className="relative w-64 max-w-sm"
-          >
-            {/* Close button */}
-            <button
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
               onClick={() => setIsMobileMenuOpen(false)}
-              className="absolute top-4 right-4 z-10 p-2 bg-white/20 rounded-full hover:bg-white/30 transition-colors"
+              className="fixed inset-0 bg-black/50 backdrop-blur-sm"
+            />
+
+            {/* Sidebar */}
+            <motion.div
+              initial={{ x: -300 }}
+              animate={{ x: 0 }}
+              exit={{ x: -300 }}
+              transition={{ type: "spring", damping: 25, stiffness: 200 }}
+              className="relative w-64 max-w-sm"
             >
-              <X className="h-5 w-5 text-white" />
-            </button>
-            <SidebarContent />
-          </motion.div>
-        </div>
+              {/* Close button */}
+              <button
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="absolute top-4 right-4 z-10 p-2 bg-white/20 rounded-full hover:bg-white/30 transition-colors"
+              >
+                <X className="h-5 w-5 text-white" />
+              </button>
+              <SidebarContent />
+            </motion.div>
+          </div>
         )}
       </AnimatePresence>
     </>

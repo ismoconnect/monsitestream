@@ -52,7 +52,7 @@ const Messages = () => {
           <MessageSquare className="h-16 w-16 text-primary-400 mx-auto mb-4" />
           <h2 className="text-2xl font-bold text-gray-900 mb-4">Accédez à votre Dashboard</h2>
           <p className="text-gray-600 mb-6">
-            Votre messagerie privée avec Sophie est disponible dans votre dashboard personnel.
+            Votre messagerie privée avec Liliana est disponible dans votre dashboard personnel.
           </p>
           <motion.a
             href="/dashboard"

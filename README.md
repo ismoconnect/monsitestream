@@ -1,11 +1,11 @@
-# Sophie - Site Personnel d'Accompagnatrice de Luxe
+# Liliana - Site Personnel d'Accompagnatrice de Luxe
 
 Un site web professionnel et élégant pour une accompagnatrice de luxe, développé avec React 18, Vite, Tailwind CSS et Firebase.
 
 ## 🚀 Fonctionnalités
 
 - **Page d'accueil attractive** avec design moderne et animations fluides
-- **Système d'authentification personnalisé** avec Firestore (sans Firebase Auth)
+- **Système d'authentification sécurisé** avec Firebase Auth
 - **Galerie média** avec contenu public et premium
 - **Système d'abonnements** avec gestion des paiements
 - **Réservation de rendez-vous** avec formulaire multi-étapes

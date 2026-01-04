@@ -3,9 +3,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { simpleChatService } from '../../../services/simpleChat';
 import { presenceService } from '../../../services/presenceService';
 import { useNavigate } from 'react-router-dom';
-import { 
-  MessageSquare, 
-  Send, 
+import {
+  MessageSquare,
+  Send,
   Heart,
   Video,
   Phone,
@@ -14,12 +14,13 @@ import {
   Crown,
   Smile,
   Paperclip,
-  Plus
+  Plus,
+  CheckCircle2
 } from 'lucide-react';
 
 const ClientMessagesSectionReal = ({ currentUser }) => {
   const navigate = useNavigate();
-  // États pour la discussion avec Sophie
+  // États pour la discussion avec Liliana
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
   const [conversationId, setConversationId] = useState(null);
@@ -52,8 +53,8 @@ const ClientMessagesSectionReal = ({ currentUser }) => {
 
   // Auto-scroll vers le bas
   const scrollToBottom = (immediate = false) => {
-    messagesEndRef.current?.scrollIntoView({ 
-      behavior: immediate ? 'instant' : 'smooth' 
+    messagesEndRef.current?.scrollIntoView({
+      behavior: immediate ? 'instant' : 'smooth'
     });
   };
 
@@ -96,7 +97,7 @@ const ClientMessagesSectionReal = ({ currentUser }) => {
     const userId = currentUser?.uid || currentUser?.id;
     if (userId) {
       presenceService.startPresence(userId, 'client');
-      
+
       return () => {
         presenceService.stopPresence(userId);
       };
@@ -117,18 +118,18 @@ const ClientMessagesSectionReal = ({ currentUser }) => {
     const initializeChat = async () => {
       // Utiliser id ou uid selon ce qui est disponible
       const userId = currentUser?.uid || currentUser?.id;
-      
+
       if (!currentUser || !userId) {
         console.log('Utilisateur non connecté ou ID manquant:', currentUser);
         setIsInitializing(false);
         return;
       }
-      
+
       try {
         setIsInitializing(true);
         console.log('Initialisation du chat pour:', userId);
         const convId = await simpleChatService.getOrCreateConversation(
-          userId, 
+          userId,
           currentUser.displayName || currentUser.email || currentUser.profile?.name || 'Utilisateur'
         );
         setConversationId(convId);
@@ -179,10 +180,10 @@ const ClientMessagesSectionReal = ({ currentUser }) => {
     setIsLoading(true);
     const messageToSend = newMessage.trim();
     setNewMessage(''); // Effacer immédiatement pour une meilleure UX
-    
+
     // Arrêter l'indicateur de frappe
     await simpleChatService.setTyping(conversationId, userId, false);
-    
+
     try {
       await simpleChatService.sendMessage(conversationId, userId, messageToSend);
     } catch (error) {
@@ -197,14 +198,14 @@ const ClientMessagesSectionReal = ({ currentUser }) => {
   const handleVideoCall = () => {
     if (handlePremiumFeature('Appel vidéo')) {
       // Logique d'appel vidéo ici
-      console.log('Lancement appel vidéo avec Sophie');
+      console.log('Lancement appel vidéo avec Liliana');
     }
   };
 
   const handleAudioCall = () => {
     if (handlePremiumFeature('Appel audio')) {
       // Logique d'appel audio ici
-      console.log('Lancement appel audio avec Sophie');
+      console.log('Lancement appel audio avec Liliana');
     }
   };
 
@@ -253,19 +254,19 @@ const ClientMessagesSectionReal = ({ currentUser }) => {
   // Formater l'heure
   const formatTime = (timestamp) => {
     if (!timestamp) return '';
-    
+
     const date = timestamp.toDate();
     const now = new Date();
     const diffInHours = (now - date) / (1000 * 60 * 60);
-    
+
     if (diffInHours < 24) {
-      return date.toLocaleTimeString('fr-FR', { 
-        hour: '2-digit', 
-        minute: '2-digit' 
+      return date.toLocaleTimeString('fr-FR', {
+        hour: '2-digit',
+        minute: '2-digit'
       });
     } else {
-      return date.toLocaleDateString('fr-FR', { 
-        day: '2-digit', 
+      return date.toLocaleDateString('fr-FR', {
+        day: '2-digit',
         month: '2-digit',
         hour: '2-digit',
         minute: '2-digit'
@@ -274,7 +275,7 @@ const ClientMessagesSectionReal = ({ currentUser }) => {
   };
 
   const userId = currentUser?.uid || currentUser?.id;
-  
+
   if (!currentUser || !userId) {
     return (
       <div className="flex items-center justify-center h-96">
@@ -299,113 +300,81 @@ const ClientMessagesSectionReal = ({ currentUser }) => {
   }
 
   return (
-    <div className="relative h-full min-h-[540px] lg:h-[615px] bg-white rounded-lg shadow-lg overflow-hidden">
-      {/* En-tête de discussion - Sophie */}
-      <div className="bg-gradient-to-r from-pink-500 to-purple-600 text-white p-3 sm:p-4 shadow-lg">
-        <div className="flex items-center space-x-4">
-          {/* Avatar de Sophie */}
-          <div className="w-12 h-12 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
-            <span className="text-lg font-bold">S</span>
-          </div>
-          <div className="flex-1">
-            <h1 className="text-lg font-bold">Sophie</h1>
-            <div className="text-pink-100 text-sm flex items-center">
-              <div className={`w-2 h-2 rounded-full mr-2 ${
-                adminPresence.isOnline ? 'bg-green-400 animate-pulse' : 'bg-gray-400'
-              }`}></div>
-              <span>
-                Accompagnatrice de luxe • {presenceService.getStatusText(adminPresence)}
-              </span>
+    <div className="flex-1 flex flex-col items-center justify-start sm:justify-center w-full p-2 pt-4 sm:p-4 lg:p-6 overflow-hidden">
+      {/* Bloc de Chat Principal - Version Luxe Épurée */}
+      <div className="w-full h-[545px] max-h-full max-w-5xl flex flex-col bg-white rounded-[2rem] sm:rounded-[3rem] shadow-[0_20px_70px_-10px_rgba(0,0,0,0.05)] border border-gray-100/80 overflow-hidden relative transition-all duration-300">
+
+        {/* Header - Rose Officiel Liliana */}
+        <div className="bg-gradient-to-r from-pink-500 to-purple-600 p-4 sm:p-5 flex-shrink-0 flex items-center justify-between z-20 shadow-sm">
+          <div className="flex items-center space-x-4">
+            <div className="relative">
+              <div className="w-12 h-12 sm:w-14 sm:h-14 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center text-white border border-white/30">
+                <span className="text-xl font-bold tracking-tight">L</span>
+              </div>
+              <div className={`absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full border-2 border-white shadow-sm ${adminPresence.isOnline ? 'bg-green-400' : 'bg-gray-300'}`}></div>
+            </div>
+            <div>
+              <h3 className="text-lg font-bold text-white tracking-tight leading-none mb-1">Liliana</h3>
+              <div className="flex items-center space-x-2">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-pink-100/80">
+                  {presenceService.getStatusText(adminPresence)}
+                </span>
+                {adminPresence.isOnline && <span className="flex h-1.5 w-1.5 rounded-full bg-green-400"></span>}
+              </div>
             </div>
           </div>
-          <div className="flex items-center space-x-2">
-            {/* Boutons d'actions premium */}
-            <motion.button
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
-              onClick={handleVideoCall}
-              className={`p-2 rounded-full transition-colors ${
-                isPremiumUser() 
-                  ? 'bg-white bg-opacity-20 hover:bg-opacity-30' 
-                  : 'bg-white bg-opacity-10 opacity-60'
-              }`}
-              title={isPremiumUser() ? 'Appel vidéo' : 'Appel vidéo (Premium/VIP uniquement)'}
-            >
-              <Video className="h-4 w-4" />
-              {!isPremiumUser() && <Crown className="h-2 w-2 absolute -top-1 -right-1" />}
-            </motion.button>
 
-            <motion.button
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
-              onClick={handleAudioCall}
-              className={`p-2 rounded-full transition-colors ${
-                isPremiumUser() 
-                  ? 'bg-white bg-opacity-20 hover:bg-opacity-30' 
-                  : 'bg-white bg-opacity-10 opacity-60'
-              }`}
-              title={isPremiumUser() ? 'Appel audio' : 'Appel audio (Premium/VIP uniquement)'}
-            >
-              <Phone className="h-4 w-4" />
-              {!isPremiumUser() && <Crown className="h-2 w-2 absolute -top-1 -right-1" />}
-            </motion.button>
-
-            <div className="text-pink-100">
-              <Heart className="h-6 w-6" />
-            </div>
+          <div className="flex items-center space-x-1 sm:space-x-2 text-white">
+            {[
+              { icon: Video, action: handleVideoCall, premium: true },
+              { icon: Phone, action: handleAudioCall, premium: true }
+            ].map((item, idx) => (
+              <motion.button
+                key={idx}
+                whileHover={{ scale: 1.05, backgroundColor: 'rgba(255,255,255,0.1)' }}
+                whileTap={{ scale: 0.95 }}
+                onClick={item.action}
+                className="p-3 hover:text-white rounded-xl transition-all relative"
+              >
+                <item.icon className="w-5 h-5 stroke-[2]" />
+                {!isPremiumUser() && <Crown className="w-3 h-3 absolute top-1 right-1 text-yellow-300" />}
+              </motion.button>
+            ))}
+            <button className="p-3 opacity-50 hover:opacity-100 transition-opacity">
+              <Heart className="w-5 h-5 fill-current" />
+            </button>
           </div>
         </div>
-      </div>
 
-      {/* Zone des messages - scrollable avec padding bottom pour la zone de saisie */}
-      <div className="absolute top-[88px] sm:top-[96px] bottom-[76px] sm:bottom-[88px] left-0 right-0 overflow-y-auto bg-gray-50 p-2 sm:p-4 pb-6">
-        <div className="space-y-3 sm:space-y-4">
-          <AnimatePresence>
+        {/* Zone des messages - Blanc Pur Clean */}
+        <div className="flex-1 overflow-y-auto bg-white px-4 sm:px-8 py-8 space-y-6 scrollbar-hide font-sans">
+          <AnimatePresence initial={false}>
             {messages.map((message) => {
-              const messageUserId = currentUser?.uid || currentUser?.id;
-              const isOwn = message.senderId === messageUserId;
-              const isAdmin = message.senderId === 'admin';
-              
+              const mUserId = currentUser?.uid || currentUser?.id;
+              const isOwn = message.senderId === mUserId;
+
               return (
                 <motion.div
                   key={message.id}
-                  initial={{ opacity: 0, y: 20 }}
+                  initial={{ opacity: 0, y: 5 }}
                   animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
-                  transition={{ duration: 0.3 }}
                   className={`flex ${isOwn ? 'justify-end' : 'justify-start'}`}
                 >
-                  <div className={`max-w-[85%] sm:max-w-xs lg:max-w-md xl:max-w-lg`}>
-                    {/* Avatar et nom pour Sophie */}
-                    {!isOwn && (
-                      <div className="flex items-center space-x-2 mb-2">
-                        <div className="w-8 h-8 bg-gradient-to-r from-pink-500 to-purple-600 rounded-full flex items-center justify-center">
-                          <span className="text-sm font-bold text-white">S</span>
-                        </div>
-                        <p className="text-sm text-gray-700 font-medium">
-                          Sophie
-                        </p>
-                      </div>
-                    )}
-                    
-                    {/* Bulle de message */}
-                    <div
-                      className={`px-3 py-2 sm:px-4 sm:py-3 rounded-2xl shadow-sm ${
-                        isOwn
-                          ? 'bg-gradient-to-r from-pink-500 to-purple-600 text-white rounded-br-md'
-                          : 'bg-white text-gray-900 border border-gray-200 rounded-bl-md'
-                      }`}
-                    >
-                      <p className="whitespace-pre-wrap break-words leading-relaxed text-sm sm:text-base">
-                        {message.content}
-                      </p>
+                  <div className={`max-w-[85%] sm:max-w-[70%] ${isOwn ? 'ml-10' : ''}`}>
+                    <div className={`
+                      px-5 py-3 rounded-[1.4rem] text-[15px] leading-snug shadow-sm
+                      ${isOwn
+                        ? 'bg-gradient-to-br from-pink-500 to-purple-600 text-white rounded-tr-none font-medium'
+                        : 'bg-gray-50 text-gray-700 rounded-tl-none border border-gray-100'
+                      }
+                    `}>
+                      <p className="whitespace-pre-wrap break-words">{message.content}</p>
                     </div>
-                    
-                    {/* Heure */}
-                    <div className={`flex mt-1 ${isOwn ? 'justify-end' : 'justify-start'}`}>
-                      <span className="text-xs text-gray-500 px-2">
+                    <div className={`flex mt-2 px-1 items-center space-x-2 ${isOwn ? 'justify-end' : 'justify-start'}`}>
+                      <span className="text-[9px] text-gray-400 font-bold uppercase tracking-widest">
                         {formatTime(message.timestamp)}
                       </span>
+                      {isOwn && <CheckCircle2 className="w-3 h-3 text-pink-200" />}
                     </div>
                   </div>
                 </motion.div>
@@ -413,169 +382,60 @@ const ClientMessagesSectionReal = ({ currentUser }) => {
             })}
           </AnimatePresence>
 
-          {/* Indicateur de frappe */}
+          {/* Indicateur de frappe Minimal */}
           <AnimatePresence>
             {typingUsers.length > 0 && (
               <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                className="flex justify-start mb-4"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="flex justify-start px-2"
               >
-                <div className="max-w-[85%] sm:max-w-xs lg:max-w-md xl:max-w-lg">
-                  <div className="flex items-center space-x-2 mb-2">
-                    <div className="w-8 h-8 bg-gradient-to-r from-pink-500 to-purple-600 rounded-full flex items-center justify-center">
-                      <span className="text-sm font-bold text-white">S</span>
-                    </div>
-                    <p className="text-sm text-gray-700 font-medium">
-                      Sophie
-                    </p>
+                <div className="flex items-center space-x-2 text-gray-500">
+                  <div className="flex space-x-1">
+                    <div className="w-1 h-1 bg-gray-300 rounded-full animate-pulse"></div>
+                    <div className="w-1 h-1 bg-gray-300 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></div>
+                    <div className="w-1 h-1 bg-gray-300 rounded-full animate-pulse" style={{ animationDelay: '0.4s' }}></div>
                   </div>
-                  
-                  <div className="bg-white text-gray-900 border border-gray-200 rounded-2xl rounded-bl-md px-3 py-2 sm:px-4 sm:py-3 shadow-sm">
-                    <div className="flex items-center space-x-1">
-                      <span className="text-sm text-gray-600">en train d'écrire</span>
-                      <div className="flex space-x-1">
-                        <div className="w-1 h-1 bg-gray-400 rounded-full animate-bounce" style={{animationDelay: '0ms'}}></div>
-                        <div className="w-1 h-1 bg-gray-400 rounded-full animate-bounce" style={{animationDelay: '150ms'}}></div>
-                        <div className="w-1 h-1 bg-gray-400 rounded-full animate-bounce" style={{animationDelay: '300ms'}}></div>
-                      </div>
-                    </div>
-                  </div>
+                  <span className="text-[9px] font-bold uppercase tracking-widest">Liliana est en train d'écrire...</span>
                 </div>
               </motion.div>
             )}
           </AnimatePresence>
-          
           <div ref={messagesEndRef} />
         </div>
-      </div>
 
-      {/* Zone de saisie - FIXE en bas */}
-      <div className="absolute bottom-0 left-0 right-0 border-t border-gray-200 bg-white">
-        {/* Panel des stickers */}
-        <AnimatePresence>
-          {showStickers && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-              className="stickers-panel border-b border-gray-200 p-2 sm:p-3 bg-gray-50"
+        {/* Barre de saisie - Accents Roses */}
+        <div className="bg-white p-4 sm:p-6 border-t border-gray-50 flex-shrink-0">
+          <form onSubmit={handleSendMessage} className="flex items-center space-x-3 max-w-5xl mx-auto">
+            <button
+              type="button"
+              whileTap={{ scale: 0.9 }}
+              onClick={() => setShowOptions(!showOptions)}
+              className="p-3 text-pink-500 bg-pink-50/50 rounded-xl transition-all hover:bg-pink-100/50"
             >
-              <div className="grid grid-cols-8 sm:grid-cols-10 lg:grid-cols-12 gap-1 sm:gap-2 max-h-32 overflow-y-auto">
-                {stickers.map((sticker, index) => (
-                  <motion.button
-                    key={index}
-                    type="button"
-                    whileHover={{ scale: 1.2 }}
-                    whileTap={{ scale: 0.9 }}
-                    onClick={() => handleStickerSelect(sticker)}
-                    className="text-lg sm:text-xl lg:text-2xl p-1 sm:p-1.5 rounded-lg hover:bg-white transition-colors flex items-center justify-center aspect-square"
-                  >
-                    {sticker}
-                  </motion.button>
-                ))}
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* Barre de saisie principale */}
-        <div className="p-2 sm:p-3">
-          <form onSubmit={handleSendMessage} className="flex items-end space-x-2">
-            {/* Bouton plus pour les options */}
-            <div className="relative">
-              <motion.button
-                type="button"
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
-                onClick={() => setShowOptions(!showOptions)}
-                className="plus-button p-2 text-gray-600 hover:text-pink-500 hover:bg-pink-50 rounded-full transition-colors"
-              >
-                <Plus className="h-4 w-4" />
-              </motion.button>
-
-              {/* Menu des options */}
-              <AnimatePresence>
-                {showOptions && (
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.95, y: 10 }}
-                    animate={{ opacity: 1, scale: 1, y: 0 }}
-                    exit={{ opacity: 0, scale: 0.95, y: 10 }}
-                    className="options-menu absolute bottom-full left-0 mb-2 bg-white rounded-lg shadow-lg border border-gray-200 p-2 min-w-[200px] z-10"
-                  >
-                    <motion.button
-                      type="button"
-                      whileHover={{ backgroundColor: '#fdf2f8' }}
-                      onClick={handleImageUpload}
-                      className={`w-full flex items-center space-x-3 p-2 rounded-lg transition-colors text-left ${
-                        isPremiumUser() ? 'text-gray-700' : 'text-gray-400'
-                      }`}
-                    >
-                      <div className="relative">
-                        <Image className="h-4 w-4" />
-                        {!isPremiumUser() && (
-                          <Crown className="h-2 w-2 absolute -top-1 -right-1 text-yellow-500" />
-                        )}
-                      </div>
-                      <span className="text-sm">Envoyer une image</span>
-                      {!isPremiumUser() && <span className="text-xs text-yellow-600 ml-auto">Premium</span>}
-                    </motion.button>
-
-                    <motion.button
-                      type="button"
-                      whileHover={{ backgroundColor: '#fdf2f8' }}
-                      onClick={handleVoiceNote}
-                      className={`w-full flex items-center space-x-3 p-2 rounded-lg transition-colors text-left ${
-                        isPremiumUser() ? 'text-gray-700' : 'text-gray-400'
-                      }`}
-                    >
-                      <div className="relative">
-                        <Mic className="h-4 w-4" />
-                        {!isPremiumUser() && (
-                          <Crown className="h-2 w-2 absolute -top-1 -right-1 text-yellow-500" />
-                        )}
-                      </div>
-                      <span className="text-sm">Note vocale</span>
-                      {!isPremiumUser() && <span className="text-xs text-yellow-600 ml-auto">Premium</span>}
-                    </motion.button>
-
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
+              <Plus className="w-5 h-5 stroke-[2.5]" />
+            </button>
 
             <div className="flex-1 relative">
               <textarea
                 value={newMessage}
                 onChange={(e) => {
                   setNewMessage(e.target.value);
-                  // Auto-resize du textarea
-                  e.target.style.height = 'auto';
-                  e.target.style.height = Math.min(e.target.scrollHeight, 120) + 'px';
-                  
-                  // Gestion de l'indicateur de frappe
-                  const userId = currentUser?.uid || currentUser?.id;
-                  if (conversationId && userId) {
-                    // Indiquer qu'on tape
-                    simpleChatService.setTyping(conversationId, userId, true);
-                    
-                    // Arrêter l'indicateur après 3 secondes d'inactivité
-                    if (typingTimeout) {
-                      clearTimeout(typingTimeout);
-                    }
-                    
+                  const uId = currentUser?.uid || currentUser?.id;
+                  if (conversationId && uId) {
+                    simpleChatService.setTyping(conversationId, uId, true);
+                    if (typingTimeout) clearTimeout(typingTimeout);
                     const timeout = setTimeout(() => {
-                      simpleChatService.setTyping(conversationId, userId, false);
+                      simpleChatService.setTyping(conversationId, uId, false);
                     }, 3000);
-                    
                     setTypingTimeout(timeout);
                   }
                 }}
-                placeholder="Écrivez votre message à Sophie..."
-                className="w-full px-3 py-2 pr-10 sm:px-4 sm:py-3 sm:pr-12 border-2 border-gray-200 rounded-2xl focus:outline-none focus:border-pink-400 focus:ring-2 focus:ring-pink-100 resize-none bg-gray-50 hover:bg-white focus:bg-white transition-all duration-200 text-sm sm:text-base"
+                placeholder="Écrivez votre message..."
+                className="w-full bg-gray-50 border-none rounded-xl px-4 py-3.5 pr-10 focus:ring-2 focus:ring-pink-100 transition-all resize-none text-[13px] sm:text-[14px] font-medium text-gray-700 placeholder-gray-500"
                 rows={1}
-                style={{ minHeight: '40px', maxHeight: '100px' }}
+                style={{ minHeight: '48px', maxHeight: '120px' }}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' && !e.shiftKey) {
                     e.preventDefault();
@@ -583,34 +443,63 @@ const ClientMessagesSectionReal = ({ currentUser }) => {
                   }
                 }}
               />
-              
-              {/* Bouton stickers dans le textarea */}
-              <motion.button
+              <button
                 type="button"
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
                 onClick={handleStickers}
-                className="stickers-button absolute right-2 top-2 sm:top-3 p-1 text-gray-500 hover:text-pink-500 transition-colors flex items-center justify-center w-6 h-6 sm:w-7 sm:h-7"
-                title="Choisir un sticker"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-300 hover:text-pink-400 transition-colors"
               >
-                <Smile className="h-4 w-4" />
-              </motion.button>
+                <Smile className="w-5 h-5" />
+              </button>
             </div>
-          
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            type="submit"
-            disabled={!newMessage.trim() || isLoading}
-            className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-r from-pink-500 to-purple-600 text-white rounded-full hover:from-pink-600 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center shadow-lg"
-          >
-            {isLoading ? (
-              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-            ) : (
-              <Send className="h-4 w-4 sm:h-5 sm:w-5" />
-            )}
-          </motion.button>
+
+            <motion.button
+              whileHover={{ scale: 1.05, boxShadow: '0 10px 20px -5px rgba(236,72,153,0.3)' }}
+              whileTap={{ scale: 0.95 }}
+              disabled={!newMessage.trim() || isLoading}
+              className="h-12 w-12 bg-gradient-to-br from-pink-500 to-purple-600 text-white rounded-xl shadow-lg shadow-pink-100 disabled:opacity-30 disabled:shadow-none flex items-center justify-center flex-shrink-0 transition-all"
+            >
+              <Send className="w-5 h-5" />
+            </motion.button>
           </form>
+
+          {/* Panels d'options */}
+          <AnimatePresence>
+            {showStickers && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 10 }}
+                className="absolute bottom-28 left-4 right-4 bg-white/95 backdrop-blur-md p-6 rounded-3xl shadow-2xl border border-gray-100 z-50"
+              >
+                <div className="grid grid-cols-6 sm:grid-cols-10 gap-3 max-h-48 overflow-y-auto">
+                  {stickers.map((s, i) => (
+                    <button key={i} onClick={() => handleStickerSelect(s)} className="text-3xl hover:scale-125 transition-transform">{s}</button>
+                  ))}
+                </div>
+              </motion.div>
+            )}
+            {showOptions && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9, x: -20 }}
+                animate={{ opacity: 1, scale: 1, x: 0 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                className="absolute bottom-28 left-6 bg-white rounded-3xl shadow-2xl border border-gray-100 p-2 min-w-[240px] z-50 flex flex-col"
+              >
+                <button onClick={handleImageUpload} className="flex items-center space-x-3 p-4 hover:bg-gray-50 rounded-2xl transition-colors text-left group">
+                  <div className="p-2 bg-pink-50 text-pink-500 rounded-xl group-hover:bg-pink-500 group-hover:text-white transition-colors">
+                    <Image className="w-5 h-5" />
+                  </div>
+                  <span className="text-sm font-bold text-gray-700">Envoyer une image</span>
+                </button>
+                <button onClick={handleVoiceNote} className="flex items-center space-x-3 p-4 hover:bg-gray-50 rounded-2xl transition-colors text-left group">
+                  <div className="p-2 bg-purple-50 text-purple-500 rounded-xl group-hover:bg-purple-600 group-hover:text-white transition-colors">
+                    <Mic className="w-5 h-5" />
+                  </div>
+                  <span className="text-sm font-bold text-gray-700">Note vocale</span>
+                </button>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </div>
 
@@ -621,106 +510,45 @@ const ClientMessagesSectionReal = ({ currentUser }) => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50"
+            className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center p-4 z-[100]"
             onClick={(e) => e.target === e.currentTarget && setShowPremiumModal(false)}
           >
             <motion.div
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden"
+              className="bg-white rounded-[2.5rem] shadow-2xl w-full max-w-md overflow-hidden"
             >
-              {/* Header avec gradient */}
-              <div className="bg-gradient-to-r from-pink-500 to-purple-600 text-white p-6 text-center">
-                <div className="w-16 h-16 bg-white bg-opacity-20 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Crown className="h-8 w-8" />
+              <div className="bg-gradient-to-br from-pink-500 to-purple-700 text-white p-8 text-center">
+                <div className="w-20 h-20 bg-white/20 rounded-3xl flex items-center justify-center mx-auto mb-6 backdrop-blur-md border border-white/30 rotate-3">
+                  <Crown className="h-10 w-10 text-yellow-300" />
                 </div>
-                <h2 className="text-xl font-bold mb-2">Fonctionnalité Premium</h2>
-                <p className="text-pink-100 text-sm">Accès exclusif requis</p>
+                <h2 className="text-2xl font-black mb-2">Expérience Premium</h2>
+                <p className="text-pink-100 font-medium">Libérez tout le potentiel</p>
               </div>
 
-              {/* Contenu */}
-              <div className="p-6">
-                <div className="text-center mb-6">
-                  <div className="bg-yellow-100 border border-yellow-200 rounded-lg p-4 mb-4">
-                    <p className="text-yellow-800 font-medium text-sm">
-                      🔒 <strong>{premiumFeatureName}</strong> est disponible uniquement pour les abonnés Premium et VIP.
-                    </p>
-                  </div>
-                  
-                  <p className="text-gray-600 text-sm leading-relaxed">
-                    Mettez à niveau votre abonnement pour accéder à toutes les fonctionnalités exclusives et profiter d'une expérience complète avec Sophie !
+              <div className="p-8">
+                <div className="bg-pink-50 rounded-2xl p-4 mb-8 border border-pink-100 italic text-center">
+                  <p className="text-pink-700 font-bold text-sm">
+                    "La fonction {premiumFeatureName} est réservée à mes membres privilégiés."
                   </p>
                 </div>
 
-                {/* Avantages Premium */}
-                <div className="bg-gradient-to-br from-pink-50 to-purple-50 rounded-lg p-4 mb-6">
-                  <h3 className="font-semibold text-gray-800 mb-3 text-sm">Avec Premium/VIP, débloquez :</h3>
-                  <div className="space-y-2 text-xs text-gray-600">
-                    <div className="flex items-center space-x-2">
-                      <Video className="h-3 w-3 text-pink-500" />
-                      <span>Appels vidéo illimités</span>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Phone className="h-3 w-3 text-pink-500" />
-                      <span>Appels audio haute qualité</span>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Image className="h-3 w-3 text-pink-500" />
-                      <span>Partage d'images privées</span>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Mic className="h-3 w-3 text-pink-500" />
-                      <span>Messages vocaux personnalisés</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Boutons */}
-                <div className="flex space-x-3">
-                  <motion.button
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={() => setShowPremiumModal(false)}
-                    className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm"
-                  >
-                    Plus tard
-                  </motion.button>
+                <div className="flex flex-col space-y-3">
                   <motion.button
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                     onClick={() => {
                       setShowPremiumModal(false);
-                      // Redirection vers la page de paiement Premium
-                      navigate('/dashboard/payment', {
-                        state: {
-                          plan: {
-                            id: 'premium',
-                            name: 'Premium',
-                            price: 79,
-                            features: [
-                              'Appels vidéo illimités',
-                              'Messages vocaux personnalisés',
-                              'Partage d\'images privées',
-                              'Appels audio haute qualité',
-                              'Accès prioritaire',
-                              'Support VIP'
-                            ],
-                            description: 'Débloquez toutes les fonctionnalités premium'
-                          },
-                          user: {
-                            uid: currentUser?.uid,
-                            email: currentUser?.email,
-                            displayName: currentUser?.displayName
-                          },
-                          fromFeature: premiumFeatureName
-                        }
-                      });
+                      navigate('/dashboard/payment', { state: { from: premiumFeatureName } });
                     }}
-                    className="flex-1 px-4 py-2 bg-gradient-to-r from-pink-500 to-purple-600 text-white rounded-lg hover:from-pink-600 hover:to-purple-700 transition-all shadow-lg text-sm font-medium"
+                    className="w-full py-4 bg-gradient-to-r from-pink-500 to-purple-600 text-white rounded-2xl shadow-xl shadow-pink-100 font-black text-sm"
                   >
-                    Passer Premium
+                    DÉCOUVRIR LES PLANS
                   </motion.button>
+                  <button onClick={() => setShowPremiumModal(false)} className="w-full py-3 text-gray-400 font-bold text-xs uppercase tracking-widest hover:text-gray-600">
+                    Plus tard
+                  </button>
                 </div>
               </div>
             </motion.div>

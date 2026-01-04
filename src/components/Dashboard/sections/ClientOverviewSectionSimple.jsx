@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { 
-  MessageSquare, 
-  Calendar, 
-  Video, 
-  Star, 
-  Clock, 
+import {
+  MessageSquare,
+  Calendar,
+  Video,
+  Star,
+  Clock,
   Heart,
   TrendingUp,
   Crown,
@@ -19,9 +19,9 @@ import CreateAppointmentModal from '../CreateAppointmentModal';
 
 const ClientOverviewSectionSimple = ({ currentUser }) => {
   const { stats, recentActivity, loading, refreshStats } = useStats();
-  const isPremium = currentUser?.subscription?.status === 'active' && 
-                   (currentUser?.subscription?.type === 'premium' || currentUser?.subscription?.type === 'vip');
-  
+  const isPremium = currentUser?.subscription?.status === 'active' &&
+    (currentUser?.subscription?.type === 'premium' || currentUser?.subscription?.type === 'vip');
+
   // États pour les modals
   const [showCreateMessageModal, setShowCreateMessageModal] = useState(false);
   const [showCreateAppointmentModal, setShowCreateAppointmentModal] = useState(false);
@@ -59,10 +59,10 @@ const ClientOverviewSectionSimple = ({ currentUser }) => {
   // Fonction pour formater le temps écoulé
   function formatTimeAgo(date) {
     if (!date) return 'Récemment';
-    
+
     const now = new Date();
     let activityDate;
-    
+
     if (date.toDate) {
       // Firestore Timestamp
       activityDate = date.toDate();
@@ -73,11 +73,11 @@ const ClientOverviewSectionSimple = ({ currentUser }) => {
       // String ou autre format
       activityDate = new Date(date);
     }
-    
+
     const diffMs = now - activityDate;
     const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
     const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-    
+
     if (diffHours < 1) return 'Il y a moins d\'1h';
     if (diffHours < 24) return `Il y a ${diffHours}h`;
     if (diffDays < 7) return `Il y a ${diffDays} jours`;
@@ -94,8 +94,8 @@ const ClientOverviewSectionSimple = ({ currentUser }) => {
               Bienvenue, {currentUser?.displayName?.split(' ')[0] || 'Cher client'} ! 👋
             </h2>
             <p className="text-pink-100">
-              {isPremium 
-                ? 'Vous avez accès à tout le contenu premium' 
+              {isPremium
+                ? 'Vous avez accès à tout le contenu premium'
                 : 'Découvrez nos abonnements pour accéder au contenu exclusif'
               }
             </p>
@@ -130,7 +130,7 @@ const ClientOverviewSectionSimple = ({ currentUser }) => {
             <MessageSquare className="w-8 h-8 text-pink-200" />
           </div>
         </div>
-        
+
         <div className="bg-gradient-to-br from-purple-500 to-purple-600 p-6 rounded-xl text-white cursor-pointer hover:shadow-lg transition-all" onClick={() => setShowCreateAppointmentModal(true)}>
           <div className="flex items-center justify-between">
             <div>
@@ -141,7 +141,7 @@ const ClientOverviewSectionSimple = ({ currentUser }) => {
             <Calendar className="w-8 h-8 text-purple-200" />
           </div>
         </div>
-        
+
         <div className="bg-gradient-to-br from-blue-500 to-blue-600 p-6 rounded-xl text-white">
           <div className="flex items-center justify-between">
             <div>
@@ -151,7 +151,7 @@ const ClientOverviewSectionSimple = ({ currentUser }) => {
             <Video className="w-8 h-8 text-blue-200" />
           </div>
         </div>
-        
+
         <div className="bg-gradient-to-br from-green-500 to-green-600 p-6 rounded-xl text-white">
           <div className="flex items-center justify-between">
             <div>
@@ -167,7 +167,7 @@ const ClientOverviewSectionSimple = ({ currentUser }) => {
       <div className="bg-white rounded-2xl p-6">
         <div className="flex items-center justify-between mb-6">
           <h3 className="text-xl font-bold text-gray-800">Activités Récentes</h3>
-          <button 
+          <button
             onClick={refreshStats}
             disabled={loading}
             className="text-pink-500 hover:text-pink-600 text-sm font-medium disabled:opacity-50 flex items-center gap-2"
@@ -180,7 +180,7 @@ const ClientOverviewSectionSimple = ({ currentUser }) => {
             Actualiser
           </button>
         </div>
-        
+
         <div className="space-y-4">
           {activities.map((activity) => (
             <div key={activity.id} className="flex items-center p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
@@ -218,7 +218,7 @@ const ClientOverviewSectionSimple = ({ currentUser }) => {
             Écrire
           </button>
         </div>
-        
+
         <div className="bg-white rounded-xl p-6 border border-gray-200 hover:shadow-lg transition-shadow">
           <div className="flex items-center mb-4">
             <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center mr-4">
@@ -233,7 +233,7 @@ const ClientOverviewSectionSimple = ({ currentUser }) => {
             Réserver
           </button>
         </div>
-        
+
         <div className="bg-white rounded-xl p-6 border border-gray-200 hover:shadow-lg transition-shadow">
           <div className="flex items-center mb-4">
             <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mr-4">
@@ -251,12 +251,12 @@ const ClientOverviewSectionSimple = ({ currentUser }) => {
       </div>
 
       {/* Modals */}
-      <CreateMessageModal 
+      <CreateMessageModal
         isOpen={showCreateMessageModal}
         onClose={() => setShowCreateMessageModal(false)}
       />
-      
-      <CreateAppointmentModal 
+
+      <CreateAppointmentModal
         isOpen={showCreateAppointmentModal}
         onClose={() => setShowCreateAppointmentModal(false)}
       />

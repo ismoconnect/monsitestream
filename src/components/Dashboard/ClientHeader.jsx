@@ -4,8 +4,8 @@ import { Bell, MessageSquare, User, Crown, Menu } from 'lucide-react';
 import ValidationBadge from './ValidationBadge';
 
 const ClientHeader = ({ currentUser, onMobileMenuToggle }) => {
-  const isPremium = currentUser?.subscription?.status === 'active' && 
-                   (currentUser?.subscription?.type === 'premium' || currentUser?.subscription?.type === 'vip');
+  const isPremium = currentUser?.subscription?.status === 'active' &&
+    (currentUser?.subscription?.type === 'premium' || currentUser?.subscription?.type === 'vip');
 
   return (
     <header className="bg-white shadow-sm border-b border-gray-200">
@@ -20,20 +20,20 @@ const ClientHeader = ({ currentUser, onMobileMenuToggle }) => {
             >
               <Menu className="w-6 h-6 text-gray-600" />
             </button>
-            
+
             {/* Mobile Title */}
             <div className="lg:hidden">
               <h1 className="text-lg font-semibold text-gray-800">Dashboard</h1>
             </div>
           </div>
-          
+
           <div className="flex items-center space-x-2 lg:space-x-4">
             {/* Validation Badge */}
             <ValidationBadge user={currentUser} />
-            
+
             {/* Notifications */}
             <div className="relative">
-              <motion.button 
+              <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 className="p-1.5 lg:p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
@@ -44,10 +44,10 @@ const ClientHeader = ({ currentUser, onMobileMenuToggle }) => {
                 </span>
               </motion.button>
             </div>
-            
+
             {/* Messages non lus */}
             <div className="relative">
-              <motion.button 
+              <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 className="p-1.5 lg:p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
