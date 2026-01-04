@@ -11,8 +11,8 @@ const ClientHeader = ({ currentUser, onMobileMenuToggle }) => {
     <header className="bg-white shadow-sm border-b border-gray-200">
       <div className="px-3 lg:px-6 py-3 lg:py-4">
         <div className="flex justify-between items-center">
-          {/* Left side - Mobile Menu & Title */}
-          <div className="flex items-center space-x-3">
+          {/* Left side - Mobile Menu */}
+          <div className="flex items-center">
             {/* Mobile Menu Button */}
             <button
               onClick={onMobileMenuToggle}
@@ -20,16 +20,18 @@ const ClientHeader = ({ currentUser, onMobileMenuToggle }) => {
             >
               <Menu className="w-6 h-6 text-gray-600" />
             </button>
+          </div>
 
-            {/* Mobile Title */}
-            <div className="lg:hidden">
-              <h1 className="text-lg font-semibold text-gray-800">Dashboard</h1>
-            </div>
+          {/* Center - Validation Badge (Mobile only) */}
+          <div className="lg:hidden absolute left-1/2 -translate-x-1/2">
+            <ValidationBadge user={currentUser} />
           </div>
 
           <div className="flex items-center space-x-2 lg:space-x-4">
-            {/* Validation Badge */}
-            <ValidationBadge user={currentUser} />
+            {/* Validation Badge - Desktop only */}
+            <div className="hidden lg:block">
+              <ValidationBadge user={currentUser} />
+            </div>
 
             {/* Notifications */}
             <div className="relative">
