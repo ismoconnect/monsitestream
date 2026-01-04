@@ -305,7 +305,7 @@ const ClientMessagesSectionReal = ({ currentUser }) => {
       <div className="fixed inset-x-0 bottom-0 top-[56px] z-40 bg-white flex flex-col sm:static sm:z-auto sm:inset-auto sm:h-[555px] sm:max-w-5xl sm:mx-auto sm:rounded-[3rem] sm:shadow-[0_20px_70px_-10px_rgba(0,0,0,0.05)] sm:border sm:border-gray-100/80 overflow-hidden transition-all duration-300">
 
         {/* Header - Rose Officiel Liliana */}
-        <div className="bg-gradient-to-r from-pink-500 to-purple-600 p-4 sm:p-5 flex-shrink-0 flex items-center justify-between z-20 shadow-sm">
+        <div className="bg-gradient-to-r from-pink-500 to-purple-600 p-4 sm:p-5 flex-shrink-0 flex items-center justify-between z-50 shadow-md relative">
           <div className="flex items-center space-x-4">
             <div className="relative">
               <div className="w-12 h-12 sm:w-14 sm:h-14 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center text-white border border-white/30">
@@ -346,8 +346,8 @@ const ClientMessagesSectionReal = ({ currentUser }) => {
           </div>
         </div>
 
-        {/* Zone des messages - Blanc Pur Clean */}
-        <div className="flex-1 overflow-y-auto bg-white px-4 sm:px-8 py-8 space-y-6 scrollbar-hide font-sans">
+        {/* Zone des messages -        {/* Messages */}
+        <div className="flex-1 overflow-y-auto bg-white px-4 sm:px-8 py-8 space-y-6 scrollbar-hide font-sans overscroll-contain relative z-0">
           <AnimatePresence initial={false}>
             {messages.map((message) => {
               const mUserId = currentUser?.uid || currentUser?.id;
@@ -406,7 +406,7 @@ const ClientMessagesSectionReal = ({ currentUser }) => {
         </div>
 
         {/* Barre de saisie - Accents Roses */}
-        <div className="bg-white p-4 sm:p-6 border-t border-gray-50 flex-shrink-0">
+        <div className="bg-white p-4 sm:p-6 border-t border-gray-50 flex-shrink-0 z-50 relative">
           <form onSubmit={handleSendMessage} className="flex items-center space-x-3 max-w-5xl mx-auto">
             <button
               type="button"
