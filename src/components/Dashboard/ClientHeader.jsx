@@ -22,10 +22,6 @@ const ClientHeader = ({ currentUser, onMobileMenuToggle }) => {
             </button>
           </div>
 
-          {/* Center - Validation Badge (Mobile only) */}
-          <div className="lg:hidden absolute left-1/2 -translate-x-1/2">
-            <ValidationBadge user={currentUser} />
-          </div>
 
           <div className="flex items-center space-x-2 lg:space-x-4">
             {/* Validation Badge - Desktop only */}

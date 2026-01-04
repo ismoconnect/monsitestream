@@ -226,21 +226,6 @@ const ClientSidebar = ({ currentUser, onMobileClose, onSignOut, isMobileMenuOpen
         </div>
       )}
 
-      {/* Quick Stats Mini */}
-      <div className="p-2 border-t border-gray-200">
-        <div className="grid grid-cols-2 gap-1">
-          <div className="bg-gray-50 rounded p-1.5 text-center">
-            <MessageSquare className="w-3 h-3 text-indigo-500 mx-auto mb-0.5" />
-            <p className="text-xs text-gray-600">Messages</p>
-            <p className="text-xs font-bold text-gray-800">12</p>
-          </div>
-          <div className="bg-gray-50 rounded p-1.5 text-center">
-            <Calendar className="w-3 h-3 text-orange-500 mx-auto mb-0.5" />
-            <p className="text-xs text-gray-600">RDV</p>
-            <p className="text-xs font-bold text-gray-800">3</p>
-          </div>
-        </div>
-      </div>
 
       {/* Logout Button Mini */}
       <div className="p-2 border-t border-gray-200">
