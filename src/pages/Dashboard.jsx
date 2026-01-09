@@ -1,15 +1,7 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useUserStatus } from '../hooks/useUserStatus';
-import {
-  LogOut,
-  Bell,
-  Settings,
-  User,
-  Menu,
-  X
-} from 'lucide-react';
 
 // Components
 import ClientSidebar from '../components/Dashboard/ClientSidebar';
@@ -23,18 +15,31 @@ import ClientSubscriptionSectionSimple from '../components/Dashboard/sections/Cl
 import ClientProfileSectionSimple from '../components/Dashboard/sections/ClientProfileSectionSimple';
 
 const Dashboard = () => {
-  const { currentUser, signOut, hasActiveSubscription } = useAuth();
-  const { userStatus } = useUserStatus(); // Statut utilisateur en temps réel
-  const [activeSection, setActiveSection] = useState('overview');
-  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+  const { currentUser, signOut } = useAuth();
+  const { userStatus } = useUserStatus();
+  const location = useLocation();
   const navigate = useNavigate();
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
-  // Utiliser userStatus si disponible, sinon currentUser
   const displayUser = userStatus || currentUser;
+
+  // Determine active section from URL
+  const getActiveSection = () => {
+    const path = location.pathname;
+    if (path.includes('/messages')) return 'messages';
+    if (path.includes('/gallery')) return 'gallery';
+    if (path.includes('/appointments')) return 'appointments';
+    if (path.includes('/streaming')) return 'streaming';
+    if (path.includes('/subscription')) return 'subscription';
+    if (path.includes('/profile')) return 'profile';
+    if (path.includes('/payment-tracking')) return 'payment-tracking';
+    return 'overview';
+  };
+
+  const activeSection = getActiveSection();
 
   const handleSignOut = async () => {
     await signOut();
-    // Rediriger vers l'accueil après déconnexion
     navigate('/');
   };
 
@@ -48,48 +53,32 @@ const Dashboard = () => {
       subscription: <ClientSubscriptionSectionSimple currentUser={displayUser} />,
       profile: <ClientProfileSectionSimple currentUser={displayUser} />
     };
-
     return sections[activeSection] || sections.overview;
   };
 
   return (
-    <div className="h-[100dvh] w-full bg-gray-50 flex overflow-hidden overscroll-none">
-      {/* Mobile Sidebar Overlay */}
-      {isMobileSidebarOpen && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-[55] lg:hidden"
-          onClick={() => setIsMobileSidebarOpen(false)}
-        />
-      )}
-
-      {/* Client Sidebar */}
-      <div className={`
-        fixed left-0 top-0 h-full w-64 z-[60] transform transition-transform duration-300 ease-in-out
-        ${isMobileSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
-        lg:translate-x-0 lg:relative lg:translate-x-0 flex-shrink-0
-      `}>
-        <ClientSidebar
-          activeSection={activeSection}
-          setActiveSection={setActiveSection}
-          currentUser={displayUser}
-          onMobileClose={() => setIsMobileSidebarOpen(false)}
-          onSignOut={handleSignOut}
-        />
-      </div>
+    <div className="h-[100dvh] w-full bg-gray-50 flex overflow-hidden lg:relative overscroll-none">
+      {/* 💻 Unified Sidebar (handles Mobile Overlay too) */}
+      <ClientSidebar
+        currentUser={displayUser}
+        onSignOut={handleSignOut}
+        isMobileMenuOpen={isMobileSidebarOpen}
+        setIsMobileMenuOpen={setIsMobileSidebarOpen}
+      />
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
-        {/* Main Header - Fixed */}
-        <header className="flex-shrink-0 z-20">
+      <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden relative">
+        {/* Header - Stays on Top */}
+        <header className="flex-shrink-0 z-[70] order-1">
           <ClientHeader
             currentUser={displayUser}
-            onMobileMenuToggle={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
+            onMobileMenuToggle={() => setIsMobileSidebarOpen(true)}
           />
         </header>
 
-        {/* Content Area - Filling the rest of the height */}
-        <main className="flex-1 min-h-0 relative overflow-hidden bg-[#F8F9FB] pt-[65px] lg:pt-0">
-          <div className="flex flex-col h-full w-full">
+        {/* Dynamic Section Area */}
+        <main className="flex-1 min-h-0 relative overflow-hidden bg-[#F8F9FB] pt-[65px] lg:pt-0 order-2">
+          <div className="flex flex-col h-full w-full overflow-y-auto">
             {renderSection()}
           </div>
         </main>
@@ -97,6 +86,5 @@ const Dashboard = () => {
     </div>
   );
 };
-
 
 export default Dashboard;

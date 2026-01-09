@@ -302,10 +302,11 @@ const ClientMessagesSectionReal = ({ currentUser }) => {
   return (
     <div className="flex-1 w-full h-full sm:p-4 lg:p-6">
       {/* Bloc de Chat Principal - Mobile Independent Absolute Layout */}
-      <div className="relative w-full h-full z-0 bg-white block sm:flex sm:flex-col sm:static sm:z-auto sm:inset-auto sm:h-[555px] sm:max-w-5xl sm:mx-auto sm:rounded-[3rem] sm:shadow-[0_20px_70px_-10px_rgba(0,0,0,0.05)] sm:border sm:border-gray-100/80 overflow-hidden transition-all duration-300">
+      {/* Bloc de Chat Principal - Mobile Fixed / Desktop Flex */}
+      <div className="fixed top-[65px] left-0 right-0 bottom-0 z-0 bg-white lg:static lg:flex lg:flex-col lg:w-full lg:h-[70vh] lg:max-w-6xl lg:mx-auto lg:rounded-[3rem] lg:shadow-[0_20px_70px_-10px_rgba(0,0,0,0.05)] lg:border lg:border-gray-100/80 overflow-hidden transition-all duration-300 flex flex-col">
 
-        {/* Header - Absolute Top Mobile / Relative Desktop */}
-        <div className="absolute top-0 inset-x-0 h-[85px] z-50 bg-gradient-to-r from-pink-500 to-purple-600 p-4 sm:p-5 flex items-center justify-between shadow-md sm:static sm:h-auto sm:shrink-0 sm:relative">
+        {/* Header - Static Top */}
+        <div className="flex-shrink-0 h-[85px] z-10 bg-gradient-to-r from-pink-500 to-purple-600 p-4 sm:p-5 flex items-center justify-between shadow-md">
           <div className="flex items-center space-x-4">
             <div className="relative">
               <div className="w-12 h-12 sm:w-14 sm:h-14 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center text-white border border-white/30">
@@ -346,8 +347,8 @@ const ClientMessagesSectionReal = ({ currentUser }) => {
           </div>
         </div>
 
-        {/* Messages - Absolute Middle Mobile / Flex Desktop */}
-        <div className="absolute top-[85px] bottom-[90px] inset-x-0 overflow-y-auto bg-white px-4 sm:px-8 py-4 sm:py-8 space-y-6 scrollbar-hide font-sans overscroll-contain z-0 sm:static sm:flex-1 sm:inset-auto sm:z-auto">
+        {/* Messages - Flex Grow with Scroll */}
+        <div className="flex-1 overflow-y-auto bg-white px-4 sm:px-8 py-4 sm:py-8 space-y-6 scrollbar-hide font-sans overscroll-contain z-0 relative">
           <AnimatePresence initial={false}>
             {messages.map((message) => {
               const mUserId = currentUser?.uid || currentUser?.id;
@@ -405,8 +406,8 @@ const ClientMessagesSectionReal = ({ currentUser }) => {
           <div ref={messagesEndRef} />
         </div>
 
-        {/* Barre de saisie - Absolute Bottom Mobile / Static Desktop */}
-        <div className="absolute bottom-0 inset-x-0 z-50 bg-white p-4 sm:p-6 border-t border-gray-50 sm:static sm:inset-auto sm:z-auto sm:flex-shrink-0">
+        {/* Barre de saisie - Static Bottom */}
+        <div className="flex-shrink-0 z-20 bg-white p-4 sm:p-6 border-t border-gray-50 relative">
           <form onSubmit={handleSendMessage} className="flex items-center space-x-3 max-w-5xl mx-auto">
             <button
               type="button"

@@ -8,7 +8,7 @@ const ClientHeader = ({ currentUser, onMobileMenuToggle }) => {
     (currentUser?.subscription?.type === 'premium' || currentUser?.subscription?.type === 'vip');
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 lg:static bg-white shadow-sm border-b border-gray-200">
+    <header className="fixed top-0 left-0 right-0 z-50 lg:static bg-white shadow-sm border-b border-gray-200 h-[65px] lg:h-auto flex flex-col justify-center">
       <div className="px-3 lg:px-6 py-3 lg:py-4">
         <div className="flex justify-between items-center">
           {/* Left side - Mobile Menu */}
@@ -16,7 +16,7 @@ const ClientHeader = ({ currentUser, onMobileMenuToggle }) => {
             {/* Mobile Menu Button */}
             <button
               onClick={onMobileMenuToggle}
-              className="lg:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors"
+              className="lg:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors pointer-events-auto cursor-pointer relative z-[80]"
             >
               <Menu className="w-6 h-6 text-gray-600" />
             </button>

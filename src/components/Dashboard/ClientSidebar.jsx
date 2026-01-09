@@ -1,105 +1,30 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, useLocation } from 'react-router-dom';
-import {
-  Home,
-  Image,
-  MessageSquare,
-  Calendar,
-  Video,
-  CreditCard,
-  User,
-  Settings,
-  Heart,
-  Star,
-  Crown,
-  Lock,
-  X,
-  LogOut,
-  Search
-} from 'lucide-react';
+import { X, Home, Image, MessageSquare, Calendar, Video, CreditCard, User, Heart, Crown, Lock, LogOut, Search } from 'lucide-react';
 import ValidationBadge from './ValidationBadge';
 
-const ClientSidebar = ({ currentUser, onMobileClose, onSignOut, isMobileMenuOpen, setIsMobileMenuOpen }) => {
+const ClientSidebar = ({ currentUser, onSignOut, isMobileMenuOpen, setIsMobileMenuOpen }) => {
   const navigate = useNavigate();
   const location = useLocation();
+
   const menuItems = [
-    {
-      id: 'overview',
-      label: 'Vue d\'ensemble',
-      icon: Home,
-      color: 'text-blue-500',
-      bgColor: 'bg-blue-50',
-      path: '/dashboard/overview'
-    },
-    {
-      id: 'gallery',
-      label: 'Galerie Premium',
-      icon: Image,
-      color: 'text-pink-500',
-      bgColor: 'bg-pink-50',
-      premium: true,
-      path: '/dashboard/gallery'
-    },
-    {
-      id: 'messages',
-      label: 'Messages Privés',
-      icon: MessageSquare,
-      color: 'text-indigo-500',
-      bgColor: 'bg-indigo-50',
-      path: '/dashboard/messages'
-    },
-    {
-      id: 'appointments',
-      label: 'Mes Rendez-vous',
-      icon: Calendar,
-      color: 'text-orange-500',
-      bgColor: 'bg-orange-50',
-      path: '/dashboard/appointments'
-    },
-    {
-      id: 'streaming',
-      label: 'Sessions Live',
-      icon: Video,
-      color: 'text-purple-500',
-      bgColor: 'bg-purple-50',
-      premium: true,
-      path: '/dashboard/streaming'
-    },
-    {
-      id: 'subscription',
-      label: 'Mon Abonnement',
-      icon: CreditCard,
-      color: 'text-green-500',
-      bgColor: 'bg-green-50',
-      path: '/dashboard/subscription'
-    },
-    {
-      id: 'payment-tracking',
-      label: 'Suivi Paiements',
-      icon: Search,
-      color: 'text-indigo-500',
-      bgColor: 'bg-indigo-50',
-      path: '/dashboard/payment-tracking'
-    },
-    {
-      id: 'profile',
-      label: 'Mon Profil',
-      icon: User,
-      color: 'text-gray-500',
-      bgColor: 'bg-gray-50',
-      path: '/dashboard/profile'
-    }
+    { id: 'overview', label: 'Vue d\'ensemble', icon: Home, color: 'text-blue-500', bgColor: 'bg-blue-50', path: '/dashboard/overview' },
+    { id: 'gallery', label: 'Galerie Premium', icon: Image, color: 'text-pink-500', bgColor: 'bg-pink-50', premium: true, path: '/dashboard/gallery' },
+    { id: 'messages', label: 'Messages Privés', icon: MessageSquare, color: 'text-indigo-500', bgColor: 'bg-indigo-50', path: '/dashboard/messages' },
+    { id: 'appointments', label: 'Mes Rendez-vous', icon: Calendar, color: 'text-orange-500', bgColor: 'bg-orange-50', path: '/dashboard/appointments' },
+    { id: 'streaming', label: 'Sessions Live', icon: Video, color: 'text-purple-500', bgColor: 'bg-purple-50', premium: true, path: '/dashboard/streaming' },
+    { id: 'subscription', label: 'Mon Abonnement', icon: CreditCard, color: 'text-green-500', bgColor: 'bg-green-50', path: '/dashboard/subscription' },
+    { id: 'payment-tracking', label: 'Suivi Paiements', icon: Search, color: 'text-indigo-500', bgColor: 'bg-indigo-50', path: '/dashboard/payment-tracking' },
+    { id: 'profile', label: 'Mon Profil', icon: User, color: 'text-gray-500', bgColor: 'bg-gray-50', path: '/dashboard/profile' }
   ];
 
   const isPremium = currentUser?.subscription?.status === 'active' &&
     (currentUser?.subscription?.type === 'premium' || currentUser?.subscription?.type === 'vip');
 
-  // Contenu de la sidebar
   const SidebarContent = () => (
-    <div className="bg-gradient-to-b from-white to-gray-50 shadow-xl border-r border-gray-200 h-full flex flex-col overflow-hidden"
-    >
-      {/* Header Compact */}
+    <div className="bg-gradient-to-b from-white to-gray-50 shadow-xl border-r border-gray-200 h-full flex flex-col overflow-hidden">
+      {/* old Header Compact */}
       <div className="relative p-2 bg-gradient-to-r from-pink-500 to-purple-600">
         <div className="relative flex items-center justify-between">
           <div className="flex items-center space-x-2">
@@ -111,11 +36,12 @@ const ClientSidebar = ({ currentUser, onMobileClose, onSignOut, isMobileMenuOpen
               <p className="text-xs text-white/80">Premium</p>
             </div>
           </div>
+          {/* Close button for mobile */}
           <button
-            onClick={onMobileClose}
-            className="lg:hidden p-1 rounded bg-white/20 hover:bg-white/30"
+            onClick={() => setIsMobileMenuOpen(false)}
+            className="lg:hidden p-1 bg-white/10 rounded-lg hover:bg-white/20 transition-colors"
           >
-            <X className="w-3 h-3 text-white" />
+            <X className="w-4 h-4 text-white" />
           </button>
         </div>
       </div>
@@ -139,11 +65,6 @@ const ClientSidebar = ({ currentUser, onMobileClose, onSignOut, isMobileMenuOpen
           </div>
           <div className="w-2 h-2 bg-green-500 rounded-full"></div>
         </div>
-
-        {/* Validation Badge Mobile */}
-        <div className="mt-2 lg:hidden">
-          <ValidationBadge user={currentUser} />
-        </div>
       </div>
 
       {/* Navigation Ultra-Compacte */}
@@ -159,12 +80,7 @@ const ClientSidebar = ({ currentUser, onMobileClose, onSignOut, isMobileMenuOpen
               onClick={() => {
                 if (!isLocked) {
                   navigate(item.path);
-                  if (setIsMobileMenuOpen) {
-                    setIsMobileMenuOpen(false);
-                  }
-                  if (onMobileClose) {
-                    onMobileClose();
-                  }
+                  if (setIsMobileMenuOpen) setIsMobileMenuOpen(false);
                 }
               }}
               whileHover={{ scale: 1.01 }}
@@ -177,11 +93,8 @@ const ClientSidebar = ({ currentUser, onMobileClose, onSignOut, isMobileMenuOpen
                   : 'text-gray-600 hover:bg-gray-50 hover:text-gray-800'
                 }`}
             >
-              <Icon className={`w-4 h-4 ${isActive ? 'text-white' : isLocked ? 'text-gray-400' : item.color
-                }`} />
-
+              <Icon className={`w-4 h-4 ${isActive ? 'text-white' : isLocked ? 'text-gray-400' : item.color}`} />
               <span className="font-medium text-xs flex-1 text-left truncate">{item.label}</span>
-
               {item.premium && (
                 <div className="flex items-center">
                   {isLocked ? (
@@ -196,29 +109,24 @@ const ClientSidebar = ({ currentUser, onMobileClose, onSignOut, isMobileMenuOpen
         })}
       </div>
 
-      {/* Premium CTA Augmentée */}
+      {/* Premium CTA */}
       {!isPremium && (
         <div className="p-2 border-t border-gray-200">
           <motion.div
             whileHover={{ scale: 1.02 }}
-            className="bg-gradient-to-br from-pink-500 via-purple-500 to-indigo-600 rounded-xl p-3 text-white text-center shadow-lg"
+            className="bg-gradient-to-br from-pink-500 via-purple-500 to-indigo-600 rounded-xl p-2 text-white text-center shadow-lg"
           >
-            <div className="bg-white/20 rounded-full w-8 h-8 flex items-center justify-center mx-auto mb-2">
-              <Crown className="w-4 h-4 text-white" />
+            <div className="bg-white/20 rounded-full w-6 h-6 flex items-center justify-center mx-auto mb-1">
+              <Crown className="w-3 h-3 text-white" />
             </div>
-            <h3 className="font-bold text-sm mb-1">Passez Premium</h3>
-            <p className="text-xs text-white/90 mb-3">Contenu exclusif</p>
+            <h3 className="font-bold text-xs mb-0.5">Passez Premium</h3>
+            <p className="text-[10px] text-white/90 mb-1.5">Contenu exclusif</p>
             <button
               onClick={() => {
                 navigate('/dashboard/subscription');
-                if (setIsMobileMenuOpen) {
-                  setIsMobileMenuOpen(false);
-                }
-                if (onMobileClose) {
-                  onMobileClose();
-                }
+                if (setIsMobileMenuOpen) setIsMobileMenuOpen(false);
               }}
-              className="w-full bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white py-2 px-3 rounded-lg text-xs font-semibold transition-all duration-300 border border-white/20"
+              className="w-full bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white py-1.5 px-2 rounded-lg text-[10px] font-semibold transition-all duration-300 border border-white/20"
             >
               Découvrir les plans
             </button>
@@ -226,9 +134,8 @@ const ClientSidebar = ({ currentUser, onMobileClose, onSignOut, isMobileMenuOpen
         </div>
       )}
 
-
       {/* Logout Button Mini */}
-      <div className="p-2 border-t border-gray-200">
+      <div className="p-2 border-t border-gray-200 mt-auto">
         <motion.button
           onClick={onSignOut}
           whileHover={{ scale: 1.01 }}
@@ -244,16 +151,13 @@ const ClientSidebar = ({ currentUser, onMobileClose, onSignOut, isMobileMenuOpen
 
   return (
     <>
-      {/* Desktop Sidebar */}
-      <div className="hidden lg:block w-64">
+      <div className="hidden lg:block w-64 h-full">
         <SidebarContent />
       </div>
 
-      {/* Mobile Sidebar Overlay */}
       <AnimatePresence>
         {isMobileMenuOpen && (
-          <div className="lg:hidden fixed inset-0 z-50 flex">
-            {/* Backdrop */}
+          <div className="lg:hidden fixed inset-0 z-[100] flex">
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -261,22 +165,13 @@ const ClientSidebar = ({ currentUser, onMobileClose, onSignOut, isMobileMenuOpen
               onClick={() => setIsMobileMenuOpen(false)}
               className="fixed inset-0 bg-black/50 backdrop-blur-sm"
             />
-
-            {/* Sidebar */}
             <motion.div
               initial={{ x: -300 }}
               animate={{ x: 0 }}
               exit={{ x: -300 }}
               transition={{ type: "spring", damping: 25, stiffness: 200 }}
-              className="relative w-64 max-w-sm"
+              className="relative w-64 bg-white"
             >
-              {/* Close button */}
-              <button
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="absolute top-4 right-4 z-10 p-2 bg-white/20 rounded-full hover:bg-white/30 transition-colors"
-              >
-                <X className="h-5 w-5 text-white" />
-              </button>
               <SidebarContent />
             </motion.div>
           </div>

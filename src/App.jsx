@@ -9,14 +9,7 @@ import { NotificationProvider } from './contexts/NotificationContext';
 
 // Pages
 import Home from './pages/Home';
-import DashboardOverview from './pages/dashboard/DashboardOverview';
-import DashboardSubscription from './pages/dashboard/DashboardSubscription';
-import DashboardMessages from './pages/dashboard/DashboardMessages';
-import DashboardGallery from './pages/dashboard/DashboardGallery';
-import DashboardStreaming from './pages/dashboard/DashboardStreaming';
-import DashboardAppointments from './pages/dashboard/DashboardAppointments';
-import DashboardProfile from './pages/dashboard/DashboardProfile';
-import DashboardNotFound from './pages/dashboard/DashboardNotFound';
+import Dashboard from './pages/Dashboard';
 import PaymentPage from './pages/PaymentPage';
 import PaymentStatusPage from './pages/PaymentStatusPage';
 import PaymentTrackingPage from './pages/PaymentTrackingPage';
@@ -42,21 +35,21 @@ const App = () => {
                 {/* Main Route */}
                 <Route path="/" element={<Home />} />
 
-                {/* Dashboard Routes */}
-                <Route path="/dashboard" element={<DashboardOverview />} />
-                <Route path="/dashboard/overview" element={<DashboardOverview />} />
-                <Route path="/dashboard/subscription" element={<DashboardSubscription />} />
-                <Route path="/dashboard/messages" element={<DashboardMessages />} />
-                <Route path="/dashboard/gallery" element={<DashboardGallery />} />
-                <Route path="/dashboard/streaming" element={<DashboardStreaming />} />
-                <Route path="/dashboard/appointments" element={<DashboardAppointments />} />
-                <Route path="/dashboard/profile" element={<DashboardProfile />} />
+                {/* Unified Dashboard Routes */}
+                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/dashboard/overview" element={<Dashboard />} />
+                <Route path="/dashboard/subscription" element={<Dashboard />} />
+                <Route path="/dashboard/messages" element={<Dashboard />} />
+                <Route path="/dashboard/gallery" element={<Dashboard />} />
+                <Route path="/dashboard/streaming" element={<Dashboard />} />
+                <Route path="/dashboard/appointments" element={<Dashboard />} />
+                <Route path="/dashboard/profile" element={<Dashboard />} />
                 <Route path="/dashboard/payment" element={<PaymentPage />} />
                 <Route path="/dashboard/payment-status" element={<PaymentStatusPage />} />
                 <Route path="/dashboard/payment-tracking" element={<PaymentTrackingPage />} />
 
                 {/* Dashboard catch-all route */}
-                <Route path="/dashboard/*" element={<DashboardNotFound />} />
+                <Route path="/dashboard/*" element={<Dashboard />} />
 
                 {/* Messages Route */}
                 <Route path="/messages" element={<Messages />} />
