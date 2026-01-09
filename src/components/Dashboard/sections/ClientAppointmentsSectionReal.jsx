@@ -3,527 +3,297 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useAppointments } from '../../../hooks/useAppointments';
 import { useNotification } from '../../../contexts/NotificationContext';
 import CreateAppointmentModal from '../CreateAppointmentModal';
-import { 
-  Calendar, 
-  Clock, 
-  MapPin, 
-  User, 
-  Phone,
-  Mail,
-  Euro,
+import {
+  Calendar,
+  Clock,
+  MapPin,
+  User,
   Check,
   X,
   MoreVertical,
   Plus,
   Search,
-  Filter,
-  Star,
-  Heart,
-  Crown,
-  AlertCircle,
   CheckCircle,
-  XCircle,
   Loader,
-  Edit,
-  Trash2,
   Eye,
-  MessageSquare,
-  CreditCard,
+  ChevronRight,
+  Sparkles,
   CalendarCheck,
   CalendarX,
-  CalendarClock
+  CalendarClock,
+  TrendingUp
 } from 'lucide-react';
 
 const ClientAppointmentsSectionReal = ({ currentUser }) => {
-  // Hooks pour les données réelles
-  const { appointments, stats, loading, createAppointment, confirmAppointment, cancelAppointment, completeAppointment } = useAppointments();
+  const { appointments, stats, loading, confirmAppointment, cancelAppointment, completeAppointment } = useAppointments();
   const { showSuccess, showError } = useNotification();
-  
-  // États locaux
+
   const [selectedFilter, setSelectedFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [selectedAppointment, setSelectedAppointment] = useState(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
 
-  // Filtres disponibles
   const filters = [
     { id: 'all', label: 'Tous', icon: Calendar, count: appointments?.length || 0 },
-    { id: 'pending', label: 'En attente', icon: CalendarClock, count: appointments?.filter(a => a.status === 'pending').length || 0 },
+    { id: 'pending', label: 'Attente', icon: CalendarClock, count: appointments?.filter(a => a.status === 'pending').length || 0 },
     { id: 'confirmed', label: 'Confirmés', icon: CalendarCheck, count: appointments?.filter(a => a.status === 'confirmed').length || 0 },
     { id: 'completed', label: 'Terminés', icon: CheckCircle, count: appointments?.filter(a => a.status === 'completed').length || 0 },
     { id: 'cancelled', label: 'Annulés', icon: CalendarX, count: appointments?.filter(a => a.status === 'cancelled').length || 0 }
   ];
 
-  // Fonction pour formater la date
-  function formatAppointmentDate(timestamp) {
+  const formatAppointmentDate = (timestamp) => {
     if (!timestamp) return 'Date non définie';
-    
-    const appointmentDate = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
-    return appointmentDate.toLocaleDateString('fr-FR', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
-  }
+    const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+    return date.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' });
+  };
 
-  // Fonction pour formater l'heure
-  function formatAppointmentTime(time) {
-    if (!time) return 'Heure non définie';
-    return time;
-  }
+  const getStatusStyle = (status) => {
+    switch (status) {
+      case 'pending': return 'bg-amber-50 text-amber-600 border-amber-100';
+      case 'confirmed': return 'bg-emerald-50 text-emerald-600 border-emerald-100';
+      case 'completed': return 'bg-slate-50 text-slate-500 border-slate-100';
+      case 'cancelled': return 'bg-rose-50 text-rose-400 border-rose-100';
+      default: return 'bg-gray-50 text-gray-500 border-gray-100';
+    }
+  };
 
-  // Fonction pour obtenir la couleur selon le statut
-  function getStatusColor(status) {
-    const colors = {
-      pending: 'text-yellow-600 bg-yellow-100',
-      confirmed: 'text-green-600 bg-green-100',
-      cancelled: 'text-red-600 bg-red-100',
-      completed: 'text-blue-600 bg-blue-100'
-    };
-    return colors[status] || 'text-gray-600 bg-gray-100';
-  }
-
-  // Fonction pour obtenir l'icône selon le statut
-  function getStatusIcon(status) {
-    const icons = {
-      pending: CalendarClock,
-      confirmed: CalendarCheck,
-      cancelled: CalendarX,
-      completed: CheckCircle
-    };
-    return icons[status] || Calendar;
-  }
-
-  // Filtrer les rendez-vous
   const filteredAppointments = (appointments || []).filter(appointment => {
     if (selectedFilter !== 'all' && appointment.status !== selectedFilter) return false;
-    
     const searchLower = searchTerm.toLowerCase();
     return (
       appointment.clientName?.toLowerCase().includes(searchLower) ||
-      appointment.service?.toLowerCase().includes(searchLower) ||
-      appointment.location?.toLowerCase().includes(searchLower)
+      appointment.service?.toLowerCase().includes(searchLower)
     );
   });
 
-  // Fonctions de gestion
-  const handleConfirmAppointment = async (appointmentId) => {
-    try {
-      await confirmAppointment(appointmentId);
-    } catch (error) {
-      console.error('Erreur lors de la confirmation:', error);
-    }
-  };
-
-  const handleCancelAppointment = async (appointmentId) => {
-    try {
-      await cancelAppointment(appointmentId, 'Annulé par le client');
-    } catch (error) {
-      console.error('Erreur lors de l\'annulation:', error);
-    }
-  };
-
-  const handleCompleteAppointment = async (appointmentId) => {
-    try {
-      await completeAppointment(appointmentId, 'Rendez-vous terminé avec succès');
-    } catch (error) {
-      console.error('Erreur lors de la finalisation:', error);
-    }
-  };
-
-  const handleViewDetails = (appointment) => {
-    setSelectedAppointment(appointment);
-    setShowDetailsModal(true);
-  };
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-orange-50 p-2 sm:p-4 lg:p-6 w-full max-w-full overflow-x-hidden" style={{ maxWidth: '100vw', overflowX: 'hidden' }}>
-      <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6 lg:space-y-8 w-full max-w-full min-w-0" style={{ maxWidth: '100%' }}>
-        {/* Header Élégant */}
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-4 sm:mb-6 lg:mb-8 w-full max-w-full overflow-hidden"
-        >
-          <div className="flex flex-col space-y-3 sm:space-y-4 min-w-0 w-full max-w-full">
-            <div className="flex items-center justify-between">
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center mb-2 sm:mb-3">
-                  {/* Bouton "Nouveau RDV" à gauche */}
-                  <button
-                    onClick={() => setShowCreateModal(true)}
-                    className="bg-gradient-to-r from-orange-500 to-red-600 text-white px-2 sm:px-3 lg:px-4 py-1 sm:py-2 rounded-xl text-xs sm:text-sm font-semibold hover:shadow-lg transition-all flex items-center gap-1 sm:gap-2 mr-3 sm:mr-4 flex-shrink-0"
-                  >
-                    <Plus className="w-3 h-3 sm:w-4 sm:h-4" />
-                    <span className="hidden sm:inline">Nouveau RDV</span>
-                    <span className="sm:hidden">+</span>
-                  </button>
-                  
-                  <div className="relative">
-                    <div className="absolute inset-0 bg-gradient-to-r from-orange-500 to-red-600 rounded-full blur-lg opacity-30"></div>
-                    <div className="relative bg-gradient-to-r from-orange-500 to-red-600 p-2 sm:p-3 rounded-full">
-                      <Calendar className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 text-white" />
-                    </div>
-                  </div>
-                  <div className="ml-2 sm:ml-3 lg:ml-4 min-w-0 flex-1">
-                    <h2 className="text-lg sm:text-xl lg:text-2xl xl:text-3xl font-bold bg-gradient-to-r from-orange-600 via-red-600 to-pink-600 bg-clip-text text-transparent truncate">
-                      Mes Rendez-vous
-                    </h2>
-                    <p className="text-xs sm:text-sm lg:text-base text-gray-600 mt-1 truncate">
-                      Gérez vos rendez-vous
-                    </p>
-                  </div>
-                </div>
-                
-                {/* Stats Élégantes */}
-                <div className="flex flex-col space-y-1 sm:space-y-2 mt-2 sm:mt-3">
-                  <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-                    <div className="flex items-center space-x-1 sm:space-x-2">
-                      <Calendar className="w-3 h-3 sm:w-4 sm:h-4 text-orange-500" />
-                      <span className="text-xs sm:text-sm text-gray-600 truncate">
-                        {stats?.total || 0} rendez-vous
-                      </span>
-                    </div>
-                    <div className="flex items-center space-x-1 sm:space-x-2">
-                      <CalendarClock className="w-3 h-3 sm:w-4 sm:h-4 text-yellow-500" />
-                      <span className="text-xs sm:text-sm text-gray-600 truncate">
-                        {stats?.pending || 0} en attente
-                      </span>
-                    </div>
-                    <div className="flex items-center space-x-1 sm:space-x-2">
-                      <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4 text-green-500" />
-                      <span className="text-xs sm:text-sm text-gray-600 truncate">
-                        {stats?.completed || 0} terminés
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
+    <div className="max-w-[1600px] mx-auto w-full p-3 sm:p-4 md:p-8 space-y-5 md:space-y-10">
+      {/* Header - Dusty Rose Sober Banner */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="bg-white rounded-[1.5rem] md:rounded-[2.5rem] p-6 md:p-12 shadow-[0_20px_50px_rgba(251,182,206,0.12)] relative overflow-hidden border border-rose-100"
+      >
+        <div className="absolute top-0 right-0 w-64 h-64 bg-rose-50 rounded-full blur-[60px] -mr-32 -mt-32" />
+        <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+          <div>
+            <h1 className="text-2xl md:text-5xl font-black mb-1 md:mb-3 tracking-tight text-slate-800">
+              Mes <span className="text-rose-500 uppercase">Rendez-vous</span>
+            </h1>
+            <p className="text-slate-400 text-[10px] md:text-sm font-bold uppercase tracking-widest opacity-80">
+              Gestion de vos sessions privées
+            </p>
           </div>
-        </motion.div>
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={() => setShowCreateModal(true)}
+            className="flex items-center justify-center gap-2 bg-rose-500 text-white px-8 py-4 rounded-2xl font-black text-xs md:text-sm tracking-widest shadow-lg shadow-rose-200 transition-all w-fit"
+          >
+            <Plus className="w-5 h-5" />
+            RÉSERVER
+          </motion.button>
+        </div>
+      </motion.div>
 
-        {/* Filtres Élégants */}
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="mb-4 sm:mb-6 w-full max-w-full overflow-hidden"
-        >
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-1 sm:gap-2 lg:gap-4 w-full max-w-full">
-            {filters.map((filter, index) => {
-              const Icon = filter.icon;
-              const isActive = selectedFilter === filter.id;
-              
-              return (
-                <motion.button
-                  key={filter.id}
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: 0.1 + index * 0.05 }}
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={() => setSelectedFilter(filter.id)}
-                  className={`relative flex items-center justify-center gap-1 sm:gap-2 px-2 py-1.5 sm:px-3 sm:py-2 lg:px-4 lg:py-3 rounded-xl transition-all duration-300 ${
-                    isActive
-                      ? 'bg-gradient-to-r from-orange-500 to-red-600 text-white shadow-lg shadow-orange-500/25'
-                      : 'bg-white hover:bg-gray-50 text-gray-600 hover:text-orange-600 border border-gray-200 hover:border-orange-300'
-                  } w-full max-w-full overflow-hidden`}
-                >
-                  <Icon className="w-3 h-3 sm:w-4 sm:h-4 lg:w-5 lg:h-5 flex-shrink-0" />
-                  <span className="font-medium text-xs sm:text-sm lg:text-base truncate">{filter.label}</span>
-                  {filter.count > 0 && (
-                    <span className={`px-1 sm:px-2 py-0.5 rounded-full text-xs font-bold flex-shrink-0 ${
-                      isActive ? 'bg-white/20 text-white' : 'bg-orange-100 text-orange-600'
-                    }`}>
-                      {filter.count}
-                    </span>
-                  )}
-                </motion.button>
-              );
-            })}
-          </div>
-        </motion.div>
-
-        {/* Barre de recherche */}
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="mb-4 sm:mb-6"
-        >
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Rechercher par client, service ou lieu..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-            />
-          </div>
-        </motion.div>
-
-        {/* Liste des Rendez-vous */}
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-        >
-          {loading ? (
-            <div className="flex items-center justify-center py-12">
-              <Loader className="w-8 h-8 animate-spin text-orange-500" />
-            </div>
-          ) : filteredAppointments.length > 0 ? (
-            <div className="space-y-4">
-              {filteredAppointments.map((appointment, index) => {
-                const StatusIcon = getStatusIcon(appointment.status);
-                const statusColor = getStatusColor(appointment.status);
-                
-                return (
-                  <motion.div
-                    key={appointment.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.1 }}
-                    whileHover={{ scale: 1.01 }}
-                    className="bg-white rounded-2xl p-4 sm:p-6 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100"
-                  >
-                    <div className="flex flex-col lg:flex-row lg:items-center gap-4">
-                      {/* Informations client */}
-                      <div className="flex items-center gap-3 flex-1">
-                        <div className="relative">
-                          <div className="w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-r from-orange-100 to-red-100 rounded-full flex items-center justify-center">
-                            <User className="w-6 h-6 sm:w-7 sm:h-7 text-orange-600" />
-                          </div>
-                          <div className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full flex items-center justify-center ${statusColor}`}>
-                            <StatusIcon className="w-2.5 h-2.5" />
-                          </div>
-                        </div>
-                        
-                        <div className="flex-1 min-w-0">
-                          <h3 className="font-bold text-gray-800 text-sm sm:text-base lg:text-lg truncate">
-                            {appointment.clientName || 'Client'}
-                          </h3>
-                          <p className="text-xs sm:text-sm text-gray-600 truncate">
-                            {appointment.clientEmail || 'Email non renseigné'}
-                          </p>
-                          {appointment.clientPhone && (
-                            <p className="text-xs text-gray-500 truncate">
-                              📞 {appointment.clientPhone}
-                            </p>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* Détails du rendez-vous */}
-                      <div className="flex-1 space-y-2">
-                        <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-                          <div className="flex items-center gap-2">
-                            <Calendar className="w-4 h-4 text-orange-500 flex-shrink-0" />
-                            <span className="text-xs sm:text-sm text-gray-700 truncate">
-                              {formatAppointmentDate(appointment.date)}
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Clock className="w-4 h-4 text-orange-500 flex-shrink-0" />
-                            <span className="text-xs sm:text-sm text-gray-700">
-                              {formatAppointmentTime(appointment.time)} ({appointment.duration || 60} min)
-                            </span>
-                          </div>
-                        </div>
-                        
-                        <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-                          <div className="flex items-center gap-2">
-                            <Heart className="w-4 h-4 text-red-500 flex-shrink-0" />
-                            <span className="text-xs sm:text-sm text-gray-700 truncate">
-                              {appointment.service || 'Service non défini'}
-                            </span>
-                          </div>
-                          {appointment.location && (
-                            <div className="flex items-center gap-2">
-                              <MapPin className="w-4 h-4 text-orange-500 flex-shrink-0" />
-                              <span className="text-xs sm:text-sm text-gray-700 truncate">
-                                {appointment.location}
-                              </span>
-                            </div>
-                          )}
-                        </div>
-
-                        {appointment.price && (
-                          <div className="flex items-center gap-2">
-                            <Euro className="w-4 h-4 text-green-500 flex-shrink-0" />
-                            <span className="text-xs sm:text-sm font-semibold text-green-600">
-                              {appointment.price} {appointment.currency || 'EUR'}
-                            </span>
-                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                              appointment.paymentStatus === 'paid' 
-                                ? 'bg-green-100 text-green-700' 
-                                : appointment.paymentStatus === 'pending'
-                                ? 'bg-yellow-100 text-yellow-700'
-                                : 'bg-red-100 text-red-700'
-                            }`}>
-                              {appointment.paymentStatus === 'paid' ? 'Payé' : 
-                               appointment.paymentStatus === 'pending' ? 'En attente' : 'Non payé'}
-                            </span>
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Actions */}
-                      <div className="flex items-center gap-2 flex-shrink-0">
-                        <button
-                          onClick={() => handleViewDetails(appointment)}
-                          className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-                          title="Voir les détails"
-                        >
-                          <Eye className="w-4 h-4 text-gray-600" />
-                        </button>
-                        
-                        {appointment.status === 'pending' && (
-                          <>
-                            <button
-                              onClick={() => handleConfirmAppointment(appointment.id)}
-                              className="p-2 hover:bg-green-100 rounded-lg transition-colors"
-                              title="Confirmer"
-                            >
-                              <Check className="w-4 h-4 text-green-600" />
-                            </button>
-                            <button
-                              onClick={() => handleCancelAppointment(appointment.id)}
-                              className="p-2 hover:bg-red-100 rounded-lg transition-colors"
-                              title="Annuler"
-                            >
-                              <X className="w-4 h-4 text-red-600" />
-                            </button>
-                          </>
-                        )}
-                        
-                        {appointment.status === 'confirmed' && (
-                          <button
-                            onClick={() => handleCompleteAppointment(appointment.id)}
-                            className="p-2 hover:bg-blue-100 rounded-lg transition-colors"
-                            title="Marquer comme terminé"
-                          >
-                            <CheckCircle className="w-4 h-4 text-blue-600" />
-                          </button>
-                        )}
-                        
-                        <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
-                          <MoreVertical className="w-4 h-4 text-gray-600" />
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Notes et demandes spéciales */}
-                    {(appointment.notes || appointment.specialRequests) && (
-                      <div className="mt-4 pt-4 border-t border-gray-100">
-                        {appointment.notes && (
-                          <div className="mb-2">
-                            <span className="text-xs font-medium text-gray-500">Notes:</span>
-                            <p className="text-sm text-gray-700 mt-1">{appointment.notes}</p>
-                          </div>
-                        )}
-                        {appointment.specialRequests && (
-                          <div>
-                            <span className="text-xs font-medium text-gray-500">Demandes spéciales:</span>
-                            <p className="text-sm text-gray-700 mt-1">{appointment.specialRequests}</p>
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </motion.div>
-                );
-              })}
-            </div>
-          ) : (
-            <div className="text-center py-12">
-              <Calendar className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-gray-600 mb-2">
-                {selectedFilter === 'all' ? 'Aucun rendez-vous' : `Aucun rendez-vous ${filters.find(f => f.id === selectedFilter)?.label.toLowerCase()}`}
-              </h3>
-              <p className="text-gray-500 mb-6">
-                {selectedFilter === 'all' 
-                  ? 'Créez votre premier rendez-vous pour commencer'
-                  : 'Aucun rendez-vous ne correspond à ce filtre'
-                }
-              </p>
-              {selectedFilter === 'all' && (
-                <button
-                  onClick={() => setShowCreateModal(true)}
-                  className="bg-gradient-to-r from-orange-500 to-red-600 text-white px-6 py-3 rounded-xl font-medium hover:shadow-lg transition-all flex items-center gap-2 mx-auto"
-                >
-                  <Plus className="w-5 h-5" />
-                  Nouveau rendez-vous
-                </button>
-              )}
-            </div>
-          )}
-        </motion.div>
-      </div>
-
-      {/* Modal de détails (à implémenter si nécessaire) */}
-      {showDetailsModal && selectedAppointment && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl mx-auto p-6">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-bold text-gray-800">Détails du rendez-vous</h2>
+      {/* Filters Row - Centered & Sober */}
+      <div className="flex flex-col lg:flex-row gap-6">
+        <div className="flex-1">
+          <div className="flex flex-wrap items-center justify-center lg:justify-start gap-2">
+            {filters.map((filter) => (
               <button
-                onClick={() => setShowDetailsModal(false)}
-                className="text-gray-400 hover:text-gray-600"
+                key={filter.id}
+                onClick={() => setSelectedFilter(filter.id)}
+                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-[11px] md:text-xs font-bold transition-all border ${selectedFilter === filter.id
+                    ? 'bg-rose-500 text-white border-rose-500 shadow-md shadow-rose-100'
+                    : 'bg-white text-slate-400 border-slate-100 hover:border-rose-200'
+                  }`}
               >
-                <X className="w-6 h-6" />
-              </button>
-            </div>
-            
-            <div className="space-y-4">
-              <div>
-                <h3 className="font-semibold text-gray-700 mb-2">Informations client</h3>
-                <p><strong>Nom:</strong> {selectedAppointment.clientName}</p>
-                <p><strong>Email:</strong> {selectedAppointment.clientEmail}</p>
-                {selectedAppointment.clientPhone && (
-                  <p><strong>Téléphone:</strong> {selectedAppointment.clientPhone}</p>
-                )}
-              </div>
-              
-              <div>
-                <h3 className="font-semibold text-gray-700 mb-2">Détails du rendez-vous</h3>
-                <p><strong>Service:</strong> {selectedAppointment.service}</p>
-                <p><strong>Date:</strong> {formatAppointmentDate(selectedAppointment.date)}</p>
-                <p><strong>Heure:</strong> {selectedAppointment.time}</p>
-                <p><strong>Durée:</strong> {selectedAppointment.duration} minutes</p>
-                {selectedAppointment.location && (
-                  <p><strong>Lieu:</strong> {selectedAppointment.location}</p>
-                )}
-                <p><strong>Prix:</strong> {selectedAppointment.price} {selectedAppointment.currency}</p>
-                <p><strong>Statut:</strong> 
-                  <span className={`ml-2 px-2 py-1 rounded-full text-xs ${getStatusColor(selectedAppointment.status)}`}>
-                    {selectedAppointment.status}
+                <filter.icon className={`hidden sm:block w-3.5 h-3.5 ${selectedFilter === filter.id ? 'text-white' : 'text-rose-300'}`} />
+                {filter.label}
+                {filter.count > 0 && (
+                  <span className={`ml-1 px-1.5 py-0.5 rounded-lg text-[10px] ${selectedFilter === filter.id ? 'bg-white/20 text-white' : 'bg-rose-50 text-rose-500'
+                    }`}>
+                    {filter.count}
                   </span>
-                </p>
-              </div>
-
-              {(selectedAppointment.notes || selectedAppointment.specialRequests) && (
-                <div>
-                  <h3 className="font-semibold text-gray-700 mb-2">Notes</h3>
-                  {selectedAppointment.notes && <p className="mb-2">{selectedAppointment.notes}</p>}
-                  {selectedAppointment.specialRequests && (
-                    <p><strong>Demandes spéciales:</strong> {selectedAppointment.specialRequests}</p>
-                  )}
-                </div>
-              )}
-            </div>
+                )}
+              </button>
+            ))}
           </div>
         </div>
-      )}
 
-      {/* Modal de création de rendez-vous */}
-      <CreateAppointmentModal 
+        <div className="w-full lg:w-72">
+          <div className="relative group">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300 group-focus-within:text-rose-400 transition-colors" />
+            <input
+              type="text"
+              placeholder="Rechercher..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-11 pr-4 py-3.5 bg-white border border-slate-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-rose-500/5 focus:border-rose-400/30 transition-all text-sm"
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5 md:gap-8">
+        <AnimatePresence mode="popLayout">
+          {loading ? (
+            <div className="col-span-full py-20 flex justify-center">
+              <Loader className="w-8 h-8 animate-spin text-rose-300" />
+            </div>
+          ) : filteredAppointments.length > 0 ? (
+            filteredAppointments.map((appointment, index) => (
+              <motion.div
+                key={appointment.id}
+                layout
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                transition={{ delay: index * 0.05 }}
+                className="bg-white rounded-[2rem] p-6 border border-slate-50 shadow-sm hover:shadow-[0_20px_40px_rgba(0,0,0,0.03)] hover:border-rose-100 transition-all group relative overflow-hidden"
+              >
+                <div className="flex justify-between items-start mb-6">
+                  <div className={`px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest border ${getStatusStyle(appointment.status)}`}>
+                    {appointment.status === 'confirmed' ? 'Confirmé' :
+                      appointment.status === 'pending' ? 'Attente' :
+                        appointment.status === 'completed' ? 'Terminé' : 'Annulé'}
+                  </div>
+                  <button className="text-slate-200 hover:text-rose-400 p-1">
+                    <MoreVertical size={18} />
+                  </button>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="flex items-center gap-4">
+                    <div className="w-14 h-14 bg-slate-50 rounded-2xl flex items-center justify-center text-rose-400 group-hover:bg-rose-500 group-hover:text-white transition-all duration-300 shadow-inner">
+                      <User size={24} />
+                    </div>
+                    <div className="min-w-0">
+                      <h3 className="text-base font-black text-slate-800 truncate">
+                        {appointment.service || 'Service'}
+                      </h3>
+                      <p className="text-slate-400 text-xs font-bold uppercase tracking-tighter truncate">{appointment.clientName}</p>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4 py-4 border-y border-slate-50">
+                    <div className="flex items-center gap-2">
+                      <Calendar size={14} className="text-rose-200" />
+                      <span className="text-xs font-bold text-slate-600 truncate">{formatAppointmentDate(appointment.date)}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Clock size={14} className="text-rose-200" />
+                      <span className="text-xs font-bold text-slate-600">{appointment.time}</span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between pt-1">
+                    <div className="flex items-center gap-1.5 text-slate-300 min-w-0 flex-1 mr-4">
+                      <MapPin size={12} />
+                      <span className="text-[10px] font-medium truncate italic">{appointment.location || 'Virtuel'}</span>
+                    </div>
+                    <button
+                      onClick={() => {
+                        setSelectedAppointment(appointment);
+                        setShowDetailsModal(true);
+                      }}
+                      className="text-[10px] font-black text-rose-400 uppercase tracking-widest hover:text-rose-600 transition-all"
+                    >
+                      DÉTAILS
+                    </button>
+                  </div>
+                </div>
+
+                {appointment.status === 'pending' && (
+                  <div className="mt-6 flex gap-2">
+                    <button
+                      className="flex-1 bg-rose-500 text-white py-3 rounded-xl text-xs font-black shadow-md hover:bg-rose-600 shadow-rose-50 transition-all"
+                      onClick={() => confirmAppointment(appointment.id)}
+                    >
+                      CONFIRMER
+                    </button>
+                    <button
+                      className="px-4 bg-slate-50 text-slate-400 py-3 rounded-xl hover:bg-rose-50 hover:text-rose-500 transition-all"
+                      onClick={() => cancelAppointment(appointment.id)}
+                    >
+                      <X size={16} />
+                    </button>
+                  </div>
+                )}
+              </motion.div>
+            ))
+          ) : (
+            <div className="col-span-full py-20 bg-white rounded-[3rem] border border-dashed border-rose-100 flex flex-col items-center text-center px-10">
+              <CalendarX size={40} className="text-rose-100 mb-4" />
+              <h3 className="text-2xl font-black text-slate-800 mb-2 font-black">Aucun rendez-vous</h3>
+              <p className="text-slate-400 text-sm max-w-xs mb-8">Commencez dès maintenant votre expérience.</p>
+              <button
+                onClick={() => setShowCreateModal(true)}
+                className="bg-rose-500 text-white px-8 py-4 rounded-2xl font-black text-sm tracking-widest shadow-lg shadow-rose-100"
+              >
+                RÉSERVER
+              </button>
+            </div>
+          )}
+        </AnimatePresence>
+      </div>
+
+      <CreateAppointmentModal
         isOpen={showCreateModal}
         onClose={() => setShowCreateModal(false)}
       />
+
+      {/* Details - Bottom Sheet Style Sober */}
+      <AnimatePresence>
+        {showDetailsModal && selectedAppointment && (
+          <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-end sm:items-center justify-center z-[200]">
+            <motion.div
+              initial={{ opacity: 0, y: 50 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 50 }}
+              className="bg-white rounded-t-[2.5rem] sm:rounded-[2.5rem] shadow-2xl w-full max-w-lg overflow-hidden border border-rose-50"
+            >
+              <div className="p-8 space-y-8">
+                <div className="flex justify-between items-center">
+                  <h2 className="text-2xl font-black text-slate-800">Détails Session</h2>
+                  <button onClick={() => setShowDetailsModal(false)} className="p-2 bg-rose-50 rounded-full text-rose-500">
+                    <X size={20} />
+                  </button>
+                </div>
+
+                <div className="space-y-6">
+                  <div className="p-6 bg-rose-50/30 rounded-3xl border border-rose-100">
+                    <p className="text-[10px] font-black text-rose-400 uppercase tracking-widest mb-3">Client</p>
+                    <p className="text-lg font-bold text-slate-800">{selectedAppointment.clientName}</p>
+                    <p className="text-sm text-slate-400">{selectedAppointment.clientEmail}</p>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="p-5 bg-white border border-slate-100 rounded-2xl">
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Service</p>
+                      <p className="font-bold text-slate-700">{selectedAppointment.service || 'Standard'}</p>
+                    </div>
+                    <div className="p-5 bg-white border border-slate-100 rounded-2xl">
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Statut</p>
+                      <p className="font-bold text-rose-400 uppercase">{selectedAppointment.status}</p>
+                    </div>
+                  </div>
+                </div>
+
+                <button
+                  onClick={() => setShowDetailsModal(false)}
+                  className="w-full bg-slate-800 text-white py-5 rounded-2xl font-bold text-sm tracking-widest hover:bg-slate-900 transition-all"
+                >
+                  FERMER
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

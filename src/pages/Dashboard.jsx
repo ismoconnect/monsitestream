@@ -77,8 +77,8 @@ const Dashboard = () => {
         </header>
 
         {/* Dynamic Section Area */}
-        <main className="flex-1 min-h-0 relative overflow-hidden bg-[#F8F9FB] pt-[65px] lg:pt-0 order-2">
-          <div className="flex flex-col h-full w-full overflow-y-auto">
+        <main className="flex-1 min-h-0 relative bg-[#F8F9FB] pt-[65px] lg:pt-0 order-2 flex flex-col overflow-hidden">
+          <div className="flex-1 overflow-y-auto overflow-x-hidden">
             {renderSection()}
           </div>
         </main>

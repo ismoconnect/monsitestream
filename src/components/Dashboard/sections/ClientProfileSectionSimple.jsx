@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  User, 
-  Mail, 
-  Phone, 
-  MapPin, 
-  Calendar, 
-  Edit, 
-  Save, 
+import {
+  User,
+  Mail,
+  Phone,
+  MapPin,
+  Calendar,
+  Edit,
+  Save,
   X,
   Camera,
   Shield,
@@ -83,10 +83,10 @@ const ClientProfileSectionSimple = ({ currentUser }) => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-pink-50 p-4 sm:p-6 w-full max-w-full overflow-x-hidden">
+    <div className="bg-gradient-to-br from-gray-50 to-pink-50 p-4 sm:p-6 w-full max-w-full overflow-x-hidden">
       <div className="max-w-7xl mx-auto space-y-6 sm:space-y-8 w-full max-w-full min-w-0">
         {/* Header Élégant */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="mb-6 sm:mb-8 w-full max-w-full overflow-hidden"
@@ -109,7 +109,7 @@ const ClientProfileSectionSimple = ({ currentUser }) => {
                   </p>
                 </div>
               </div>
-              
+
               {/* Stats Élégantes */}
               <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-4 md:space-x-6 mt-3 sm:mt-4">
                 <div className="flex items-center space-x-2">
@@ -132,7 +132,7 @@ const ClientProfileSectionSimple = ({ currentUser }) => {
                 </div>
               </div>
             </div>
-            
+
             <div className="flex items-center space-x-2 sm:space-x-3 flex-shrink-0 mt-4 md:mt-0">
               <motion.button
                 whileHover={{ scale: 1.05 }}
@@ -149,7 +149,7 @@ const ClientProfileSectionSimple = ({ currentUser }) => {
         </motion.div>
 
         {/* Profile Card Élégante */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
@@ -166,7 +166,7 @@ const ClientProfileSectionSimple = ({ currentUser }) => {
               </div>
               <AnimatePresence>
                 {isEditing && (
-                  <motion.button 
+                  <motion.button
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
                     exit={{ scale: 0 }}
@@ -183,7 +183,7 @@ const ClientProfileSectionSimple = ({ currentUser }) => {
             {/* Profile Info */}
             <div className="flex-1 w-full max-w-full min-w-0">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 w-full max-w-full">
-                <motion.div 
+                <motion.div
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.2 }}
@@ -207,7 +207,7 @@ const ClientProfileSectionSimple = ({ currentUser }) => {
                   )}
                 </motion.div>
 
-                <motion.div 
+                <motion.div
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.3 }}
@@ -231,7 +231,7 @@ const ClientProfileSectionSimple = ({ currentUser }) => {
                   )}
                 </motion.div>
 
-                <motion.div 
+                <motion.div
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.4 }}
@@ -255,7 +255,7 @@ const ClientProfileSectionSimple = ({ currentUser }) => {
                   )}
                 </motion.div>
 
-                <motion.div 
+                <motion.div
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.5 }}
@@ -281,7 +281,7 @@ const ClientProfileSectionSimple = ({ currentUser }) => {
               </div>
 
               {/* Bio Élégante */}
-              <motion.div 
+              <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.6 }}
@@ -310,7 +310,7 @@ const ClientProfileSectionSimple = ({ currentUser }) => {
         </motion.div>
 
         {/* Préférences Élégantes */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
@@ -324,9 +324,9 @@ const ClientProfileSectionSimple = ({ currentUser }) => {
               Préférences
             </h3>
           </div>
-          
+
           <div className="space-y-4 sm:space-y-6">
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.3 }}
@@ -353,7 +353,7 @@ const ClientProfileSectionSimple = ({ currentUser }) => {
               </label>
             </motion.div>
 
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.4 }}
@@ -380,7 +380,7 @@ const ClientProfileSectionSimple = ({ currentUser }) => {
               </label>
             </motion.div>
 
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.5 }}
@@ -406,15 +406,14 @@ const ClientProfileSectionSimple = ({ currentUser }) => {
                   <option value="friends">Amis seulement</option>
                 </select>
               ) : (
-                <span className={`px-3 py-2 rounded-xl text-xs sm:text-sm font-medium flex-shrink-0 ${
-                  formData.preferences.privacy === 'private' 
+                <span className={`px-3 py-2 rounded-xl text-xs sm:text-sm font-medium flex-shrink-0 ${formData.preferences.privacy === 'private'
                     ? 'bg-gradient-to-r from-red-100 to-pink-100 text-red-700'
                     : formData.preferences.privacy === 'public'
-                    ? 'bg-gradient-to-r from-green-100 to-blue-100 text-green-700'
-                    : 'bg-gradient-to-r from-yellow-100 to-orange-100 text-yellow-700'
-                }`}>
-                  {formData.preferences.privacy === 'public' ? 'Public' : 
-                   formData.preferences.privacy === 'private' ? 'Privé' : 'Amis seulement'}
+                      ? 'bg-gradient-to-r from-green-100 to-blue-100 text-green-700'
+                      : 'bg-gradient-to-r from-yellow-100 to-orange-100 text-yellow-700'
+                  }`}>
+                  {formData.preferences.privacy === 'public' ? 'Public' :
+                    formData.preferences.privacy === 'private' ? 'Privé' : 'Amis seulement'}
                 </span>
               )}
             </motion.div>
@@ -422,13 +421,13 @@ const ClientProfileSectionSimple = ({ currentUser }) => {
         </motion.div>
 
         {/* Statistiques Élégantes */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
           className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 w-full max-w-full"
         >
-          <motion.div 
+          <motion.div
             whileHover={{ scale: 1.02, y: -5 }}
             className="bg-white rounded-xl p-4 sm:p-6 border border-gray-200 text-center shadow-lg hover:shadow-xl transition-all duration-300 bg-gradient-to-br from-white to-pink-50"
           >
@@ -443,7 +442,7 @@ const ClientProfileSectionSimple = ({ currentUser }) => {
             <div className="text-xs text-gray-500 mt-1">Ce mois-ci</div>
           </motion.div>
 
-          <motion.div 
+          <motion.div
             whileHover={{ scale: 1.02, y: -5 }}
             className="bg-white rounded-xl p-4 sm:p-6 border border-gray-200 text-center shadow-lg hover:shadow-xl transition-all duration-300 bg-gradient-to-br from-white to-purple-50"
           >
@@ -458,7 +457,7 @@ const ClientProfileSectionSimple = ({ currentUser }) => {
             <div className="text-xs text-gray-500 mt-1">Total</div>
           </motion.div>
 
-          <motion.div 
+          <motion.div
             whileHover={{ scale: 1.02, y: -5 }}
             className="bg-white rounded-xl p-4 sm:p-6 border border-gray-200 text-center shadow-lg hover:shadow-xl transition-all duration-300 bg-gradient-to-br from-white to-blue-50 sm:col-span-2 lg:col-span-1"
           >
@@ -477,7 +476,7 @@ const ClientProfileSectionSimple = ({ currentUser }) => {
         {/* Save/Cancel Buttons */}
         <AnimatePresence>
           {isEditing && (
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}

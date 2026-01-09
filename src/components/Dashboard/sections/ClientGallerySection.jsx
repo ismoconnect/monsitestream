@@ -184,7 +184,7 @@ const ClientGallerySection = ({ currentUser }) => {
   const hasAccess = isPremium || selectedCategory === 'public';
 
   return (
-    <div className="w-full max-w-full overflow-hidden min-w-0">
+    <div className="w-full max-w-full overflow-x-hidden min-w-0 p-4 sm:p-6 lg:p-8">
       {/* Header Élégant */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}

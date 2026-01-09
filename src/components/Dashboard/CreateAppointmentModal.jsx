@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Calendar, Clock, MapPin, User, Phone, Mail, Euro, Heart } from 'lucide-react';
+import { X, Calendar, Clock, MapPin, User, Phone, Mail, Euro, Heart, Sparkles } from 'lucide-react';
 import { useAppointments } from '../../hooks/useAppointments';
 
 const CreateAppointmentModal = ({ isOpen, onClose }) => {
@@ -44,7 +44,6 @@ const CreateAppointmentModal = ({ isOpen, onClose }) => {
     setLoading(true);
 
     try {
-      // Convertir la date en timestamp
       const appointmentDate = new Date(`${formData.date}T${formData.time}`);
 
       await createAppointment({
@@ -55,7 +54,6 @@ const CreateAppointmentModal = ({ isOpen, onClose }) => {
         currency: 'EUR'
       });
 
-      // Réinitialiser le formulaire
       setFormData({
         clientName: '',
         clientEmail: '',
@@ -88,243 +86,220 @@ const CreateAppointmentModal = ({ isOpen, onClose }) => {
   if (!isOpen) return null;
 
   const modalContent = (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
-      onClick={onClose}
-    >
-      <motion.div
-        initial={{ scale: 0.9, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        exit={{ scale: 0.9, opacity: 0 }}
-        className="bg-white rounded-xl shadow-2xl w-full max-w-2xl mx-auto p-6 relative max-h-[90vh] overflow-y-auto"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <button
+    <AnimatePresence>
+      {isOpen && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 bg-gray-900/60 backdrop-blur-sm flex items-center justify-center z-[200] p-4 sm:p-6"
           onClick={onClose}
-          className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors z-10"
         >
-          <X className="w-5 h-5" />
-        </button>
-
-        <h2 className="text-xl font-bold text-gray-800 mb-6">
-          Nouveau Rendez-vous
-        </h2>
-
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Informations client */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                <User className="w-4 h-4 inline mr-2" />
-                Nom du client *
-              </label>
-              <input
-                type="text"
-                name="clientName"
-                value={formData.clientName}
-                onChange={handleChange}
-                required
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                placeholder="Nom complet"
-              />
+          <motion.div
+            initial={{ scale: 0.9, opacity: 0, y: 20 }}
+            animate={{ scale: 1, opacity: 1, y: 0 }}
+            exit={{ scale: 0.9, opacity: 0, y: 20 }}
+            className="bg-white rounded-[2.5rem] shadow-2xl w-full max-w-2xl mx-auto overflow-hidden relative"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header Design - Soft Rose */}
+            <div className="bg-gradient-to-r from-[#FFF1F2] to-[#FFE4E6] p-8 text-rose-900 relative overflow-hidden border-b border-rose-100">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-white/40 rounded-full blur-3xl -mr-16 -mt-16" />
+              <div className="relative z-10 flex items-center justify-between">
+                <div>
+                  <h2 className="text-2xl font-black tracking-tight mb-1">NOUVEAU RÉSERVÉ</h2>
+                  <p className="text-gray-400 text-xs font-medium uppercase tracking-widest">Planifiez une session exclusive</p>
+                </div>
+                <button
+                  onClick={onClose}
+                  className="p-2 bg-white/10 hover:bg-white/20 rounded-full transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                <Mail className="w-4 h-4 inline mr-2" />
-                Email *
-              </label>
-              <input
-                type="email"
-                name="clientEmail"
-                value={formData.clientEmail}
-                onChange={handleChange}
-                required
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                placeholder="email@example.com"
-              />
-            </div>
-          </div>
+            <form onSubmit={handleSubmit} className="p-8 max-h-[70dvh] overflow-y-auto scrollbar-hide space-y-8">
+              {/* Client Info Section */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="w-1.5 h-4 bg-pink-500 rounded-full" />
+                  <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">Informations Client</span>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="relative group">
+                    <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-pink-500" />
+                    <input
+                      type="text"
+                      name="clientName"
+                      value={formData.clientName}
+                      onChange={handleChange}
+                      required
+                      placeholder="Nom complet *"
+                      className="w-full pl-11 pr-4 py-4 bg-gray-50 border border-transparent rounded-2xl focus:bg-white focus:border-pink-500/30 focus:ring-4 focus:ring-pink-500/5 transition-all outline-none text-sm font-bold"
+                    />
+                  </div>
+                  <div className="relative group">
+                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-pink-500" />
+                    <input
+                      type="email"
+                      name="clientEmail"
+                      value={formData.clientEmail}
+                      onChange={handleChange}
+                      required
+                      placeholder="Email *"
+                      className="w-full pl-11 pr-4 py-4 bg-gray-50 border border-transparent rounded-2xl focus:bg-white focus:border-pink-500/30 focus:ring-4 focus:ring-pink-500/5 transition-all outline-none text-sm font-bold"
+                    />
+                  </div>
+                </div>
+                <div className="relative group">
+                  <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-pink-500" />
+                  <input
+                    type="tel"
+                    name="clientPhone"
+                    value={formData.clientPhone}
+                    onChange={handleChange}
+                    placeholder="Téléphone"
+                    className="w-full pl-11 pr-4 py-4 bg-gray-50 border border-transparent rounded-2xl focus:bg-white focus:border-pink-500/30 focus:ring-4 focus:ring-pink-500/5 transition-all outline-none text-sm font-bold"
+                  />
+                </div>
+              </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              <Phone className="w-4 h-4 inline mr-2" />
-              Téléphone
-            </label>
-            <input
-              type="tel"
-              name="clientPhone"
-              value={formData.clientPhone}
-              onChange={handleChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-              placeholder="+33 6 12 34 56 78"
-            />
-          </div>
+              {/* Service & Details */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="w-1.5 h-4 bg-purple-500 rounded-full" />
+                  <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">Détails de la Session</span>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="relative group">
+                    <Heart className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-purple-500" />
+                    <select
+                      name="service"
+                      value={formData.service}
+                      onChange={handleChange}
+                      required
+                      className="w-full pl-11 pr-4 py-4 bg-gray-50 border border-transparent rounded-2xl focus:bg-white focus:border-purple-500/30 transition-all outline-none text-sm font-bold appearance-none cursor-pointer"
+                    >
+                      <option value="">Sélectionnez un service *</option>
+                      {services.map(service => (
+                        <option key={service} value={service}>{service}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="relative group">
+                    <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-purple-500" />
+                    <select
+                      name="location"
+                      value={formData.location}
+                      onChange={handleChange}
+                      className="w-full pl-11 pr-4 py-4 bg-gray-50 border border-transparent rounded-2xl focus:bg-white focus:border-purple-500/30 transition-all outline-none text-sm font-bold appearance-none cursor-pointer"
+                    >
+                      <option value="">Lieu de rencontre</option>
+                      {locations.map(location => (
+                        <option key={location} value={location}>{location}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
 
-          {/* Détails du rendez-vous */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                <Heart className="w-4 h-4 inline mr-2" />
-                Service *
-              </label>
-              <select
-                name="service"
-                value={formData.service}
-                onChange={handleChange}
-                required
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-              >
-                <option value="">Sélectionnez un service</option>
-                {services.map(service => (
-                  <option key={service} value={service}>{service}</option>
-                ))}
-              </select>
-            </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="relative group">
+                    <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <input
+                      type="date"
+                      name="date"
+                      value={formData.date}
+                      onChange={handleChange}
+                      required
+                      min={new Date().toISOString().split('T')[0]}
+                      className="w-full pl-11 pr-4 py-4 bg-gray-50 border border-transparent rounded-2xl focus:bg-white outline-none text-sm font-bold"
+                    />
+                  </div>
+                  <div className="relative group">
+                    <Clock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <input
+                      type="time"
+                      name="time"
+                      value={formData.time}
+                      onChange={handleChange}
+                      required
+                      className="w-full pl-11 pr-4 py-4 bg-gray-50 border border-transparent rounded-2xl focus:bg-white outline-none text-sm font-bold"
+                    />
+                  </div>
+                  <div className="relative group">
+                    <select
+                      name="duration"
+                      value={formData.duration}
+                      onChange={handleChange}
+                      className="w-full px-4 py-4 bg-gray-50 border border-transparent rounded-2xl focus:bg-white outline-none text-sm font-bold appearance-none cursor-pointer"
+                    >
+                      <option value={30}>30 min</option>
+                      <option value={60}>1 heure</option>
+                      <option value={120}>2 heures</option>
+                      <option value={180}>3 heures</option>
+                    </select>
+                  </div>
+                </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                <MapPin className="w-4 h-4 inline mr-2" />
-                Lieu
-              </label>
-              <select
-                name="location"
-                value={formData.location}
-                onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-              >
-                <option value="">Sélectionnez un lieu</option>
-                {locations.map(location => (
-                  <option key={location} value={location}>{location}</option>
-                ))}
-              </select>
-            </div>
-          </div>
+                <div className="relative group">
+                  <Euro className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-emerald-500" />
+                  <input
+                    type="number"
+                    name="price"
+                    value={formData.price}
+                    onChange={handleChange}
+                    placeholder="Prix proposé (EUR)"
+                    className="w-full pl-11 pr-4 py-4 bg-white border border-gray-100 rounded-2xl focus:border-emerald-500/30 outline-none text-sm font-bold"
+                  />
+                </div>
+              </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                <Calendar className="w-4 h-4 inline mr-2" />
-                Date *
-              </label>
-              <input
-                type="date"
-                name="date"
-                value={formData.date}
-                onChange={handleChange}
-                required
-                min={new Date().toISOString().split('T')[0]}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-              />
-            </div>
+              {/* Notes */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="w-1.5 h-4 bg-gray-300 rounded-full" />
+                  <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">Notes & Demandes</span>
+                </div>
+                <textarea
+                  name="notes"
+                  value={formData.notes}
+                  onChange={handleChange}
+                  rows={3}
+                  placeholder="Notes ou préférences particulières..."
+                  className="w-full p-6 bg-gray-50 border border-transparent rounded-[1.5rem] focus:bg-white focus:border-gray-200 outline-none text-sm font-medium transition-all resize-none"
+                />
+              </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                <Clock className="w-4 h-4 inline mr-2" />
-                Heure *
-              </label>
-              <input
-                type="time"
-                name="time"
-                value={formData.time}
-                onChange={handleChange}
-                required
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Durée (min)
-              </label>
-              <select
-                name="duration"
-                value={formData.duration}
-                onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-              >
-                <option value={30}>30 minutes</option>
-                <option value={60}>1 heure</option>
-                <option value={90}>1h30</option>
-                <option value={120}>2 heures</option>
-                <option value={180}>3 heures</option>
-                <option value={240}>4 heures</option>
-              </select>
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              <Euro className="w-4 h-4 inline mr-2" />
-              Prix (EUR)
-            </label>
-            <input
-              type="number"
-              name="price"
-              value={formData.price}
-              onChange={handleChange}
-              min="0"
-              step="0.01"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-              placeholder="100.00"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Notes
-            </label>
-            <textarea
-              name="notes"
-              value={formData.notes}
-              onChange={handleChange}
-              rows={3}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent resize-none"
-              placeholder="Notes supplémentaires..."
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Demandes spéciales
-            </label>
-            <textarea
-              name="specialRequests"
-              value={formData.specialRequests}
-              onChange={handleChange}
-              rows={2}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent resize-none"
-              placeholder="Demandes particulières du client..."
-            />
-          </div>
-
-          <div className="flex gap-3 pt-4">
-            <button
-              type="button"
-              onClick={onClose}
-              className="flex-1 px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-            >
-              Annuler
-            </button>
-            <button
-              type="submit"
-              disabled={loading}
-              className="flex-1 bg-gradient-to-r from-orange-500 to-red-600 text-white px-4 py-2 rounded-lg hover:shadow-lg transition-all disabled:opacity-50 flex items-center justify-center gap-2"
-            >
-              {loading ? (
-                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-              ) : (
-                <Calendar className="w-4 h-4" />
-              )}
-              Créer le rendez-vous
-            </button>
-          </div>
-        </form>
-      </motion.div>
-    </motion.div>
+              {/* Action Buttons */}
+              <div className="flex flex-col sm:flex-row gap-4 pt-4">
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="w-full sm:w-1/3 py-5 rounded-[1.5rem] text-sm font-black text-gray-400 hover:text-gray-900 transition-colors uppercase tracking-widest"
+                >
+                  Annuler
+                </button>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full sm:w-2/3 bg-rose-500 text-white py-5 rounded-[1.5rem] font-black text-sm tracking-[0.2em] shadow-lg shadow-rose-100 hover:bg-rose-600 transition-all flex items-center justify-center gap-3 active:scale-[0.98] disabled:opacity-50"
+                >
+                  {loading ? (
+                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  ) : (
+                    <>
+                      <Sparkles className="w-5 h-5" />
+                      CONFIRMER RDV
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 
   return createPortal(modalContent, document.body);
