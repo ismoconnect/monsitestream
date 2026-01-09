@@ -44,26 +44,40 @@ const AdminUserPayments = () => {
     }
   }, [currentUser, authLoading, navigate]);
 
-  // Charger les paiements de l'utilisateur spécifique
+  // Charger les paiements de l'utilisateur spécifique en temps réel
   useEffect(() => {
     if (authLoading || !currentUser || currentUser.role !== 'admin') return;
 
-    const loadUserPayments = async () => {
+    let unsubscribe;
+
+    const setupListener = async () => {
       try {
+        setLoading(true);
+        // On récupère d'abord tous les paiements pour trouver l'userId correspondant à l'email
+        // (C'est nécessaire car on n'a que l'email dans l'URL)
         const allPayments = await paymentService.getAllPayments();
-        const userPayments = allPayments.filter(payment =>
-          payment.userEmail === decodeURIComponent(userEmail)
-        );
-        setPayments(userPayments);
+        const userPayment = allPayments.find(p => p.userEmail === decodeURIComponent(userEmail));
+
+        if (userPayment?.userId) {
+          unsubscribe = paymentService.listenToUserPayments(userPayment.userId, (userPayments) => {
+            setPayments(userPayments);
+            setLoading(false);
+          });
+        } else {
+          setLoading(false);
+        }
       } catch (error) {
         console.error('Erreur lors du chargement des paiements:', error);
-      } finally {
         setLoading(false);
       }
     };
 
-    loadUserPayments();
-  }, [userEmail]);
+    setupListener();
+
+    return () => {
+      if (unsubscribe) unsubscribe();
+    };
+  }, [userEmail, authLoading, currentUser]);
 
   const handleApprovePayment = async (paymentId) => {
     setActionLoading(true);

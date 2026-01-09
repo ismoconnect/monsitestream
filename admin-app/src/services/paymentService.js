@@ -1,13 +1,13 @@
-import { 
-  collection, 
-  addDoc, 
-  doc, 
-  updateDoc, 
-  getDoc, 
+import {
+  collection,
+  addDoc,
+  doc,
+  updateDoc,
+  getDoc,
   getDocs,
-  query, 
-  where, 
-  orderBy, 
+  query,
+  where,
+  orderBy,
   serverTimestamp,
   onSnapshot
 } from 'firebase/firestore';
@@ -72,7 +72,7 @@ class PaymentService {
       });
 
       const referenceCode = this.generateReferenceCode();
-      
+
       const paymentRequest = {
         userId: paymentData.userId,
         userEmail: paymentData.userEmail,
@@ -95,7 +95,7 @@ class PaymentService {
       console.log('Données à envoyer à Firestore:', paymentRequest);
 
       const docRef = await addDoc(collection(db, 'payments'), paymentRequest);
-      
+
       console.log('Demande de paiement créée avec succès:', docRef.id);
 
       return {
@@ -204,7 +204,7 @@ class PaymentService {
     try {
       const paymentRef = doc(db, 'payments', paymentId);
       const paymentSnap = await getDoc(paymentRef);
-      
+
       if (paymentSnap.exists()) {
         return {
           id: paymentSnap.id,
@@ -226,7 +226,7 @@ class PaymentService {
         where('referenceCode', '==', referenceCode)
       );
       const querySnapshot = await getDocs(q);
-      
+
       if (!querySnapshot.empty) {
         const doc = querySnapshot.docs[0];
         return {
@@ -250,7 +250,7 @@ class PaymentService {
         where('userId', '==', userId)
       );
       const querySnapshot = await getDocs(q);
-      
+
       const payments = querySnapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
@@ -268,10 +268,34 @@ class PaymentService {
     }
   }
 
+  // Écouter les paiements d'un utilisateur spécifique
+  listenToUserPayments(userId, callback) {
+    const q = query(
+      collection(db, 'payments'),
+      where('userId', '==', userId)
+    );
+
+    return onSnapshot(q, (querySnapshot) => {
+      const payments = querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+
+      // Tri côté client
+      const sortedPayments = payments.sort((a, b) => {
+        const dateA = a.createdAt?.toDate ? a.createdAt.toDate() : new Date(a.createdAt);
+        const dateB = b.createdAt?.toDate ? b.createdAt.toDate() : new Date(b.createdAt);
+        return dateB - dateA;
+      });
+
+      callback(sortedPayments);
+    });
+  }
+
   // Écouter les changements de statut d'un paiement
   listenToPaymentStatus(paymentId, callback) {
     const paymentRef = doc(db, 'payments', paymentId);
-    
+
     return onSnapshot(paymentRef, (doc) => {
       if (doc.exists()) {
         callback({
@@ -287,7 +311,7 @@ class PaymentService {
     try {
       // Requête simplifiée sans orderBy pour éviter l'erreur d'index
       const querySnapshot = await getDocs(collection(db, 'payments'));
-      
+
       const payments = querySnapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
@@ -330,9 +354,45 @@ class PaymentService {
     return this.updatePaymentStatus(paymentId, PAYMENT_STATUS.EXPIRED, 'Paiement expiré');
   }
 
-  // Approuver un paiement
+  // Approuver un paiement et activer l'abonnement
   async approvePayment(paymentId, adminNote = 'Paiement approuvé') {
-    return this.updatePaymentStatus(paymentId, PAYMENT_STATUS.COMPLETED, adminNote);
+    try {
+      // 1. Récupérer les détails du paiement
+      const payment = await this.getPaymentById(paymentId);
+      if (!payment) throw new Error('Paiement introuvable');
+
+      const { userId, plan, amount } = payment;
+      if (!userId) throw new Error('ID utilisateur manquant dans le paiement');
+
+      // 2. Calculer la date d'expiration (par défaut +30 jours)
+      const expirationDate = new Date();
+      expirationDate.setDate(expirationDate.getDate() + 30);
+
+      // 3. Mettre à jour l'utilisateur
+      const userRef = doc(db, 'users', userId);
+      const userUpdate = {
+        'subscription': {
+          type: plan?.id || 'premium',
+          planName: plan?.name || 'Premium',
+          status: 'active',
+          startDate: serverTimestamp(),
+          endDate: expirationDate,
+          amount: amount,
+          lastPaymentId: paymentId
+        },
+        'role': plan?.id === 'vip' ? 'vip' : 'premium', // Optionnel : changer le rôle si nécessaire
+        'updatedAt': serverTimestamp()
+      };
+
+      console.log('Activation de l\'abonnement pour l\'utilisateur:', userId, userUpdate);
+      await updateDoc(userRef, userUpdate);
+
+      // 4. Mettre à jour le statut du paiement
+      return this.updatePaymentStatus(paymentId, PAYMENT_STATUS.COMPLETED, adminNote);
+    } catch (error) {
+      console.error('Erreur lors de l\'approbation et activation:', error);
+      throw error;
+    }
   }
 
   // Rejeter un paiement
