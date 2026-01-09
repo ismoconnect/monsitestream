@@ -57,14 +57,14 @@ const Dashboard = () => {
       {/* Mobile Sidebar Overlay */}
       {isMobileSidebarOpen && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
+          className="fixed inset-0 bg-black bg-opacity-50 z-[55] lg:hidden"
           onClick={() => setIsMobileSidebarOpen(false)}
         />
       )}
 
       {/* Client Sidebar */}
       <div className={`
-        fixed left-0 top-0 h-full w-64 z-50 transform transition-transform duration-300 ease-in-out
+        fixed left-0 top-0 h-full w-64 z-[60] transform transition-transform duration-300 ease-in-out
         ${isMobileSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
         lg:translate-x-0 lg:relative lg:translate-x-0 flex-shrink-0
       `}>
@@ -88,7 +88,7 @@ const Dashboard = () => {
         </header>
 
         {/* Content Area - Filling the rest of the height */}
-        <main className="flex-1 min-h-0 relative overflow-hidden bg-[#F8F9FB]">
+        <main className="flex-1 min-h-0 relative overflow-hidden bg-[#F8F9FB] pt-[65px] lg:pt-0">
           <div className="flex flex-col h-full w-full">
             {renderSection()}
           </div>

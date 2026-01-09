@@ -8,7 +8,7 @@ const ClientHeader = ({ currentUser, onMobileMenuToggle }) => {
     (currentUser?.subscription?.type === 'premium' || currentUser?.subscription?.type === 'vip');
 
   return (
-    <header className="bg-white shadow-sm border-b border-gray-200">
+    <header className="fixed top-0 left-0 right-0 z-50 lg:static bg-white shadow-sm border-b border-gray-200">
       <div className="px-3 lg:px-6 py-3 lg:py-4">
         <div className="flex justify-between items-center">
           {/* Left side - Mobile Menu */}

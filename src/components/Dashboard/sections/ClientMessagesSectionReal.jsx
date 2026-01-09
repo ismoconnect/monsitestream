@@ -302,7 +302,7 @@ const ClientMessagesSectionReal = ({ currentUser }) => {
   return (
     <div className="flex-1 w-full h-full sm:p-4 lg:p-6">
       {/* Bloc de Chat Principal - Mobile Independent Absolute Layout */}
-      <div className="fixed inset-x-0 bottom-0 top-[56px] z-40 bg-white block sm:flex sm:flex-col sm:static sm:z-auto sm:inset-auto sm:h-[555px] sm:max-w-5xl sm:mx-auto sm:rounded-[3rem] sm:shadow-[0_20px_70px_-10px_rgba(0,0,0,0.05)] sm:border sm:border-gray-100/80 overflow-hidden transition-all duration-300">
+      <div className="relative w-full h-full z-0 bg-white block sm:flex sm:flex-col sm:static sm:z-auto sm:inset-auto sm:h-[555px] sm:max-w-5xl sm:mx-auto sm:rounded-[3rem] sm:shadow-[0_20px_70px_-10px_rgba(0,0,0,0.05)] sm:border sm:border-gray-100/80 overflow-hidden transition-all duration-300">
 
         {/* Header - Absolute Top Mobile / Relative Desktop */}
         <div className="absolute top-0 inset-x-0 h-[85px] z-50 bg-gradient-to-r from-pink-500 to-purple-600 p-4 sm:p-5 flex items-center justify-between shadow-md sm:static sm:h-auto sm:shrink-0 sm:relative">
