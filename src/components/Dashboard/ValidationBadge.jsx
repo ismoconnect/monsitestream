@@ -5,7 +5,8 @@ import { Clock, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
 const ValidationBadge = ({ user }) => {
   if (!user || !user.subscription) return null;
 
-  const { status, plan } = user.subscription;
+  const { status, plan, type, planName } = user.subscription;
+  const planDisplay = plan || type || planName || 'Premium';
 
   const getBadgeConfig = () => {
     switch (status) {
@@ -21,7 +22,7 @@ const ValidationBadge = ({ user }) => {
       case 'active':
         return {
           icon: CheckCircle,
-          text: `Plan ${plan.charAt(0).toUpperCase() + plan.slice(1)} activé`,
+          text: `Plan ${planDisplay.charAt(0).toUpperCase() + planDisplay.slice(1)} activé`,
           bgColor: 'bg-gradient-to-r from-green-100 to-emerald-100',
           textColor: 'text-green-800',
           iconColor: 'text-green-600',
@@ -60,7 +61,7 @@ const ValidationBadge = ({ user }) => {
       <Icon className={`w-3 h-3 sm:w-4 sm:h-4 ${config.iconColor}`} />
       <span className={`text-xs sm:text-sm font-medium ${config.textColor} truncate max-w-[100px] sm:max-w-none`}>
         <span className="sm:hidden">
-          {status === 'active' ? `${plan.charAt(0).toUpperCase()}${plan.slice(1)}` : 'En attente'}
+          {status === 'active' ? `${planDisplay.charAt(0).toUpperCase()}${planDisplay.slice(1)}` : 'En attente'}
         </span>
         <span className="hidden sm:inline">
           {config.text}
