@@ -88,17 +88,17 @@ const ClientOverviewSectionSimple = ({ currentUser }) => {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-white rounded-[2.5rem] p-8 md:p-12 shadow-[0_20px_50px_rgba(251,182,206,0.15)] relative overflow-hidden text-slate-800 border border-rose-100"
+        className="bg-gradient-to-r from-pink-500 to-purple-600 rounded-[2.5rem] p-8 md:p-12 shadow-[0_20px_50px_rgba(236,72,153,0.3)] relative overflow-hidden text-white"
       >
-        <div className="absolute top-0 right-0 w-80 h-80 bg-rose-50 rounded-full blur-[80px] -mr-40 -mt-40 opacity-70" />
-        <div className="absolute bottom-0 left-0 w-48 h-48 bg-rose-50/50 rounded-full blur-[60px] -ml-24 -mb-24" />
+        <div className="absolute top-0 right-0 w-80 h-80 bg-white/10 rounded-full blur-[80px] -mr-40 -mt-40" />
+        <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/5 rounded-full blur-[60px] -ml-24 -mb-24" />
 
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-8">
           <div className="max-w-2xl">
             <h2 className="text-3xl md:text-5xl font-black mb-4 tracking-tight">
-              Bienvenue, <span className="text-rose-500 uppercase">{currentUser?.displayName?.split(' ')[0] || 'Cher client'}</span> ! 👋
+              Bienvenue, <span className="text-white uppercase">{currentUser?.displayName?.split(' ')[0] || 'Cher client'}</span> ! 👋
             </h2>
-            <p className="text-slate-500 text-base md:text-xl font-medium leading-relaxed max-w-xl">
+            <p className="text-white/90 text-base md:text-xl font-medium leading-relaxed max-w-xl">
               {isPremium
                 ? 'Profitez d\'un accompagnement d\'exception et de services sur mesure.'
                 : 'Accédez à l\'exclusivité Liliana en devenant membre Premium.'
@@ -107,15 +107,15 @@ const ClientOverviewSectionSimple = ({ currentUser }) => {
           </div>
           <div className="hidden lg:flex items-center">
             {isPremium ? (
-              <div className="p-4 bg-rose-50 rounded-3xl border border-rose-100 shadow-sm transition-transform hover:scale-110">
-                <Crown className="w-12 h-12 text-rose-400" />
+              <div className="p-4 bg-white/20 backdrop-blur-md rounded-3xl border border-white/20 shadow-sm transition-transform hover:scale-110">
+                <Crown className="w-12 h-12 text-white" />
               </div>
             ) : (
               <motion.button
                 whileHover={{ scale: 1.05, shadow: "0 20px 30px rgba(244,114,182,0.2)" }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => navigate('/dashboard/subscription')}
-                className="bg-rose-500 text-white px-10 py-5 rounded-[2rem] font-bold text-sm tracking-widest shadow-lg transition-all"
+                className="bg-white text-rose-500 px-10 py-5 rounded-[2rem] font-bold text-sm tracking-widest shadow-lg transition-all hover:bg-rose-50"
               >
                 DEVENIR PREMIUM
               </motion.button>

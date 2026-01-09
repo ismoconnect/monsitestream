@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Calendar, 
-  Clock, 
-  MapPin, 
-  Euro, 
-  CheckCircle, 
-  XCircle, 
+import {
+  Calendar,
+  Clock,
+  MapPin,
+  Euro,
+  CheckCircle,
+  XCircle,
   AlertCircle,
   Plus,
   Edit,
@@ -220,69 +220,43 @@ const ClientAppointmentsSectionSimple = ({ currentUser }) => {
   return (
     <div className="w-full max-w-full overflow-x-hidden min-w-0">
       {/* Header Élégant */}
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="mb-8"
+        className="bg-gradient-to-r from-pink-500 to-purple-600 rounded-[1.5rem] md:rounded-[2.5rem] p-6 md:p-12 shadow-[0_20px_50px_rgba(236,72,153,0.3)] relative overflow-hidden text-white mb-8"
       >
-        <div className="flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0 min-w-0">
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center mb-3">
-              <div className="relative">
-                <div className="absolute inset-0 bg-gradient-to-r from-pink-500 to-purple-600 rounded-full blur-lg opacity-30"></div>
-                <div className="relative bg-gradient-to-r from-pink-500 to-purple-600 p-2 sm:p-3 rounded-full">
-                  <CalendarDays className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-                </div>
-              </div>
-              <div className="ml-3 sm:ml-4">
-                <h2 className="text-xl sm:text-2xl md:text-3xl font-bold bg-gradient-to-r from-pink-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent">
-                  Mes Rendez-vous
-                </h2>
-                <p className="text-xs sm:text-sm md:text-base text-gray-600 mt-1">
-                  Gérez vos rendez-vous et réservations avec élégance
-                </p>
+        <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-[60px] -mr-32 -mt-32" />
+        <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+          <div className="flex items-center space-x-4 md:space-x-6">
+            <div className="relative">
+              <div className="absolute inset-0 bg-white/20 rounded-full blur-lg opacity-30"></div>
+              <div className="relative bg-white/20 backdrop-blur-md p-3 sm:p-4 rounded-full border border-white/20">
+                <CalendarDays className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
               </div>
             </div>
-            
-            {/* Stats Élégantes */}
-            <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-4 md:space-x-6 mt-3 sm:mt-4">
-              <div className="flex items-center space-x-2">
-                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                <span className="text-xs sm:text-sm text-gray-600">
-                  {appointments.length} RDV total
-                </span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4 text-green-500" />
-                <span className="text-xs sm:text-sm text-gray-600">
-                  {appointments.filter(a => a.status === 'confirmed').length} confirmés
-                </span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <Euro className="w-3 h-3 sm:w-4 sm:h-4 text-pink-500" />
-                <span className="text-xs sm:text-sm text-gray-600">
-                  {appointments.reduce((sum, a) => sum + a.price, 0)}€ total
-                </span>
-              </div>
+            <div>
+              <h2 className="text-2xl sm:text-3xl md:text-5xl font-black tracking-tight text-white uppercase">
+                Mes Rendez-vous
+              </h2>
+              <p className="text-white/80 text-[10px] md:text-sm font-bold uppercase tracking-widest mt-1">
+                Gestion de vos sessions privées
+              </p>
             </div>
           </div>
-          
-          <div className="flex items-center space-x-2 sm:space-x-3 flex-shrink-0 mt-4 md:mt-0">
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg sm:rounded-xl flex items-center gap-1 sm:gap-2 font-medium shadow-lg shadow-pink-500/25 transition-all duration-300 text-sm sm:text-base"
-            >
-              <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
-              <span className="hidden sm:inline">Nouveau RDV</span>
-              <span className="sm:hidden">Nouveau</span>
-            </motion.button>
-          </div>
+
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className="bg-white text-pink-500 px-8 py-4 rounded-2xl font-black text-xs md:text-sm tracking-widest shadow-lg transition-all w-fit hover:bg-pink-50"
+          >
+            <Plus className="w-5 h-5" />
+            RÉSERVER
+          </motion.button>
         </div>
       </motion.div>
 
       {/* Filtres Élégants */}
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
@@ -301,20 +275,18 @@ const ClientAppointmentsSectionSimple = ({ currentUser }) => {
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               onClick={() => setFilter(key)}
-              className={`relative px-3 sm:px-6 py-2 sm:py-3 font-medium transition-all duration-300 rounded-xl text-xs sm:text-sm ${
-                filter === key
+              className={`relative px-3 sm:px-6 py-2 sm:py-3 font-medium transition-all duration-300 rounded-xl text-xs sm:text-sm ${filter === key
                   ? 'bg-gradient-to-r from-pink-500 to-purple-600 text-white shadow-lg shadow-pink-500/25'
                   : 'bg-white/80 text-gray-600 hover:bg-white hover:text-gray-800 hover:shadow-md border border-gray-200/50'
-              }`}
+                }`}
             >
               <div className="flex items-center justify-center gap-2">
                 {icon}
                 <span className="truncate">{label}</span>
-                <span className={`text-xs px-2 py-0.5 rounded-full ${
-                  filter === key
+                <span className={`text-xs px-2 py-0.5 rounded-full ${filter === key
                     ? 'bg-white/20 text-white'
                     : 'bg-gray-100 text-gray-500'
-                }`}>
+                  }`}>
                   {count}
                 </span>
               </div>
@@ -331,7 +303,7 @@ const ClientAppointmentsSectionSimple = ({ currentUser }) => {
       </motion.div>
 
       {/* Liste des Rendez-vous Élégante */}
-      <motion.div 
+      <motion.div
         layout
         className="space-y-6"
       >
@@ -343,7 +315,7 @@ const ClientAppointmentsSectionSimple = ({ currentUser }) => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
-              transition={{ 
+              transition={{
                 delay: index * 0.05,
                 type: "spring",
                 stiffness: 100,
@@ -360,21 +332,20 @@ const ClientAppointmentsSectionSimple = ({ currentUser }) => {
                     alt={appointment.client.name}
                     className="w-12 h-12 sm:w-16 sm:h-16 rounded-lg sm:rounded-xl object-cover flex-shrink-0 shadow-lg group-hover:shadow-xl transition-shadow duration-300"
                   />
-                  <div className={`absolute -top-1 -right-1 w-5 h-5 sm:w-6 sm:h-6 rounded-full border-2 border-white flex items-center justify-center ${
-                    appointment.status === 'confirmed' ? 'bg-green-500' :
-                    appointment.status === 'pending' ? 'bg-yellow-500' :
-                    appointment.status === 'completed' ? 'bg-blue-500' :
-                    'bg-red-500'
-                  }`}>
+                  <div className={`absolute -top-1 -right-1 w-5 h-5 sm:w-6 sm:h-6 rounded-full border-2 border-white flex items-center justify-center ${appointment.status === 'confirmed' ? 'bg-green-500' :
+                      appointment.status === 'pending' ? 'bg-yellow-500' :
+                        appointment.status === 'completed' ? 'bg-blue-500' :
+                          'bg-red-500'
+                    }`}>
                     {getStatusIcon(appointment.status)}
                   </div>
                 </div>
-                
+
                 {/* Informations principales */}
                 <div className="flex-1 min-w-0">
                   <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-3 mb-3">
                     <h3 className="font-semibold text-gray-800 truncate text-base sm:text-lg min-w-0">{appointment.service}</h3>
-                    
+
                     <div className="flex flex-wrap gap-2">
                       {/* Badge type de service */}
                       <span className={`bg-gradient-to-r ${getServiceTypeColor(appointment.serviceType)} text-white text-xs px-2 sm:px-3 py-1 sm:py-1.5 rounded-full flex items-center gap-1 shadow-lg flex-shrink-0`}>
@@ -382,24 +353,24 @@ const ClientAppointmentsSectionSimple = ({ currentUser }) => {
                         <span className="capitalize hidden sm:inline">{appointment.serviceType}</span>
                         <span className="capitalize sm:hidden">{appointment.serviceType.charAt(0).toUpperCase()}</span>
                       </span>
-                      
+
                       {/* Badge statut */}
                       <span className={`px-2 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs font-medium flex items-center gap-1 border ${getStatusColor(appointment.status)} flex-shrink-0`}>
                         {getStatusIcon(appointment.status)}
                         <span className="capitalize hidden sm:inline">
-                          {appointment.status === 'confirmed' ? 'Confirmé' : 
-                           appointment.status === 'pending' ? 'En attente' : 
-                           appointment.status === 'completed' ? 'Terminé' : 'Annulé'}
+                          {appointment.status === 'confirmed' ? 'Confirmé' :
+                            appointment.status === 'pending' ? 'En attente' :
+                              appointment.status === 'completed' ? 'Terminé' : 'Annulé'}
                         </span>
                         <span className="capitalize sm:hidden">
-                          {appointment.status === 'confirmed' ? 'OK' : 
-                           appointment.status === 'pending' ? '?' : 
-                           appointment.status === 'completed' ? '✓' : '✗'}
+                          {appointment.status === 'confirmed' ? 'OK' :
+                            appointment.status === 'pending' ? '?' :
+                              appointment.status === 'completed' ? '✓' : '✗'}
                         </span>
                       </span>
                     </div>
                   </div>
-                  
+
                   {/* Informations client */}
                   <div className="flex flex-col space-y-2 mb-3 sm:mb-4">
                     <div className="flex items-center space-x-2 min-w-0">
@@ -411,14 +382,14 @@ const ClientAppointmentsSectionSimple = ({ currentUser }) => {
                       <span className="text-xs sm:text-sm text-gray-600 truncate">{appointment.client.phone}</span>
                     </div>
                   </div>
-                  
+
                   {/* Détails du rendez-vous */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 text-xs sm:text-sm text-gray-600 mb-3 sm:mb-4">
                     <div className="flex items-center space-x-2">
                       <Calendar className="w-3 h-3 sm:w-4 sm:h-4 text-pink-500 flex-shrink-0" />
-                      <span className="font-medium truncate">{new Date(appointment.date).toLocaleDateString('fr-FR', { 
-                        day: 'numeric', 
-                        month: 'short' 
+                      <span className="font-medium truncate">{new Date(appointment.date).toLocaleDateString('fr-FR', {
+                        day: 'numeric',
+                        month: 'short'
                       })}</span>
                     </div>
                     <div className="flex items-center space-x-2">
@@ -434,7 +405,7 @@ const ClientAppointmentsSectionSimple = ({ currentUser }) => {
                       <span className="font-semibold text-gray-800 text-sm sm:text-lg">{appointment.price}€</span>
                     </div>
                   </div>
-                  
+
                   {/* Notes */}
                   {appointment.notes && (
                     <div className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg sm:rounded-xl p-3 sm:p-4 mb-3 sm:mb-4">
@@ -443,7 +414,7 @@ const ClientAppointmentsSectionSimple = ({ currentUser }) => {
                       </p>
                     </div>
                   )}
-                  
+
                   {/* Demandes spéciales */}
                   {appointment.specialRequests && appointment.specialRequests.length > 0 && (
                     <div className="flex flex-wrap gap-1 sm:gap-2 mb-3 sm:mb-4">
@@ -460,14 +431,14 @@ const ClientAppointmentsSectionSimple = ({ currentUser }) => {
                       )}
                     </div>
                   )}
-                  
+
                   {/* Statut de paiement */}
                   <div className="flex flex-col space-y-2">
                     <div className="flex items-center space-x-2">
                       <CreditCard className="w-3 h-3 sm:w-4 sm:h-4 text-gray-500 flex-shrink-0" />
                       <span className={`text-xs px-2 py-1 rounded-full font-medium ${getPaymentStatusColor(appointment.paymentStatus)}`}>
                         {appointment.paymentStatus === 'paid' ? 'Payé' :
-                         appointment.paymentStatus === 'pending' ? 'En attente' : 'Remboursé'}
+                          appointment.paymentStatus === 'pending' ? 'En attente' : 'Remboursé'}
                       </span>
                     </div>
                     <span className="text-xs text-gray-500 truncate">
@@ -475,7 +446,7 @@ const ClientAppointmentsSectionSimple = ({ currentUser }) => {
                     </span>
                   </div>
                 </div>
-                
+
                 {/* Actions */}
                 <div className="flex flex-row space-x-1 sm:space-x-2">
                   {appointment.status === 'pending' && (
@@ -498,7 +469,7 @@ const ClientAppointmentsSectionSimple = ({ currentUser }) => {
                       </motion.button>
                     </>
                   )}
-                  
+
                   <motion.button
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.9 }}
@@ -507,7 +478,7 @@ const ClientAppointmentsSectionSimple = ({ currentUser }) => {
                   >
                     <Edit className="w-3 h-3 sm:w-4 sm:h-4" />
                   </motion.button>
-                  
+
                   <motion.button
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.9 }}
@@ -525,7 +496,7 @@ const ClientAppointmentsSectionSimple = ({ currentUser }) => {
 
       {/* État vide élégant */}
       {filteredAppointments.length === 0 && (
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           className="text-center py-12 sm:py-16"
@@ -539,11 +510,11 @@ const ClientAppointmentsSectionSimple = ({ currentUser }) => {
             </div>
             <h3 className="text-lg sm:text-xl font-semibold text-gray-800 mb-2 sm:mb-3">Aucun rendez-vous</h3>
             <p className="text-sm sm:text-base text-gray-600 mb-4 sm:mb-6">
-              {filter === 'all' 
+              {filter === 'all'
                 ? "Vous n'avez aucun rendez-vous pour le moment."
-                : `Aucun rendez-vous ${filter === 'confirmed' ? 'confirmé' : 
-                   filter === 'pending' ? 'en attente' : 
-                   filter === 'completed' ? 'terminé' : 'annulé'} pour le moment.`
+                : `Aucun rendez-vous ${filter === 'confirmed' ? 'confirmé' :
+                  filter === 'pending' ? 'en attente' :
+                    filter === 'completed' ? 'terminé' : 'annulé'} pour le moment.`
               }
             </p>
             <motion.button
@@ -560,14 +531,14 @@ const ClientAppointmentsSectionSimple = ({ currentUser }) => {
       {/* Modal de détail des rendez-vous */}
       <AnimatePresence>
         {showModal && selectedAppointment && (
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 bg-black/95 backdrop-blur-sm z-50 flex items-center justify-center p-4"
             onClick={closeModal}
           >
-            <motion.div 
+            <motion.div
               initial={{ scale: 0.8, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.8, opacity: 0 }}
@@ -612,9 +583,9 @@ const ClientAppointmentsSectionSimple = ({ currentUser }) => {
                           <Calendar className="w-5 h-5 text-pink-500" />
                           <div>
                             <p className="font-medium text-gray-800">
-                              {new Date(selectedAppointment.date).toLocaleDateString('fr-FR', { 
-                                weekday: 'long', 
-                                day: 'numeric', 
+                              {new Date(selectedAppointment.date).toLocaleDateString('fr-FR', {
+                                weekday: 'long',
+                                day: 'numeric',
                                 month: 'long',
                                 year: 'numeric'
                               })}
@@ -622,7 +593,7 @@ const ClientAppointmentsSectionSimple = ({ currentUser }) => {
                             <p className="text-sm text-gray-600">{selectedAppointment.time} - {selectedAppointment.duration}</p>
                           </div>
                         </div>
-                        
+
                         <div className="flex items-center space-x-3">
                           <MapPin className="w-5 h-5 text-blue-500" />
                           <div>
@@ -630,7 +601,7 @@ const ClientAppointmentsSectionSimple = ({ currentUser }) => {
                             <p className="text-sm text-gray-600">{selectedAppointment.address}</p>
                           </div>
                         </div>
-                        
+
                         <div className="flex items-center space-x-3">
                           <Euro className="w-5 h-5 text-green-500" />
                           <div>
@@ -638,7 +609,7 @@ const ClientAppointmentsSectionSimple = ({ currentUser }) => {
                             <p className="text-sm text-gray-600">
                               Statut: <span className={`px-2 py-1 rounded-full text-xs font-medium ${getPaymentStatusColor(selectedAppointment.paymentStatus)}`}>
                                 {selectedAppointment.paymentStatus === 'paid' ? 'Payé' :
-                                 selectedAppointment.paymentStatus === 'pending' ? 'En attente' : 'Remboursé'}
+                                  selectedAppointment.paymentStatus === 'pending' ? 'En attente' : 'Remboursé'}
                               </span>
                             </p>
                           </div>
@@ -687,7 +658,7 @@ const ClientAppointmentsSectionSimple = ({ currentUser }) => {
                             <p className="text-gray-600">Client VIP</p>
                           </div>
                         </div>
-                        
+
                         <div className="space-y-3">
                           <div className="flex items-center space-x-3">
                             <Phone className="w-4 h-4 text-gray-500" />

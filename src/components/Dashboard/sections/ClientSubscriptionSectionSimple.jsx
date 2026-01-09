@@ -120,15 +120,15 @@ const ClientSubscriptionSectionSimple = ({ currentUser }) => {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-white rounded-[1.5rem] md:rounded-[2.5rem] p-6 md:p-12 shadow-[0_20px_50px_rgba(251,182,206,0.12)] relative overflow-hidden border border-rose-100"
+        className="bg-gradient-to-r from-pink-500 to-purple-600 rounded-[1.5rem] md:rounded-[2.5rem] p-6 md:p-12 shadow-[0_20px_50px_rgba(236,72,153,0.3)] relative overflow-hidden text-white"
       >
-        <div className="absolute top-0 right-0 w-64 h-64 bg-rose-50 rounded-full blur-[60px] -mr-32 -mt-32 opacity-60" />
+        <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-[60px] -mr-32 -mt-32" />
         <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
           <div>
-            <h1 className="text-2xl md:text-5xl font-black mb-1 md:mb-3 tracking-tight text-slate-800">
-              Mon <span className="text-rose-500 uppercase">Abonnement</span>
+            <h1 className="text-2xl md:text-5xl font-black mb-1 md:mb-3 tracking-tight text-white">
+              Mon <span className="text-white uppercase">Abonnement</span>
             </h1>
-            <p className="text-slate-400 text-[10px] md:text-sm font-bold uppercase tracking-widest opacity-80">
+            <p className="text-white/80 text-[10px] md:text-sm font-bold uppercase tracking-widest">
               Gérez votre accès aux services premium
             </p>
           </div>

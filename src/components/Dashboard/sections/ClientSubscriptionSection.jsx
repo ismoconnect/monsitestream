@@ -1,12 +1,12 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { 
-  CreditCard, 
-  Crown, 
-  Star, 
-  Check, 
-  Lock, 
+import {
+  CreditCard,
+  Crown,
+  Star,
+  Check,
+  Lock,
   Gift,
   Calendar,
   Heart,
@@ -19,8 +19,8 @@ import {
 
 const ClientSubscriptionSection = ({ currentUser }) => {
   const navigate = useNavigate();
-  const isPremium = currentUser?.subscription?.status === 'active' && 
-                   (currentUser?.subscription?.type === 'premium' || currentUser?.subscription?.type === 'vip');
+  const isPremium = currentUser?.subscription?.status === 'active' &&
+    (currentUser?.subscription?.type === 'premium' || currentUser?.subscription?.type === 'vip');
 
   const subscriptionPlans = [
     {
@@ -73,7 +73,7 @@ const ClientSubscriptionSection = ({ currentUser }) => {
   // Fonction pour gérer l'achat d'abonnement
   const handleSubscribe = (planId) => {
     const selectedPlan = subscriptionPlans.find(plan => plan.id === planId);
-    
+
     if (selectedPlan) {
       // Rediriger vers la page de paiement avec les détails du plan
       navigate('/dashboard/payment', {
@@ -117,7 +117,7 @@ const ClientSubscriptionSection = ({ currentUser }) => {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold text-gray-800 flex items-center">
-            <CreditCard className="w-6 h-6 text-green-500 mr-2" />
+            <CreditCard className="w-6 h-6 text-pink-500 mr-2" />
             Mon Abonnement
           </h2>
           <p className="text-gray-600">Gérez votre abonnement et accédez au contenu premium</p>
@@ -129,7 +129,7 @@ const ClientSubscriptionSection = ({ currentUser }) => {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-gradient-to-r from-green-500 to-emerald-600 rounded-2xl p-8 text-white"
+          className="bg-gradient-to-r from-pink-500 to-purple-600 rounded-2xl p-8 text-white"
         >
           <div className="flex items-center justify-between">
             <div>
@@ -137,7 +137,7 @@ const ClientSubscriptionSection = ({ currentUser }) => {
                 <Crown className="w-8 h-8 text-yellow-300" />
                 <h3 className="text-2xl font-bold">Abonnement Premium Actif</h3>
               </div>
-              <p className="text-green-100 mb-4">
+              <p className="text-pink-100 mb-4">
                 Vous profitez de tous les avantages premium
               </p>
               <div className="flex items-center space-x-4 text-sm">
@@ -181,7 +181,7 @@ const ClientSubscriptionSection = ({ currentUser }) => {
       {/* Features Comparison */}
       <div className="bg-white rounded-xl border p-6">
         <h3 className="text-lg font-semibold mb-6">Fonctionnalités Incluses</h3>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="text-center">
             <div className="w-16 h-16 bg-pink-100 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -192,7 +192,7 @@ const ClientSubscriptionSection = ({ currentUser }) => {
               {isPremium ? 'Accès complet' : 'Accès limité'}
             </p>
           </div>
-          
+
           <div className="text-center">
             <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <Video className="w-8 h-8 text-purple-500" />
@@ -202,7 +202,7 @@ const ClientSubscriptionSection = ({ currentUser }) => {
               {isPremium ? 'Illimitées' : 'Non disponible'}
             </p>
           </div>
-          
+
           <div className="text-center">
             <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <MessageSquare className="w-8 h-8 text-blue-500" />
@@ -218,7 +218,7 @@ const ClientSubscriptionSection = ({ currentUser }) => {
       {/* Subscription Plans */}
       <div className="space-y-6">
         <h3 className="text-lg font-semibold">Plans d'Abonnement</h3>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {subscriptionPlans.map((plan, index) => (
             <motion.div
@@ -226,11 +226,10 @@ const ClientSubscriptionSection = ({ currentUser }) => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1 }}
-              className={`relative bg-white rounded-xl border-2 p-6 ${
-                plan.popular 
-                  ? 'border-pink-500 shadow-lg' 
-                  : 'border-gray-200 hover:border-gray-300'
-              }`}
+              className={`relative bg-white rounded-xl border-2 p-6 ${plan.popular
+                  ? 'border-pink-500 shadow-lg'
+                  : 'border-gray-200 hover:border-pink-100'
+                }`}
             >
               {plan.popular && (
                 <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
@@ -239,7 +238,7 @@ const ClientSubscriptionSection = ({ currentUser }) => {
                   </span>
                 </div>
               )}
-              
+
               <div className="text-center mb-6">
                 <h4 className="text-xl font-bold text-gray-800 mb-2">{plan.name}</h4>
                 <div className="flex items-baseline justify-center">
@@ -247,28 +246,27 @@ const ClientSubscriptionSection = ({ currentUser }) => {
                   <span className="text-gray-600 ml-1">/{plan.period}</span>
                 </div>
               </div>
-              
+
               <ul className="space-y-3 mb-6">
                 {plan.features.map((feature, featureIndex) => (
                   <li key={featureIndex} className="flex items-center text-sm text-gray-600">
-                    <Check className="w-4 h-4 text-green-500 mr-3 flex-shrink-0" />
+                    <Check className="w-4 h-4 text-pink-500 mr-3 flex-shrink-0" />
                     {feature}
                   </li>
                 ))}
               </ul>
-              
+
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => currentUser?.subscription?.type !== plan.id && handleSubscribe(plan.id)}
                 disabled={currentUser?.subscription?.type === plan.id}
-                className={`w-full py-3 px-4 rounded-lg font-medium transition-colors ${
-                  currentUser?.subscription?.type === plan.id
-                    ? 'bg-green-100 text-green-800 cursor-not-allowed'
+                className={`w-full py-3 px-4 rounded-lg font-medium transition-colors ${currentUser?.subscription?.type === plan.id
+                    ? 'bg-pink-100 text-pink-800 cursor-not-allowed'
                     : plan.popular
-                    ? 'bg-gradient-to-r from-pink-500 to-purple-500 text-white hover:shadow-lg'
-                    : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
-                }`}
+                      ? 'bg-gradient-to-r from-pink-500 to-purple-500 text-white hover:shadow-lg'
+                      : 'bg-gray-100 text-gray-800 hover:bg-pink-50'
+                  }`}
               >
                 {currentUser?.subscription?.type === plan.id ? 'Plan Actuel' : 'Choisir ce Plan'}
               </motion.button>
@@ -281,7 +279,7 @@ const ClientSubscriptionSection = ({ currentUser }) => {
       {isPremium && (
         <div className="bg-white rounded-xl border p-6">
           <h3 className="text-lg font-semibold mb-4">Historique des Factures</h3>
-          
+
           <div className="space-y-3">
             {[
               { date: '2024-01-15', amount: 79, status: 'paid' },
@@ -298,7 +296,7 @@ const ClientSubscriptionSection = ({ currentUser }) => {
                 </div>
                 <div className="flex items-center space-x-3">
                   <span className="font-medium text-gray-800">€{invoice.amount}</span>
-                  <span className="px-2 py-1 bg-green-100 text-green-600 rounded-full text-xs font-medium">
+                  <span className="px-2 py-1 bg-pink-100 text-pink-600 rounded-full text-xs font-medium">
                     Payé
                   </span>
                 </div>

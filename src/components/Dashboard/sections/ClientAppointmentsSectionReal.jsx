@@ -73,13 +73,13 @@ const ClientAppointmentsSectionReal = ({ currentUser }) => {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-white rounded-[1.5rem] md:rounded-[2.5rem] p-6 md:p-12 shadow-[0_20px_50px_rgba(251,182,206,0.12)] relative overflow-hidden border border-rose-100"
+        className="bg-white rounded-[1.5rem] md:rounded-[2.5rem] p-6 md:p-12 shadow-[0_20px_50px_rgba(236,72,153,0.12)] relative overflow-hidden border border-pink-100"
       >
-        <div className="absolute top-0 right-0 w-64 h-64 bg-rose-50 rounded-full blur-[60px] -mr-32 -mt-32" />
+        <div className="absolute top-0 right-0 w-64 h-64 bg-pink-50 rounded-full blur-[60px] -mr-32 -mt-32" />
         <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
           <div>
             <h1 className="text-2xl md:text-5xl font-black mb-1 md:mb-3 tracking-tight text-slate-800">
-              Mes <span className="text-rose-500 uppercase">Rendez-vous</span>
+              Mes <span className="bg-gradient-to-r from-pink-500 to-purple-600 bg-clip-text text-transparent uppercase">Rendez-vous</span>
             </h1>
             <p className="text-slate-400 text-[10px] md:text-sm font-bold uppercase tracking-widest opacity-80">
               Gestion de vos sessions privées
@@ -89,7 +89,7 @@ const ClientAppointmentsSectionReal = ({ currentUser }) => {
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             onClick={() => setShowCreateModal(true)}
-            className="flex items-center justify-center gap-2 bg-rose-500 text-white px-8 py-4 rounded-2xl font-black text-xs md:text-sm tracking-widest shadow-lg shadow-rose-200 transition-all w-fit"
+            className="flex items-center justify-center gap-2 bg-gradient-to-r from-pink-500 to-purple-600 text-white px-8 py-4 rounded-2xl font-black text-xs md:text-sm tracking-widest shadow-lg shadow-pink-200 transition-all w-fit"
           >
             <Plus className="w-5 h-5" />
             RÉSERVER
@@ -106,14 +106,14 @@ const ClientAppointmentsSectionReal = ({ currentUser }) => {
                 key={filter.id}
                 onClick={() => setSelectedFilter(filter.id)}
                 className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-[11px] md:text-xs font-bold transition-all border ${selectedFilter === filter.id
-                    ? 'bg-rose-500 text-white border-rose-500 shadow-md shadow-rose-100'
-                    : 'bg-white text-slate-400 border-slate-100 hover:border-rose-200'
+                  ? 'bg-gradient-to-r from-pink-500 to-purple-600 text-white border-pink-500 shadow-md shadow-pink-100'
+                  : 'bg-white text-slate-400 border-slate-100 hover:border-pink-200'
                   }`}
               >
-                <filter.icon className={`hidden sm:block w-3.5 h-3.5 ${selectedFilter === filter.id ? 'text-white' : 'text-rose-300'}`} />
+                <filter.icon className={`hidden sm:block w-3.5 h-3.5 ${selectedFilter === filter.id ? 'text-white' : 'text-pink-300'}`} />
                 {filter.label}
                 {filter.count > 0 && (
-                  <span className={`ml-1 px-1.5 py-0.5 rounded-lg text-[10px] ${selectedFilter === filter.id ? 'bg-white/20 text-white' : 'bg-rose-50 text-rose-500'
+                  <span className={`ml-1 px-1.5 py-0.5 rounded-lg text-[10px] ${selectedFilter === filter.id ? 'bg-white/20 text-white' : 'bg-pink-50 text-pink-500'
                     }`}>
                     {filter.count}
                   </span>
@@ -131,7 +131,7 @@ const ClientAppointmentsSectionReal = ({ currentUser }) => {
               placeholder="Rechercher..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-11 pr-4 py-3.5 bg-white border border-slate-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-rose-500/5 focus:border-rose-400/30 transition-all text-sm"
+              className="w-full pl-11 pr-4 py-3.5 bg-white border border-slate-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-pink-500/5 focus:border-pink-400/30 transition-all text-sm"
             />
           </div>
         </div>
@@ -142,7 +142,7 @@ const ClientAppointmentsSectionReal = ({ currentUser }) => {
         <AnimatePresence mode="popLayout">
           {loading ? (
             <div className="col-span-full py-20 flex justify-center">
-              <Loader className="w-8 h-8 animate-spin text-rose-300" />
+              <Loader className="w-8 h-8 animate-spin text-pink-300" />
             </div>
           ) : filteredAppointments.length > 0 ? (
             filteredAppointments.map((appointment, index) => (
@@ -153,7 +153,7 @@ const ClientAppointmentsSectionReal = ({ currentUser }) => {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.95 }}
                 transition={{ delay: index * 0.05 }}
-                className="bg-white rounded-[2rem] p-6 border border-slate-50 shadow-sm hover:shadow-[0_20px_40px_rgba(0,0,0,0.03)] hover:border-rose-100 transition-all group relative overflow-hidden"
+                className="bg-white rounded-[2rem] p-6 border border-slate-50 shadow-sm hover:shadow-[0_20px_40px_rgba(0,0,0,0.03)] hover:border-pink-100 transition-all group relative overflow-hidden"
               >
                 <div className="flex justify-between items-start mb-6">
                   <div className={`px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest border ${getStatusStyle(appointment.status)}`}>
@@ -161,14 +161,14 @@ const ClientAppointmentsSectionReal = ({ currentUser }) => {
                       appointment.status === 'pending' ? 'Attente' :
                         appointment.status === 'completed' ? 'Terminé' : 'Annulé'}
                   </div>
-                  <button className="text-slate-200 hover:text-rose-400 p-1">
+                  <button className="text-slate-200 hover:text-pink-400 p-1">
                     <MoreVertical size={18} />
                   </button>
                 </div>
 
                 <div className="space-y-4">
                   <div className="flex items-center gap-4">
-                    <div className="w-14 h-14 bg-slate-50 rounded-2xl flex items-center justify-center text-rose-400 group-hover:bg-rose-500 group-hover:text-white transition-all duration-300 shadow-inner">
+                    <div className="w-14 h-14 bg-slate-50 rounded-2xl flex items-center justify-center text-pink-400 group-hover:bg-gradient-to-r group-hover:from-pink-500 group-hover:to-purple-600 group-hover:text-white transition-all duration-300 shadow-inner">
                       <User size={24} />
                     </div>
                     <div className="min-w-0">
@@ -181,11 +181,11 @@ const ClientAppointmentsSectionReal = ({ currentUser }) => {
 
                   <div className="grid grid-cols-2 gap-4 py-4 border-y border-slate-50">
                     <div className="flex items-center gap-2">
-                      <Calendar size={14} className="text-rose-200" />
+                      <Calendar size={14} className="text-pink-200" />
                       <span className="text-xs font-bold text-slate-600 truncate">{formatAppointmentDate(appointment.date)}</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Clock size={14} className="text-rose-200" />
+                      <Clock size={14} className="text-pink-200" />
                       <span className="text-xs font-bold text-slate-600">{appointment.time}</span>
                     </div>
                   </div>
@@ -200,7 +200,7 @@ const ClientAppointmentsSectionReal = ({ currentUser }) => {
                         setSelectedAppointment(appointment);
                         setShowDetailsModal(true);
                       }}
-                      className="text-[10px] font-black text-rose-400 uppercase tracking-widest hover:text-rose-600 transition-all"
+                      className="text-[10px] font-black text-pink-400 uppercase tracking-widest hover:text-pink-600 transition-all"
                     >
                       DÉTAILS
                     </button>
@@ -210,13 +210,13 @@ const ClientAppointmentsSectionReal = ({ currentUser }) => {
                 {appointment.status === 'pending' && (
                   <div className="mt-6 flex gap-2">
                     <button
-                      className="flex-1 bg-rose-500 text-white py-3 rounded-xl text-xs font-black shadow-md hover:bg-rose-600 shadow-rose-50 transition-all"
+                      className="flex-1 bg-gradient-to-r from-pink-500 to-purple-600 text-white py-3 rounded-xl text-xs font-black shadow-md hover:opacity-90 shadow-pink-50 transition-all"
                       onClick={() => confirmAppointment(appointment.id)}
                     >
                       CONFIRMER
                     </button>
                     <button
-                      className="px-4 bg-slate-50 text-slate-400 py-3 rounded-xl hover:bg-rose-50 hover:text-rose-500 transition-all"
+                      className="px-4 bg-slate-50 text-slate-400 py-3 rounded-xl hover:bg-pink-50 hover:text-pink-500 transition-all"
                       onClick={() => cancelAppointment(appointment.id)}
                     >
                       <X size={16} />
@@ -226,13 +226,13 @@ const ClientAppointmentsSectionReal = ({ currentUser }) => {
               </motion.div>
             ))
           ) : (
-            <div className="col-span-full py-20 bg-white rounded-[3rem] border border-dashed border-rose-100 flex flex-col items-center text-center px-10">
-              <CalendarX size={40} className="text-rose-100 mb-4" />
+            <div className="col-span-full py-20 bg-white rounded-[3rem] border border-dashed border-pink-100 flex flex-col items-center text-center px-10">
+              <CalendarX size={40} className="text-pink-100 mb-4" />
               <h3 className="text-2xl font-black text-slate-800 mb-2 font-black">Aucun rendez-vous</h3>
               <p className="text-slate-400 text-sm max-w-xs mb-8">Commencez dès maintenant votre expérience.</p>
               <button
                 onClick={() => setShowCreateModal(true)}
-                className="bg-rose-500 text-white px-8 py-4 rounded-2xl font-black text-sm tracking-widest shadow-lg shadow-rose-100"
+                className="bg-gradient-to-r from-pink-500 to-purple-600 text-white px-8 py-4 rounded-2xl font-black text-sm tracking-widest shadow-lg shadow-pink-100"
               >
                 RÉSERVER
               </button>
@@ -254,19 +254,19 @@ const ClientAppointmentsSectionReal = ({ currentUser }) => {
               initial={{ opacity: 0, y: 50 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 50 }}
-              className="bg-white rounded-t-[2.5rem] sm:rounded-[2.5rem] shadow-2xl w-full max-w-lg overflow-hidden border border-rose-50"
+              className="bg-white rounded-t-[2.5rem] sm:rounded-[2.5rem] shadow-2xl w-full max-w-lg overflow-hidden border border-pink-50"
             >
               <div className="p-8 space-y-8">
                 <div className="flex justify-between items-center">
                   <h2 className="text-2xl font-black text-slate-800">Détails Session</h2>
-                  <button onClick={() => setShowDetailsModal(false)} className="p-2 bg-rose-50 rounded-full text-rose-500">
+                  <button onClick={() => setShowDetailsModal(false)} className="p-2 bg-pink-50 rounded-full text-pink-500">
                     <X size={20} />
                   </button>
                 </div>
 
                 <div className="space-y-6">
-                  <div className="p-6 bg-rose-50/30 rounded-3xl border border-rose-100">
-                    <p className="text-[10px] font-black text-rose-400 uppercase tracking-widest mb-3">Client</p>
+                  <div className="p-6 bg-pink-50/30 rounded-3xl border border-pink-100">
+                    <p className="text-[10px] font-black text-pink-400 uppercase tracking-widest mb-3">Client</p>
                     <p className="text-lg font-bold text-slate-800">{selectedAppointment.clientName}</p>
                     <p className="text-sm text-slate-400">{selectedAppointment.clientEmail}</p>
                   </div>
@@ -278,7 +278,7 @@ const ClientAppointmentsSectionReal = ({ currentUser }) => {
                     </div>
                     <div className="p-5 bg-white border border-slate-100 rounded-2xl">
                       <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Statut</p>
-                      <p className="font-bold text-rose-400 uppercase">{selectedAppointment.status}</p>
+                      <p className="font-bold text-pink-400 uppercase">{selectedAppointment.status}</p>
                     </div>
                   </div>
                 </div>
