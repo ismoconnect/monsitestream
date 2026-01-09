@@ -9,7 +9,8 @@ import {
   where,
   orderBy,
   serverTimestamp,
-  onSnapshot
+  onSnapshot,
+  deleteDoc
 } from 'firebase/firestore';
 import { db } from './firebase';
 
@@ -398,6 +399,18 @@ class PaymentService {
   // Rejeter un paiement
   async rejectPayment(paymentId, adminNote = 'Paiement rejeté') {
     return this.updatePaymentStatus(paymentId, PAYMENT_STATUS.REJECTED, adminNote);
+  }
+
+  // Supprimer un paiement
+  async deletePayment(paymentId) {
+    try {
+      const paymentRef = doc(db, 'payments', paymentId);
+      await deleteDoc(paymentRef);
+      return true;
+    } catch (error) {
+      console.error('Erreur lors de la suppression du paiement:', error);
+      throw error;
+    }
   }
 
   // Formater le statut pour l'affichage

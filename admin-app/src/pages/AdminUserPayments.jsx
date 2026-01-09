@@ -20,7 +20,8 @@ import {
   Ticket,
   CheckCircle,
   XCircle,
-  Menu
+  Menu,
+  Trash2
 } from 'lucide-react';
 import AdminSidebar from '../components/admin/AdminSidebar';
 import { paymentService, PAYMENT_STATUS } from '../services/paymentService';
@@ -114,6 +115,21 @@ const AdminUserPayments = () => {
     } catch (error) {
       console.error('Erreur lors de la mise à jour:', error);
       alert('Erreur lors de la mise à jour du statut');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleDeletePayment = async (paymentId) => {
+    if (!window.confirm('Êtes-vous sûr de vouloir supprimer définitivement ce paiement ?')) return;
+
+    setActionLoading(true);
+    try {
+      await paymentService.deletePayment(paymentId);
+      setShowModal(false);
+    } catch (error) {
+      console.error('Erreur lors de la suppression:', error);
+      alert('Erreur lors de la suppression du paiement');
     } finally {
       setActionLoading(false);
     }
@@ -528,6 +544,18 @@ const AdminUserPayments = () => {
                         </motion.button>
                       </>
                     )}
+
+                  {/* Delete Button (Always available for Admin) */}
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => handleDeletePayment(selectedPayment.id)}
+                    disabled={actionLoading}
+                    className="flex-1 bg-gray-200 text-gray-700 py-2 px-4 rounded-lg hover:bg-red-50 hover:text-red-600 disabled:opacity-50 transition-all font-medium flex items-center justify-center gap-2 border border-gray-300"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                    Supprimer
+                  </motion.button>
 
                   {actionLoading && (
                     <div className="flex items-center justify-center py-2">
