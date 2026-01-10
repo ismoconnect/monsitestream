@@ -1,4 +1,4 @@
-import { db, storage } from './firebase';
+import { db } from './firebase';
 import {
     collection,
     addDoc,
@@ -10,12 +10,14 @@ import {
     orderBy,
     updateDoc
 } from 'firebase/firestore';
-import {
-    ref,
-    uploadBytes,
-    getDownloadURL,
-    deleteObject
-} from 'firebase/storage';
+
+// Configuration Cloudinary
+const CLOUDINARY_CONFIG = {
+    cloudName: 'dxvbuhadg',
+    uploadPreset: 'amcb_kyc_documents',
+    folder: 'logos', // ou 'gallery' si vous préférez séparer
+    apiKey: '221933451899525'
+};
 
 class GalleryService {
     // Récupérer tous les items de la galerie
@@ -42,31 +44,55 @@ class GalleryService {
         }
     }
 
-    // Upload d'un média (Photo ou Vidéo)
+    // Upload d'un média vers Cloudinary
     async uploadMedia(file, metadata) {
         try {
-            // 1. Définir le chemin dans Storage
-            const extension = file.name.split('.').pop();
-            const uniqueName = Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-            const storagePath = `gallery/${uniqueName}.${extension}`;
-            const storageRef = ref(storage, storagePath);
+            // Création du FormData pour l'upload Cloudinary
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('upload_preset', CLOUDINARY_CONFIG.uploadPreset);
+            formData.append('folder', CLOUDINARY_CONFIG.folder);
 
-            // 2. Uploader le fichier
-            const snapshot = await uploadBytes(storageRef, file);
-            const downloadURL = await getDownloadURL(snapshot.ref);
+            // Ajout de tags si nécessaire
+            if (metadata.category) {
+                formData.append('tags', metadata.category);
+            }
 
-            // 3. Créer le document dans Firestore
+            // Détermination du type de ressource (image ou video)
+            const resourceType = file.type.startsWith('video') ? 'video' : 'image';
+
+            // Appel API Cloudinary
+            const response = await fetch(
+                `https://api.cloudinary.com/v1_1/${CLOUDINARY_CONFIG.cloudName}/${resourceType}/upload`,
+                {
+                    method: 'POST',
+                    body: formData
+                }
+            );
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error?.message || "Erreur lors de l'upload Cloudinary");
+            }
+
+            const data = await response.json();
+
+            // Créer le document dans Firestore avec l'URL Cloudinary
             const docData = {
                 title: metadata.title,
                 description: metadata.description || '',
                 category: metadata.category, // 'public', 'premium', 'private'
-                type: file.type.startsWith('video') ? 'video' : 'image',
-                url: downloadURL,
-                storagePath: storagePath,
+                type: resourceType,
+                url: data.secure_url, // URL sécurisée de Cloudinary
+                publicId: data.public_id, // ID public Cloudinary (utile pour suppression future si backend)
+                thumbnailUrl: resourceType === 'video' ?
+                    data.secure_url.replace(/\.[^/.]+$/, ".jpg") : // Génère une vignette p/ vidéo
+                    data.secure_url,
                 tags: metadata.tags || [],
                 isExclusive: metadata.category !== 'public',
                 createdAt: serverTimestamp(),
-                uploadedBy: 'admin' // Pourrait être l'ID de l'admin connecté
+                uploadedBy: 'admin',
+                provider: 'cloudinary'
             };
 
             const docRef = await addDoc(collection(db, 'gallery'), docData);
@@ -84,13 +110,13 @@ class GalleryService {
     // Supprimer un média
     async deleteMedia(mediaItem) {
         try {
-            // 1. Supprimer du Storage
-            if (mediaItem.storagePath) {
-                const storageRef = ref(storage, mediaItem.storagePath);
-                await deleteObject(storageRef);
-            }
+            // Note: Avec l'upload non signé (unsigned), nous ne pouvons pas supprimer 
+            // directement le fichier sur Cloudinary depuis le client pour des raisons de sécurité.
+            // Il faudrait un backend sécurisé ou une Cloud Function pour ça.
+            // Pour l'instant, on supprime juste la référence dans Firestore.
+            // L'image restera sur Cloudinary (ce qui n'est pas grave pour le forfait gratuit généreux).
 
-            // 2. Supprimer de Firestore
+            // 1. Supprimer de Firestore
             await deleteDoc(doc(db, 'gallery', mediaItem.id));
 
             return true;
