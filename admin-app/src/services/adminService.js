@@ -1,17 +1,104 @@
-import { 
-  collection, 
-  doc, 
-  getDocs, 
-  updateDoc, 
-  query, 
-  where, 
-  orderBy, 
+import {
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  updateDoc,
+  query,
+  where,
+  orderBy,
   serverTimestamp,
-  addDoc
+  addDoc,
+  collectionGroup,
+  limit
 } from 'firebase/firestore';
 import { db } from './firebase';
 
 class AdminService {
+  // --- GESTION DES RENDEZ-VOUS (NOUVEAU) ---
+
+  // Récupérer tous les RDV de tous les utilisateurs (Collection Group)
+  async getAllAppointments(limitCount = 50) {
+    try {
+      const q = query(
+        collectionGroup(db, 'appointments'),
+        orderBy('date', 'desc'),
+        limit(limitCount)
+      );
+
+      const querySnapshot = await getDocs(q);
+      const appointments = [];
+
+      querySnapshot.forEach((doc) => {
+        // Ignorer les documents d'initialisation s'il y en a
+        if (doc.id !== '_init' && doc.id !== 'init') {
+          appointments.push({
+            id: doc.id,
+            ...doc.data(),
+            // L'ID du parent (userId) est utile pour les actions
+            userId: doc.ref.parent.parent.id
+          });
+        }
+      });
+
+      return appointments;
+    } catch (error) {
+      console.error('Erreur lors de la récupération globale des RDV:', error);
+      // Fallback si l'index n'existe pas encore ou erreur de permission
+      return [];
+    }
+  }
+
+  // Valider un RDV
+  async confirmAppointment(userId, appointmentId) {
+    try {
+      const rdvRef = doc(db, 'users', userId, 'appointments', appointmentId);
+      await updateDoc(rdvRef, {
+        status: 'confirmed',
+        confirmedAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      });
+      return true;
+    } catch (error) {
+      console.error('Erreur validation RDV:', error);
+      throw error;
+    }
+  }
+
+  // Annuler un RDV
+  async cancelAppointment(userId, appointmentId, reason = '') {
+    try {
+      const rdvRef = doc(db, 'users', userId, 'appointments', appointmentId);
+      await updateDoc(rdvRef, {
+        status: 'cancelled',
+        cancellationReason: reason,
+        cancelledAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      });
+      return true;
+    } catch (error) {
+      console.error('Erreur annulation RDV:', error);
+      throw error;
+    }
+  }
+
+  // Terminer un RDV
+  async completeAppointment(userId, appointmentId) {
+    try {
+      const rdvRef = doc(db, 'users', userId, 'appointments', appointmentId);
+      await updateDoc(rdvRef, {
+        status: 'completed',
+        completedAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      });
+      return true;
+    } catch (error) {
+      console.error('Erreur finalisation RDV:', error);
+      throw error;
+    }
+  }
+
+  // --- FIN GESTION RDV ---
   // Obtenir toutes les demandes d'abonnement en attente (requête simplifiée)
   async getPendingSubscriptions() {
     try {
@@ -20,13 +107,13 @@ class AdminService {
         collection(db, 'users'),
         where('subscription.status', '==', 'pending')
       );
-      
+
       const querySnapshot = await getDocs(q);
       const users = querySnapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
       }));
-      
+
       // Trier côté client pour éviter l'index composite
       return users.sort((a, b) => {
         const aDate = a.subscription?.requestedAt?.toDate?.() || new Date(0);
@@ -48,16 +135,16 @@ class AdminService {
         id: doc.id,
         ...doc.data()
       }));
-      
+
       // Appliquer les filtres côté client
       if (filters.status) {
         users = users.filter(u => u.subscription?.status === filters.status);
       }
-      
+
       if (filters.plan) {
         users = users.filter(u => u.subscription?.plan === filters.plan);
       }
-      
+
       // Trier côté client par date de création
       return users.sort((a, b) => {
         const aDate = a.createdAt?.toDate?.() || new Date(0);
@@ -99,7 +186,7 @@ class AdminService {
   async validateSubscription(userId, adminId, validationData = {}) {
     try {
       const { plan, duration = 30 } = validationData; // durée en jours
-      
+
       const expirationDate = new Date();
       expirationDate.setDate(expirationDate.getDate() + duration);
 
@@ -208,7 +295,7 @@ class AdminService {
     try {
       const userDoc = await doc(db, 'users', userId);
       const userData = await userDoc.get();
-      
+
       if (!userData.exists()) {
         throw new Error('Utilisateur introuvable');
       }
@@ -239,23 +326,55 @@ class AdminService {
 
   // Changer le plan d'un utilisateur
   async changeUserPlan(userId, adminId, newPlan) {
+    if (!userId || !newPlan) throw new Error('ID utilisateur ou plan manquant');
+
     try {
-      await updateDoc(doc(db, 'users', userId), {
-        'subscription.plan': newPlan,
-        'subscription.planChangedAt': serverTimestamp(),
-        'subscription.planChangedBy': adminId,
+      const planNames = {
+        'basic': 'Accès Basic',
+        'premium': 'Premium VIP',
+        'vip': 'VIP Elite'
+      };
+
+      const userRef = doc(db, 'users', userId);
+      const userSnap = await getDoc(userRef);
+
+      if (!userSnap.exists()) {
+        throw new Error('Utilisateur non trouvé');
+      }
+
+      const currentData = userSnap.data();
+      const currentSubscription = currentData.subscription || {};
+
+      // Mise à jour de l'objet complet pour éviter les erreurs sur champs manquants
+      await updateDoc(userRef, {
+        'subscription': {
+          ...currentSubscription,
+          plan: newPlan,
+          type: newPlan,
+          planName: planNames[newPlan] || newPlan,
+          planChangedAt: new Date(),
+          planChangedBy: adminId || 'admin',
+          status: currentSubscription.status || 'active'
+        },
+        'role': newPlan === 'vip' ? 'vip' : 'client',
         'updatedAt': serverTimestamp()
       });
 
-      await this.logAdminAction(adminId, 'change_plan', {
-        userId,
-        newPlan
-      });
+      // Log de l'action
+      try {
+        await this.logAdminAction(adminId || 'admin', 'change_plan', {
+          userId,
+          newPlan,
+          targetEmail: currentData.email || userId
+        });
+      } catch (logError) {
+        console.warn('Erreur logAdminAction:', logError);
+      }
 
       return true;
     } catch (error) {
-      console.error('Erreur lors du changement de plan:', error);
-      throw new Error('Erreur lors du changement de plan');
+      console.error('Erreur changement de plan:', error);
+      throw error;
     }
   }
 
@@ -265,7 +384,7 @@ class AdminService {
       // Récupérer tous les utilisateurs sans filtre pour éviter les index
       const querySnapshot = await getDocs(collection(db, 'users'));
       const users = querySnapshot.docs.map(doc => doc.data());
-      
+
       const stats = {
         total: users.length,
         pending: users.filter(u => u.subscription?.status === 'pending').length,
@@ -326,7 +445,7 @@ class AdminService {
         id: doc.id,
         ...doc.data()
       }));
-      
+
       // Trier côté client et limiter
       return logs
         .sort((a, b) => {
@@ -354,7 +473,7 @@ class AdminService {
       };
 
       await addDoc(
-        collection(db, 'users', userId, 'notifications'), 
+        collection(db, 'users', userId, 'notifications'),
         notificationData
       );
 

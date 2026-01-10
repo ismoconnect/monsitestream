@@ -35,16 +35,22 @@ const ClientMessagesSectionReal = ({ currentUser }) => {
   const [typingTimeout, setTypingTimeout] = useState(null);
   const messagesEndRef = useRef(null);
 
-  // Vérifier si l'utilisateur est premium ou VIP
-  const isPremiumUser = () => {
-    const userPlan = currentUser?.subscription?.plan || currentUser?.plan;
-    return userPlan === 'premium' || userPlan === 'vip';
-  };
+  const sub = currentUser?.subscription;
+  const currentPlan = (sub?.plan || sub?.type || sub?.planName || 'basic').toLowerCase();
+  const subStatus = sub?.status;
 
-  // Gérer les fonctionnalités premium
-  const handlePremiumFeature = (featureName) => {
-    if (!isPremiumUser()) {
+  const isPremium = subStatus === 'active' && (currentPlan.includes('premium') || currentPlan.includes('vip'));
+  const isVIP = subStatus === 'active' && currentPlan.includes('vip');
+
+  const [requiredPlan, setRequiredPlan] = useState('Premium');
+
+  // Gérer les fonctionnalités premium/VIP
+  const handleFeatureAccess = (featureName, requiredLevel = 'premium') => {
+    const hasAccess = requiredLevel === 'vip' ? isVIP : isPremium;
+
+    if (!hasAccess) {
       setPremiumFeatureName(featureName);
+      setRequiredPlan(requiredLevel === 'vip' ? 'VIP Elite' : 'Premium');
       setShowPremiumModal(true);
       return false;
     }
@@ -196,28 +202,28 @@ const ClientMessagesSectionReal = ({ currentUser }) => {
 
   // Gestionnaires pour les fonctionnalités premium
   const handleVideoCall = () => {
-    if (handlePremiumFeature('Appel vidéo')) {
+    if (handleFeatureAccess('Appel vidéo', 'vip')) {
       // Logique d'appel vidéo ici
       console.log('Lancement appel vidéo avec Liliana');
     }
   };
 
   const handleAudioCall = () => {
-    if (handlePremiumFeature('Appel audio')) {
+    if (handleFeatureAccess('Appel audio', 'vip')) {
       // Logique d'appel audio ici
       console.log('Lancement appel audio avec Liliana');
     }
   };
 
   const handleVoiceNote = () => {
-    if (handlePremiumFeature('Note vocale')) {
+    if (handleFeatureAccess('Note vocale', 'vip')) {
       // Logique d'enregistrement vocal ici
       console.log('Enregistrement note vocale');
     }
   };
 
   const handleImageUpload = () => {
-    if (handlePremiumFeature('Envoi d\'image')) {
+    if (handleFeatureAccess('Envoi d\'image', 'premium')) {
       setShowOptions(false);
       const input = document.createElement('input');
       input.type = 'file';
@@ -227,6 +233,22 @@ const ClientMessagesSectionReal = ({ currentUser }) => {
         if (file) {
           console.log('Image sélectionnée:', file.name);
           // Logique d'envoi d'image ici
+        }
+      };
+      input.click();
+    }
+  };
+
+  const handleFileUpload = () => {
+    if (handleFeatureAccess('Envoi de fichier', 'premium')) {
+      setShowOptions(false);
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.onchange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+          console.log('Fichier sélectionné:', file.name);
+          // Logique d'envoi de fichier ici
         }
       };
       input.click();
@@ -327,20 +349,25 @@ const ClientMessagesSectionReal = ({ currentUser }) => {
 
           <div className="flex items-center space-x-1 sm:space-x-2 text-white">
             {[
-              { icon: Video, action: handleVideoCall, premium: true },
-              { icon: Phone, action: handleAudioCall, premium: true }
-            ].map((item, idx) => (
-              <motion.button
-                key={idx}
-                whileHover={{ scale: 1.05, backgroundColor: 'rgba(255,255,255,0.1)' }}
-                whileTap={{ scale: 0.95 }}
-                onClick={item.action}
-                className="p-3 hover:text-white rounded-xl transition-all relative"
-              >
-                <item.icon className="w-5 h-5 stroke-[2]" />
-                {!isPremiumUser() && <Crown className="w-3 h-3 absolute top-1 right-1 text-yellow-300" />}
-              </motion.button>
-            ))}
+              { icon: Video, action: handleVideoCall, level: 'vip' },
+              { icon: Phone, action: handleAudioCall, level: 'vip' }
+            ].map((item, idx) => {
+              const hasAccess = item.level === 'vip' ? isVIP : isPremium;
+              return (
+                <motion.button
+                  key={idx}
+                  whileHover={{ scale: 1.05, backgroundColor: 'rgba(255,255,255,0.1)' }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={item.action}
+                  className="p-3 hover:text-white rounded-xl transition-all relative"
+                >
+                  <item.icon className="w-5 h-5 stroke-[2]" />
+                  {!hasAccess && (
+                    <Crown className={`w-3 h-3 absolute top-1 right-1 ${item.level === 'vip' ? 'text-yellow-300' : 'text-yellow-300/50'}`} />
+                  )}
+                </motion.button>
+              );
+            })}
             <button className="p-3 opacity-50 hover:opacity-100 transition-opacity">
               <Heart className="w-5 h-5 fill-current" />
             </button>
@@ -487,16 +514,26 @@ const ClientMessagesSectionReal = ({ currentUser }) => {
                 className="absolute bottom-28 left-6 bg-white rounded-3xl shadow-2xl border border-gray-100 p-2 min-w-[240px] z-50 flex flex-col"
               >
                 <button onClick={handleImageUpload} className="flex items-center space-x-3 p-4 hover:bg-gray-50 rounded-2xl transition-colors text-left group">
-                  <div className="p-2 bg-pink-50 text-pink-500 rounded-xl group-hover:bg-pink-500 group-hover:text-white transition-colors">
+                  <div className="p-2 bg-pink-50 text-pink-500 rounded-xl group-hover:bg-pink-500 group-hover:text-white transition-colors relative">
                     <Image className="w-5 h-5" />
+                    {!isPremium && <Crown className="w-2.5 h-2.5 absolute -top-1 -right-1 text-yellow-500" />}
                   </div>
                   <span className="text-sm font-bold text-gray-700">Envoyer une image</span>
                 </button>
-                <button onClick={handleVoiceNote} className="flex items-center space-x-3 p-4 hover:bg-gray-50 rounded-2xl transition-colors text-left group">
-                  <div className="p-2 bg-purple-50 text-purple-500 rounded-xl group-hover:bg-purple-600 group-hover:text-white transition-colors">
-                    <Mic className="w-5 h-5" />
+                <button onClick={handleFileUpload} className="flex items-center space-x-3 p-4 hover:bg-gray-50 rounded-2xl transition-colors text-left group">
+                  <div className="p-2 bg-blue-50 text-blue-500 rounded-xl group-hover:bg-blue-500 group-hover:text-white transition-colors relative">
+                    <Paperclip className="w-5 h-5" />
+                    {!isPremium && <Crown className="w-2.5 h-2.5 absolute -top-1 -right-1 text-yellow-500" />}
                   </div>
-                  <span className="text-sm font-bold text-gray-700">Note vocale</span>
+                  <span className="text-sm font-bold text-gray-700">Envoyer un fichier</span>
+                </button>
+                <button onClick={handleVoiceNote} className="flex items-center space-x-3 p-4 hover:bg-gray-50 rounded-2xl transition-colors text-left group">
+                  <div className="p-2 bg-purple-50 text-purple-500 rounded-xl group-hover:bg-purple-600 group-hover:text-white transition-colors relative">
+                    <Mic className="w-5 h-5" />
+                    {!isVIP && <Crown className="w-2.5 h-2.5 absolute -top-1 -right-1 text-yellow-500" />}
+                  </div>
+                  <span className="text-sm font-bold text-gray-700 flex-1">Note vocale</span>
+                  {!isVIP && <span className="text-[10px] font-bold text-purple-400 bg-purple-50 px-2 py-0.5 rounded-full">VIP</span>}
                 </button>
               </motion.div>
             )}
@@ -524,14 +561,14 @@ const ClientMessagesSectionReal = ({ currentUser }) => {
                 <div className="w-20 h-20 bg-white/20 rounded-3xl flex items-center justify-center mx-auto mb-6 backdrop-blur-md border border-white/30 rotate-3">
                   <Crown className="h-10 w-10 text-yellow-300" />
                 </div>
-                <h2 className="text-2xl font-black mb-2">Expérience Premium</h2>
-                <p className="text-pink-100 font-medium">Libérez tout le potentiel</p>
+                <h2 className="text-2xl font-black mb-2">{requiredPlan === 'VIP Elite' ? 'VIP Elite' : 'Expérience Premium'}</h2>
+                <p className="text-pink-100 font-medium">Accès Privilégié</p>
               </div>
 
               <div className="p-8">
                 <div className="bg-pink-50 rounded-2xl p-4 mb-8 border border-pink-100 italic text-center">
                   <p className="text-pink-700 font-bold text-sm">
-                    "La fonction {premiumFeatureName} est réservée à mes membres privilégiés."
+                    "La fonction {premiumFeatureName} est réservée à mes membres {requiredPlan === 'VIP Elite' ? 'VIP Elite' : 'Premium'}."
                   </p>
                 </div>
 
@@ -556,7 +593,7 @@ const ClientMessagesSectionReal = ({ currentUser }) => {
           </motion.div>
         )}
       </AnimatePresence>
-    </div>
+    </div >
   );
 };
 

@@ -16,7 +16,7 @@ import ClientProfileSectionSimple from '../components/Dashboard/sections/ClientP
 
 const Dashboard = () => {
   const { currentUser, signOut } = useAuth();
-  const { userStatus } = useUserStatus();
+  const { userStatus, loading } = useUserStatus();
   const location = useLocation();
   const navigate = useNavigate();
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);

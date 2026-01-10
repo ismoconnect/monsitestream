@@ -184,7 +184,7 @@ const PaymentTrackingPage = () => {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className={`${statusInfo.bgColor} ${statusInfo.borderColor} border-2 rounded-xl p-4 lg:p-6`}
+        className={`${statusInfo.bgColor} ${statusInfo.borderColor} border-2 rounded-xl p-4 sm:p-6`}
       >
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
@@ -193,7 +193,7 @@ const PaymentTrackingPage = () => {
               <span className="text-xl">{statusInfo.icon}</span>
             </div>
             <div>
-              <h3 className={`text-lg font-semibold ${statusInfo.textColor}`}>
+              <h3 className={`text-base sm:text-lg font-semibold ${statusInfo.textColor}`}>
                 {statusInfo.text}
               </h3>
               <p className="text-sm text-gray-600">
@@ -212,7 +212,7 @@ const PaymentTrackingPage = () => {
           <div className="flex items-center justify-between">
             <span className="text-sm text-gray-600">Code de référence</span>
             <div className="flex items-center space-x-2">
-              <span className="font-mono text-sm bg-white/50 px-2 py-1 rounded">
+              <span className="font-mono text-xs sm:text-sm bg-white/50 px-2 py-1 rounded break-all">
                 {payment.referenceCode}
               </span>
               <motion.button
@@ -303,33 +303,33 @@ const PaymentTrackingPage = () => {
           onMobileMenuToggle={() => setIsMobileMenuOpen(true)}
         />
 
-        {/* Content Area */}
-        <main className="flex-1 overflow-y-auto bg-gradient-to-br from-purple-50 via-pink-50 to-rose-50 p-3 sm:p-4 md:p-8">
+        {/* Content Area - Mobile optimized */}
+        <main className="flex-1 overflow-y-auto bg-gradient-to-br from-purple-50 via-pink-50 to-rose-50 p-4 sm:p-6 md:p-8 pt-[80px] lg:pt-4">
           <div className="max-w-[1600px] mx-auto w-full">
             {/* Header */}
-            <div className="mb-8">
-              <h1 className="text-2xl lg:text-3xl font-bold text-gray-800">Suivi des Paiements</h1>
-              <p className="text-gray-600">Vérifiez l'avancement de vos demandes de paiement</p>
+            <div className="mb-6 sm:mb-8">
+              <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-800">Suivi des Paiements</h1>
+              <p className="text-sm sm:text-base text-gray-600 mt-1">Vérifiez l'avancement de vos demandes de paiement</p>
             </div>
 
-            {/* Search Section */}
+            {/* Search Section - Mobile optimized */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="bg-white rounded-xl shadow-lg p-6 mb-8"
+              className="bg-white rounded-xl shadow-lg p-4 sm:p-6 mb-6 sm:mb-8"
             >
-              <h2 className="text-lg font-semibold text-gray-800 mb-4">
+              <h2 className="text-base sm:text-lg font-semibold text-gray-800 mb-3 sm:mb-4">
                 Rechercher par Code de Référence
               </h2>
 
-              <div className="flex space-x-3">
+              <div className="flex flex-col sm:flex-row gap-3">
                 <div className="flex-1">
                   <input
                     type="text"
                     value={referenceCode}
                     onChange={(e) => setReferenceCode(e.target.value.toUpperCase())}
                     placeholder="PAY-XXXXXXX-XXXXX"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 font-mono"
+                    className="w-full px-4 py-3 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 font-mono"
                     maxLength={20}
                   />
                 </div>
@@ -338,12 +338,15 @@ const PaymentTrackingPage = () => {
                   whileTap={{ scale: 0.98 }}
                   onClick={() => searchPayment()}
                   disabled={loading || !referenceCode.trim()}
-                  className="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg font-semibold hover:from-purple-700 hover:to-pink-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                  className="w-full sm:w-auto px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg font-semibold hover:from-purple-700 hover:to-pink-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
                 >
                   {loading ? (
                     <RefreshCw className="h-5 w-5 animate-spin" />
                   ) : (
-                    <Search className="h-5 w-5" />
+                    <>
+                      <Search className="h-5 w-5" />
+                      <span className="sm:inline">Rechercher</span>
+                    </>
                   )}
                 </motion.button>
               </div>
@@ -352,9 +355,9 @@ const PaymentTrackingPage = () => {
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="mt-4 bg-red-50 border border-red-200 rounded-lg p-3"
+                  className="mt-3 sm:mt-4 bg-red-50 border border-red-200 rounded-lg p-3"
                 >
-                  <p className="text-sm text-red-700">{error}</p>
+                  <p className="text-xs sm:text-sm text-red-700">{error}</p>
                 </motion.div>
               )}
             </motion.div>
@@ -385,10 +388,10 @@ const PaymentTrackingPage = () => {
                   exit={{ opacity: 0, height: 0 }}
                   className="mb-8"
                 >
-                  <h2 className="text-lg font-semibold text-gray-800 mb-4">
+                  <h2 className="text-base sm:text-lg font-semibold text-gray-800 mb-3 sm:mb-4">
                     Mes Paiements Récents
                   </h2>
-                  <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                  <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                     {userPayments.slice(0, 4).map((userPayment) => (
                       <PaymentCard key={userPayment.id} payment={userPayment} />
                     ))}
@@ -416,8 +419,8 @@ const PaymentTrackingPage = () => {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -20 }}
                 >
-                  <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-lg font-semibold text-gray-800">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+                    <h2 className="text-base sm:text-lg font-semibold text-gray-800">
                       Détails du Paiement
                     </h2>
                     <motion.button
@@ -444,7 +447,7 @@ const PaymentTrackingPage = () => {
                       transition={{ delay: 0.2 }}
                       className="mt-6 bg-white rounded-xl shadow-lg p-6"
                     >
-                      <h3 className="text-lg font-semibold text-gray-800 mb-4">
+                      <h3 className="text-base sm:text-lg font-semibold text-gray-800 mb-3 sm:mb-4">
                         Historique des Statuts
                       </h3>
                       <div className="space-y-4">
@@ -482,7 +485,7 @@ const PaymentTrackingPage = () => {
               transition={{ delay: 0.3 }}
               className="mt-8 bg-white rounded-xl shadow-lg p-6"
             >
-              <h3 className="text-lg font-semibold text-gray-800 mb-4">Actions Rapides</h3>
+              <h3 className="text-base sm:text-lg font-semibold text-gray-800 mb-3 sm:mb-4">Actions Rapides</h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <motion.button
                   whileHover={{ scale: 1.02 }}
@@ -513,7 +516,7 @@ const PaymentTrackingPage = () => {
               transition={{ delay: 0.4 }}
               className="mt-6 bg-blue-50 border border-blue-200 rounded-xl p-6"
             >
-              <h3 className="text-lg font-semibold text-blue-800 mb-3">
+              <h3 className="text-base sm:text-lg font-semibold text-blue-800 mb-2 sm:mb-3">
                 💡 Besoin d'aide ?
               </h3>
               <div className="text-sm text-blue-700 space-y-2">

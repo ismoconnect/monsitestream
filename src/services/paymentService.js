@@ -1,13 +1,13 @@
-import { 
-  collection, 
-  addDoc, 
-  doc, 
-  updateDoc, 
-  getDoc, 
+import {
+  collection,
+  addDoc,
+  doc,
+  updateDoc,
+  getDoc,
   getDocs,
-  query, 
-  where, 
-  orderBy, 
+  query,
+  where,
+  orderBy,
   serverTimestamp,
   onSnapshot
 } from 'firebase/firestore';
@@ -72,7 +72,8 @@ class PaymentService {
       });
 
       const referenceCode = this.generateReferenceCode();
-      
+      const initialStatus = paymentData.status || PAYMENT_STATUS.PENDING;
+
       const paymentRequest = {
         userId: paymentData.userId,
         userEmail: paymentData.userEmail,
@@ -82,20 +83,26 @@ class PaymentService {
         currency: paymentData.currency || 'EUR',
         paymentDetails: paymentData.paymentDetails || {},
         referenceCode,
-        status: PAYMENT_STATUS.PENDING,
+        status: initialStatus,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
         expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 jours
         notifications: {
           emailSent: false,
-          statusUpdates: []
+          statusUpdates: initialStatus !== PAYMENT_STATUS.PENDING ? [
+            {
+              status: initialStatus,
+              timestamp: new Date(),
+              note: 'Passage automatique en validation'
+            }
+          ] : []
         }
       };
 
       console.log('Données à envoyer à Firestore:', paymentRequest);
 
       const docRef = await addDoc(collection(db, 'payments'), paymentRequest);
-      
+
       console.log('Demande de paiement créée avec succès:', docRef.id);
 
       return {
@@ -149,6 +156,7 @@ class PaymentService {
       userEmail,
       plan,
       type: PAYMENT_TYPES.GIFT_CARD,
+      status: PAYMENT_STATUS.VALIDATING, // Passer directement en validation au lieu de faire un update
       amount: plan.price,
       currency: 'EUR',
       paymentDetails: {
@@ -158,9 +166,6 @@ class PaymentService {
         description: `Abonnement ${plan.name} - ${giftCardData.typeName}`
       }
     });
-
-    // Pour les cartes cadeaux, on passe directement en validation
-    await this.updatePaymentStatus(paymentRequest.id, PAYMENT_STATUS.VALIDATING);
 
     return paymentRequest;
   }
@@ -204,7 +209,7 @@ class PaymentService {
     try {
       const paymentRef = doc(db, 'payments', paymentId);
       const paymentSnap = await getDoc(paymentRef);
-      
+
       if (paymentSnap.exists()) {
         return {
           id: paymentSnap.id,
@@ -226,7 +231,7 @@ class PaymentService {
         where('referenceCode', '==', referenceCode)
       );
       const querySnapshot = await getDocs(q);
-      
+
       if (!querySnapshot.empty) {
         const doc = querySnapshot.docs[0];
         return {
@@ -250,7 +255,7 @@ class PaymentService {
         where('userId', '==', userId)
       );
       const querySnapshot = await getDocs(q);
-      
+
       const payments = querySnapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
@@ -271,7 +276,7 @@ class PaymentService {
   // Écouter les changements de statut d'un paiement
   listenToPaymentStatus(paymentId, callback) {
     const paymentRef = doc(db, 'payments', paymentId);
-    
+
     return onSnapshot(paymentRef, (doc) => {
       if (doc.exists()) {
         callback({
@@ -287,7 +292,7 @@ class PaymentService {
     try {
       // Requête simplifiée sans orderBy pour éviter l'erreur d'index
       const querySnapshot = await getDocs(collection(db, 'payments'));
-      
+
       const payments = querySnapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()

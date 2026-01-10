@@ -221,8 +221,8 @@ const firebaseAuthService = {
             displayName: userData.displayName,
             role: 'client', // Par défaut
             subscription: {
-                plan: 'free',
-                status: 'pending',
+                plan: 'basic',
+                status: 'active',
                 requestedAt: serverTimestamp(),
                 expiresAt: null
             },

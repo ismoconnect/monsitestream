@@ -1,10 +1,10 @@
-import { 
-  collection, 
-  doc, 
-  setDoc, 
-  updateDoc, 
+import {
+  collection,
+  doc,
+  setDoc,
+  updateDoc,
   getDoc,
-  serverTimestamp 
+  serverTimestamp
 } from 'firebase/firestore';
 import { db } from './firebase';
 import demoAuthService from './demoAuth';
@@ -46,12 +46,18 @@ class SubscriptionService {
   // Simuler un abonnement (pour le développement)
   async simulateSubscription(userId, subscriptionType) {
     try {
+      const subscriptionPrice = {
+        'basic': 0,
+        'premium': 49,
+        'vip': 199
+      };
+
       const subscriptionData = {
         type: subscriptionType,
         status: 'active',
         startDate: new Date(),
         endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 jours
-        price: subscriptionType === 'basic' ? 29 : 79,
+        price: subscriptionPrice[subscriptionType] || 0,
         currency: 'EUR'
       };
 
@@ -87,9 +93,9 @@ class SubscriptionService {
       const userDoc = await getDoc(doc(db, 'users', userId));
       if (userDoc.exists()) {
         const userData = userDoc.data();
-        return { 
-          success: true, 
-          subscription: userData.subscription || null 
+        return {
+          success: true,
+          subscription: userData.subscription || null
         };
       } else {
         return { success: false, error: 'Utilisateur non trouvé' };
@@ -128,7 +134,7 @@ class SubscriptionService {
 
     const now = new Date();
     const endDate = subscription.endDate?.toDate ? subscription.endDate.toDate() : new Date(subscription.endDate);
-    
+
     return endDate > now;
   }
 
@@ -138,27 +144,42 @@ class SubscriptionService {
       {
         id: 'basic',
         name: 'Accès Basic',
-        price: 29,
-        period: 'mois',
+        price: 0,
+        period: 'Inclus',
+        description: 'Offert à l\'inscription',
         features: [
-          'Galerie photos exclusives',
           'Messages privés illimités',
-          'Contenu hebdomadaire',
-          'Support prioritaire'
+          'Support client dédié',
+          'Accès au profil complet'
         ]
       },
       {
         id: 'premium',
         name: 'Premium VIP',
-        price: 79,
+        price: 49,
         period: 'mois',
+        description: 'L\'expérience visuelle',
         features: [
           'Tout du Basic',
-          'Vidéos exclusives HD',
-          'Sessions streaming privées',
-          'Contenu personnalisé',
-          'Appels vidéo 1:1 (30min/mois)',
-          'Accès prioritaire aux RDV'
+          'Accès complet à la Galerie',
+          'Photos exclusives HD',
+          'Vidéos privées (Galerie)',
+          'Support prioritaire'
+        ]
+      },
+      {
+        id: 'vip',
+        name: 'VIP Elite',
+        price: 199,
+        period: 'mois',
+        description: 'L\'accès ultime sans limites',
+        features: [
+          'Tout du Premium',
+          'Sessions Streaming Live illimitées',
+          'Appels vidéo 1:1 prioritaires',
+          'Contenu sur mesure',
+          'Ligne directe WhatsApp',
+          'Accès à TOUTES les fonctionnalités'
         ]
       }
     ];

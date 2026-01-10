@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { X, Home, Image, MessageSquare, Calendar, Video, CreditCard, User, Heart, Crown, Lock, LogOut, Search } from 'lucide-react';
+import { X, Home, Image, MessageSquare, Calendar, Video, CreditCard, User, Heart, Crown, Lock, LogOut, Search, Receipt } from 'lucide-react';
 import ValidationBadge from './ValidationBadge';
 
 const ClientSidebar = ({ currentUser, onSignOut, isMobileMenuOpen, setIsMobileMenuOpen }) => {
@@ -10,17 +10,21 @@ const ClientSidebar = ({ currentUser, onSignOut, isMobileMenuOpen, setIsMobileMe
 
   const menuItems = [
     { id: 'overview', label: 'Vue d\'ensemble', icon: Home, color: 'text-blue-500', bgColor: 'bg-blue-50', path: '/dashboard/overview' },
-    { id: 'gallery', label: 'Galerie Premium', icon: Image, color: 'text-pink-500', bgColor: 'bg-pink-50', premium: true, path: '/dashboard/gallery' },
+    { id: 'gallery', label: 'Galerie Premium', icon: Image, color: 'text-pink-500', bgColor: 'bg-pink-50', path: '/dashboard/gallery' },
     { id: 'messages', label: 'Messages Privés', icon: MessageSquare, color: 'text-indigo-500', bgColor: 'bg-indigo-50', path: '/dashboard/messages' },
     { id: 'appointments', label: 'Mes Rendez-vous', icon: Calendar, color: 'text-orange-500', bgColor: 'bg-orange-50', path: '/dashboard/appointments' },
-    { id: 'streaming', label: 'Sessions Live', icon: Video, color: 'text-purple-500', bgColor: 'bg-purple-50', premium: true, path: '/dashboard/streaming' },
+    { id: 'streaming', label: 'Sessions Live', icon: Video, color: 'text-purple-500', bgColor: 'bg-purple-50', vipOnly: true, path: '/dashboard/streaming' },
     { id: 'subscription', label: 'Mon Abonnement', icon: CreditCard, color: 'text-green-500', bgColor: 'bg-green-50', path: '/dashboard/subscription' },
     { id: 'payment-tracking', label: 'Suivi Paiements', icon: Search, color: 'text-indigo-500', bgColor: 'bg-indigo-50', path: '/dashboard/payment-tracking' },
+    { id: 'billing', label: 'Facturation', icon: Receipt, color: 'text-purple-500', bgColor: 'bg-purple-50', path: '/dashboard/billing' },
     { id: 'profile', label: 'Mon Profil', icon: User, color: 'text-gray-500', bgColor: 'bg-gray-50', path: '/dashboard/profile' }
   ];
 
-  const isPremium = currentUser?.subscription?.status === 'active' &&
-    (currentUser?.subscription?.type === 'premium' || currentUser?.subscription?.type === 'vip');
+  const sub = currentUser?.subscription;
+  const currentPlan = (sub?.plan || sub?.type || sub?.planName || 'basic').toLowerCase();
+
+  const isPremium = sub?.status === 'active' && (currentPlan.includes('premium') || currentPlan.includes('vip'));
+  const isVIP = sub?.status === 'active' && currentPlan.includes('vip');
 
   const SidebarContent = () => (
     <div className="bg-gradient-to-b from-white to-gray-50 shadow-xl border-r border-gray-200 h-full flex flex-col overflow-hidden">
@@ -61,7 +65,9 @@ const ClientSidebar = ({ currentUser, onSignOut, isMobileMenuOpen, setIsMobileMe
           </div>
           <div className="flex-1 min-w-0">
             <h3 className="font-medium text-gray-800 truncate text-xs">{currentUser?.displayName}</h3>
-            <p className="text-xs text-gray-500">{isPremium ? 'Premium' : 'Standard'}</p>
+            <p className="text-xs text-gray-500">
+              {isVIP ? 'VIP Elite' : isPremium ? 'Premium VIP' : 'Plan Basic'}
+            </p>
           </div>
           <div className="w-2 h-2 bg-green-500 rounded-full"></div>
         </div>
@@ -72,7 +78,7 @@ const ClientSidebar = ({ currentUser, onSignOut, isMobileMenuOpen, setIsMobileMe
         {menuItems.map((item) => {
           const Icon = item.icon;
           const isActive = location.pathname === item.path || (location.pathname === '/dashboard' && item.id === 'overview');
-          const isLocked = item.premium && !isPremium;
+          const isLocked = (item.premium && !isPremium) || (item.vipOnly && !isVIP);
 
           return (
             <motion.button
@@ -93,14 +99,15 @@ const ClientSidebar = ({ currentUser, onSignOut, isMobileMenuOpen, setIsMobileMe
                   : 'text-gray-600 hover:bg-gray-50 hover:text-gray-800'
                 }`}
             >
+              {isLocked && <Lock className="w-3 h-3 text-gray-400 flex-shrink-0" />}
               <Icon className={`w-4 h-4 ${isActive ? 'text-white' : isLocked ? 'text-gray-400' : item.color}`} />
               <span className="font-medium text-xs flex-1 text-left truncate">{item.label}</span>
-              {item.premium && (
+              {(item.premium || item.vipOnly) && (
                 <div className="flex items-center">
                   {isLocked ? (
                     <Lock className="w-3 h-3 text-gray-400" />
                   ) : (
-                    <Crown className="w-3 h-3 text-yellow-500" />
+                    <Crown className={`w-3 h-3 ${item.vipOnly ? 'text-purple-500' : 'text-yellow-500'}`} />
                   )}
                 </div>
               )}
@@ -109,8 +116,8 @@ const ClientSidebar = ({ currentUser, onSignOut, isMobileMenuOpen, setIsMobileMe
         })}
       </div>
 
-      {/* Premium CTA */}
-      {!isPremium && (
+      {/* Premium CTA - Hide if VIP Elite */}
+      {!isVIP && (
         <div className="p-2 border-t border-gray-200">
           <motion.div
             whileHover={{ scale: 1.02 }}
@@ -119,8 +126,12 @@ const ClientSidebar = ({ currentUser, onSignOut, isMobileMenuOpen, setIsMobileMe
             <div className="bg-white/20 rounded-full w-6 h-6 flex items-center justify-center mx-auto mb-1">
               <Crown className="w-3 h-3 text-white" />
             </div>
-            <h3 className="font-bold text-xs mb-0.5">Passez Premium</h3>
-            <p className="text-[10px] text-white/90 mb-1.5">Contenu exclusif</p>
+            <h3 className="font-bold text-xs mb-0.5">
+              {isPremium ? 'Devenez VIP Elite' : 'Découvrir les plans'}
+            </h3>
+            <p className="text-[10px] text-white/90 mb-1.5">
+              {isPremium ? 'Accès illimité' : 'Contenu exclusif'}
+            </p>
             <button
               onClick={() => {
                 navigate('/dashboard/subscription');

@@ -35,7 +35,17 @@ export const useAuth = () => {
 };
 
 export const AuthProvider = ({ children }) => {
-  const [currentUser, setCurrentUser] = useState(null);
+  // Charger immédiatement depuis localStorage pour éviter le flash
+  const getCachedUser = () => {
+    try {
+      const cached = localStorage.getItem('currentUser');
+      return cached ? JSON.parse(cached) : null;
+    } catch (e) {
+      return null;
+    }
+  };
+
+  const [currentUser, setCurrentUser] = useState(getCachedUser());
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -44,6 +54,13 @@ export const AuthProvider = ({ children }) => {
     const unsubscribe = authServiceToUse.onAuthStateChanged((user) => {
       setCurrentUser(user);
       setLoading(false);
+
+      // Mettre à jour le cache localStorage
+      if (user) {
+        localStorage.setItem('currentUser', JSON.stringify(user));
+      } else {
+        localStorage.removeItem('currentUser');
+      }
     });
 
     return unsubscribe;

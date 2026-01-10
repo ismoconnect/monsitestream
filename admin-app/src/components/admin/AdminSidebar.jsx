@@ -11,7 +11,9 @@ import {
   Home,
   Menu,
   X,
-  CreditCard
+  CreditCard,
+  Calendar,
+  Image
 } from 'lucide-react';
 
 const AdminSidebar = ({ currentAdmin, onSignOut, isMobileMenuOpen, setIsMobileMenuOpen }) => {
@@ -41,11 +43,25 @@ const AdminSidebar = ({ currentAdmin, onSignOut, isMobileMenuOpen, setIsMobileMe
       description: 'Conversations clients'
     },
     {
+      id: 'appointments',
+      label: 'Rendez-vous',
+      icon: Calendar,
+      path: '/appointments',
+      description: 'Calendrier des RDV'
+    },
+    {
       id: 'payments',
       label: 'Paiements',
       icon: CreditCard,
       path: '/payments',
       description: 'Gestion des paiements'
+    },
+    {
+      id: 'gallery',
+      label: 'Galerie',
+      icon: Image,
+      path: '/gallery',
+      description: 'Photos & Vidéos'
     },
     {
       id: 'analytics',

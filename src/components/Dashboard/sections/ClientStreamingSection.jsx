@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
   Video,
@@ -17,11 +18,15 @@ import {
 } from 'lucide-react';
 
 const ClientStreamingSection = ({ currentUser }) => {
+  const navigate = useNavigate();
   const [isInStream, setIsInStream] = useState(false);
   const [currentStream, setCurrentStream] = useState(null);
 
-  const isPremium = currentUser?.subscription?.status === 'active' &&
-    (currentUser?.subscription?.type === 'premium' || currentUser?.subscription?.type === 'vip');
+  const sub = currentUser?.subscription;
+  const currentPlan = (sub?.plan || sub?.type || sub?.planName || 'basic').toLowerCase();
+
+  const isPremium = sub?.status === 'active' && (currentPlan.includes('premium') || currentPlan.includes('vip'));
+  const isVIP = sub?.status === 'active' && currentPlan.includes('vip');
 
   const upcomingSessions = [
     {
@@ -68,7 +73,7 @@ const ClientStreamingSection = ({ currentUser }) => {
   ];
 
   const joinStream = (session) => {
-    if (!isPremium) {
+    if (!isVIP) {
       return;
     }
     setCurrentStream(session);
@@ -209,12 +214,12 @@ const ClientStreamingSection = ({ currentUser }) => {
         </div>
         <div className="flex items-center space-x-2">
           <Crown className="w-5 h-5 text-yellow-500" />
-          <span className="text-sm font-medium text-gray-600">Premium</span>
+          <span className="text-sm font-medium text-gray-600">VIP Elite</span>
         </div>
       </div>
 
       {/* Message d'accès limité */}
-      {!isPremium && (
+      {!isVIP && (
         <div className="text-center py-16">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -222,23 +227,24 @@ const ClientStreamingSection = ({ currentUser }) => {
             className="bg-gradient-to-br from-purple-100 to-pink-100 rounded-xl p-8 max-w-md mx-auto"
           >
             <Lock className="w-16 h-16 text-purple-500 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-gray-800 mb-2">Sessions Live Premium</h3>
+            <h3 className="text-xl font-semibold text-gray-800 mb-2">Sessions Live VIP Elite</h3>
             <p className="text-gray-600 mb-4">
-              Accédez aux sessions vidéo privées et exclusives
+              L'accès aux sessions en direct est réservé aux membres VIP Elite.
             </p>
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
+              onClick={() => navigate('/dashboard/subscription')}
               className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-6 py-3 rounded-lg font-medium"
             >
-              Passer Premium
+              Passer VIP Elite
             </motion.button>
           </motion.div>
         </div>
       )}
 
       {/* Sessions à venir */}
-      {isPremium && (
+      {isVIP && (
         <div>
           <h3 className="text-lg font-semibold mb-4 flex items-center">
             <Clock className="w-5 h-5 mr-2 text-purple-500" />
@@ -257,8 +263,8 @@ const ClientStreamingSection = ({ currentUser }) => {
                 <div className="flex items-center justify-between mb-4">
                   <h4 className="font-medium text-gray-800">{session.title}</h4>
                   <span className={`text-xs px-2 py-1 rounded-full ${session.type === 'private'
-                      ? 'bg-pink-100 text-pink-600'
-                      : 'bg-blue-100 text-blue-600'
+                    ? 'bg-pink-100 text-pink-600'
+                    : 'bg-blue-100 text-blue-600'
                     }`}>
                     {session.type === 'private' ? 'Privé' : 'Groupe'}
                   </span>
@@ -301,7 +307,7 @@ const ClientStreamingSection = ({ currentUser }) => {
       )}
 
       {/* Historique */}
-      {isPremium && (
+      {isVIP && (
         <div>
           <h3 className="text-lg font-semibold mb-4 flex items-center">
             <Star className="w-5 h-5 mr-2 text-gray-500" />

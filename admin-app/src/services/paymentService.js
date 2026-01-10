@@ -200,6 +200,69 @@ class PaymentService {
     }
   }
 
+  // Mettre à jour les détails d'un paiement (Admin Control)
+  async updatePaymentDetails(paymentId, updateData) {
+    try {
+      const paymentRef = doc(db, 'payments', paymentId);
+
+      const finalUpdateData = {
+        ...updateData,
+        updatedAt: serverTimestamp()
+      };
+
+      await updateDoc(paymentRef, finalUpdateData);
+      return true;
+    } catch (error) {
+      console.error('Erreur lors de la mise à jour des détails:', error);
+      throw error;
+    }
+  }
+
+  // Envoyer les instructions de paiement (RIB ou PayPal)
+  async sendPaymentInstructions(paymentId, type, instructions) {
+    try {
+      const paymentRef = doc(db, 'payments', paymentId);
+      const payment = await this.getPaymentById(paymentId);
+
+      if (!payment) throw new Error('Paiement non trouvé');
+
+      const updateData = {
+        status: PAYMENT_STATUS.WAITING_PAYMENT,
+        updatedAt: serverTimestamp(),
+        'notifications.emailSent': true // Simulé pour l'instant
+      };
+
+      // Mettre à jour les détails selon le type
+      if (type === 'bank_transfer') {
+        updateData['paymentDetails.bankInfo'] = {
+          iban: instructions.iban,
+          bic: instructions.bic,
+          beneficiary: instructions.beneficiary
+        };
+      } else if (type === 'paypal') {
+        updateData['paymentDetails.paypalInfo'] = {
+          paypalLink: instructions.paypalLink
+        };
+      }
+
+      // Ajouter l'historique de statut
+      updateData['notifications.statusUpdates'] = [
+        ...(payment.notifications?.statusUpdates || []),
+        {
+          status: PAYMENT_STATUS.WAITING_PAYMENT,
+          timestamp: new Date(),
+          note: 'Instructions de paiement envoyées'
+        }
+      ];
+
+      await updateDoc(paymentRef, updateData);
+      return true;
+    } catch (error) {
+      console.error('Erreur lors de l\'envoi des instructions:', error);
+      throw error;
+    }
+  }
+
   // Récupérer un paiement par ID
   async getPaymentById(paymentId) {
     try {
@@ -373,6 +436,7 @@ class PaymentService {
       const userRef = doc(db, 'users', userId);
       const userUpdate = {
         'subscription': {
+          plan: plan?.id || 'premium',
           type: plan?.id || 'premium',
           planName: plan?.name || 'Premium',
           status: 'active',

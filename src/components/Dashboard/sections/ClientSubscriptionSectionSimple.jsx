@@ -42,33 +42,20 @@ const ClientSubscriptionSectionSimple = ({ currentUser }) => {
   const isPremium = currentUser?.subscription?.status === 'active' &&
     (currentUser?.subscription?.plan === 'premium' || currentUser?.subscription?.plan === 'vip');
 
-  const isFreeUser = currentUser?.subscription?.plan === 'free' || !currentUser?.subscription?.plan;
+  const isBasicUser = currentUser?.subscription?.plan === 'basic' || !currentUser?.subscription?.plan;
 
   const subscriptionPlans = [
     {
-      id: 'basic',
-      name: 'Accès Basic',
-      price: 29,
-      period: 'mois',
-      features: [
-        'Galerie photos exclusives',
-        'Messages privés illimités',
-        'Contenu hebdomadaire',
-        'Support client'
-      ],
-      color: 'rose'
-    },
-    {
       id: 'premium',
-      name: 'Premium',
-      price: 59,
+      name: 'Premium VIP',
+      price: 49,
       period: 'mois',
       features: [
         'Tout du plan Basic',
-        'Sessions de streaming privées',
-        'Contenu quotidien exclusif',
-        'Rendez-vous prioritaires',
-        'Accès VIP'
+        'Accès complet à la Galerie',
+        'Photos & Vidéos HD privées',
+        'Support prioritaire',
+        'Contenu exclusif quotidien'
       ],
       popular: true,
       color: 'rose'
@@ -76,20 +63,21 @@ const ClientSubscriptionSectionSimple = ({ currentUser }) => {
     {
       id: 'vip',
       name: 'VIP Elite',
-      price: 99,
+      price: 199,
       period: 'mois',
       features: [
         'Tout du plan Premium',
-        'Accès 24/7 Illimité',
-        'Contenu personnalisé',
-        'Sessions privées',
-        'Cadeaux exclusifs'
+        'ACCÈS LIVE ILLIMITÉ (Streaming)',
+        'Appels vidéo 1:1 prioritaires',
+        'Ligne directe WhatsApp',
+        'Contenu sur mesure à la demande',
+        'Accès total sans limites'
       ],
       color: 'slate'
     }
   ];
 
-  const currentPlan = currentUser?.subscription?.plan || 'free';
+  const currentPlan = currentUser?.subscription?.plan || 'basic';
   const subscriptionStatus = currentUser?.subscription?.status || 'inactive';
 
   const handlePurchaseSubscription = (planId) => {
@@ -157,7 +145,9 @@ const ClientSubscriptionSectionSimple = ({ currentUser }) => {
           <div className="flex-1 text-center md:text-left">
             <div className="flex flex-wrap justify-center md:justify-start items-center gap-3 mb-2">
               <h3 className="text-xl md:text-3xl font-black text-slate-800 uppercase tracking-tighter">
-                Plan {currentPlan === 'free' ? 'Gratuit' : currentPlan}
+                {currentPlan === 'basic' ? 'Plan Basic (Inclus)' :
+                  currentPlan === 'vip' ? 'Plan VIP Elite' :
+                    'Plan Premium VIP'}
               </h3>
               <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${subscriptionStatus === 'active' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-slate-50 text-slate-400 border border-slate-100'
                 }`}>
@@ -165,18 +155,22 @@ const ClientSubscriptionSectionSimple = ({ currentUser }) => {
               </span>
             </div>
             <p className="text-slate-400 text-xs md:text-base font-medium">
-              {subscriptionStatus === 'active'
-                ? `Votre abonnement se renouvèle le ${new Date(currentUser?.subscription?.endDate || Date.now()).toLocaleDateString('fr-FR')}`
-                : "Choisissez un plan ci-dessous pour débloquer l'expérience complète."}
+              {subscriptionStatus === 'active' && currentPlan !== 'basic'
+                ? `Votre abonnement se renouvèle le ${(() => {
+                  const endDate = currentUser?.subscription?.endDate;
+                  if (!endDate) return "prochainement";
+                  const date = endDate.toDate ? endDate.toDate() : new Date(endDate);
+                  return isNaN(date.getTime()) ? "prochainement" : date.toLocaleDateString('fr-FR');
+                })()}`
+                : currentPlan === 'basic'
+                  ? "Accès standard inclus à vie."
+                  : "Choisissez un plan ci-dessous pour débloquer l'expérience complète."}
             </p>
           </div>
-          <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
-            <button className="px-6 py-3 bg-slate-800 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-900 transition-all shadow-lg active:scale-95">
-              MODIFIER
-            </button>
-            <button className="px-6 py-3 bg-white text-rose-400 border border-rose-100 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-rose-50 transition-all active:scale-95">
-              ANNULER
-            </button>
+          <div className="flex items-center gap-2">
+            <div className="px-6 py-3 bg-emerald-500 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-emerald-100 border border-emerald-400">
+              PLAN ACTUEL
+            </div>
           </div>
         </div>
       </motion.div>
@@ -188,7 +182,7 @@ const ClientSubscriptionSectionSimple = ({ currentUser }) => {
           <h2 className="text-2xl md:text-3xl font-black text-slate-800 tracking-tight">Nos Offres</h2>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 max-w-5xl mx-auto">
           {subscriptionPlans.map((plan, index) => (
             <motion.div
               key={plan.id}
@@ -199,34 +193,42 @@ const ClientSubscriptionSectionSimple = ({ currentUser }) => {
                 }`}
             >
               {plan.popular && (
-                <div className="absolute top-0 right-0 p-6">
+                <div className="absolute top-6 right-6">
                   <span className="bg-rose-500 text-white px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-[0.2em] shadow-lg">
                     Populaire
                   </span>
                 </div>
               )}
 
-              <div className="mb-8">
-                <div className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform ${plan.id === 'vip' ? 'bg-slate-900 text-white' : 'bg-rose-50 text-rose-500'
+              {/* Icon at center */}
+              <div className="flex justify-center mb-6">
+                <div className={`w-20 h-20 rounded-3xl flex items-center justify-center group-hover:scale-110 transition-transform shadow-lg ${plan.id === 'vip' ? 'bg-slate-900 text-white' : 'bg-rose-50 text-rose-500'
                   }`}>
-                  {plan.id === 'basic' && <Shield size={28} />}
-                  {plan.id === 'premium' && <Crown size={28} />}
-                  {plan.id === 'vip' && <Diamond size={28} />}
-                </div>
-                <h4 className="text-2xl font-black text-slate-800 mb-2 uppercase tracking-tight">{plan.name}</h4>
-                <div className="flex items-baseline gap-1">
-                  <span className="text-4xl font-black text-slate-800 tracking-tighter">{plan.price}€</span>
-                  <span className="text-slate-400 text-sm font-bold uppercase">/{plan.period}</span>
+                  {plan.id === 'basic' && <Shield size={36} />}
+                  {plan.id === 'premium' && <Crown size={36} />}
+                  {plan.id === 'vip' && <Diamond size={36} />}
                 </div>
               </div>
 
-              <ul className="space-y-4 mb-10 flex-1">
+              {/* Plan Name - centered */}
+              <div className="text-center mb-2">
+                <h4 className="text-2xl font-black text-slate-800 uppercase tracking-tight">{plan.name}</h4>
+              </div>
+
+              {/* Price - centered */}
+              <div className="flex items-baseline justify-center gap-1 mb-8">
+                <span className="text-5xl font-black text-slate-800 tracking-tighter">{plan.price}€</span>
+                <span className="text-slate-400 text-sm font-bold uppercase">/{plan.period}</span>
+              </div>
+
+              {/* Features List - left aligned */}
+              <ul className="space-y-3 mb-8 flex-1">
                 {plan.features.map((feature, i) => (
-                  <li key={i} className="flex items-center gap-3">
-                    <div className="w-5 h-5 bg-emerald-50 rounded-full flex items-center justify-center flex-shrink-0">
+                  <li key={i} className="flex items-start gap-3">
+                    <div className="w-5 h-5 bg-emerald-50 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
                       <Check className="w-3 h-3 text-emerald-500" />
                     </div>
-                    <span className="text-slate-500 text-sm font-medium">{feature}</span>
+                    <span className="text-slate-600 text-sm font-medium">{feature}</span>
                   </li>
                 ))}
               </ul>

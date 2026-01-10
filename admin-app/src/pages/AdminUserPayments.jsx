@@ -21,10 +21,16 @@ import {
   CheckCircle,
   XCircle,
   Menu,
-  Trash2
+  Trash2,
+  Shield,
+  Crown,
+  Diamond,
+  Edit,
+  Save
 } from 'lucide-react';
 import AdminSidebar from '../components/admin/AdminSidebar';
 import { paymentService, PAYMENT_STATUS } from '../services/paymentService';
+import { adminService } from '../services/adminService';
 import { useAuth } from '../contexts/AuthContext';
 
 const AdminUserPayments = () => {
@@ -37,6 +43,24 @@ const AdminUserPayments = () => {
   const [showModal, setShowModal] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [userData, setUserData] = useState(null);
+  const [userLoading, setUserLoading] = useState(true);
+  const [showInstructionsForm, setShowInstructionsForm] = useState(false);
+  const [instructionsData, setInstructionsData] = useState({
+    iban: '',
+    bic: '',
+    beneficiary: '',
+    paypalLink: ''
+  });
+
+  // États pour l'édition avancée
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editFormData, setEditFormData] = useState({
+    amount: '',
+    referenceCode: '',
+    status: '',
+    planName: ''
+  });
 
   useEffect(() => {
     if (authLoading) return;
@@ -64,8 +88,15 @@ const AdminUserPayments = () => {
             setPayments(userPayments);
             setLoading(false);
           });
+
+          // Récupérer les données de l'utilisateur
+          const userDoc = await adminService.getAllUsers(); // On cherche dans tous, car on n'a pas getOneUser exporté
+          const user = userDoc.find(u => u.id === userPayment.userId);
+          setUserData(user);
+          setUserLoading(false);
         } else {
           setLoading(false);
+          setUserLoading(false);
         }
       } catch (error) {
         console.error('Erreur lors du chargement des paiements:', error);
@@ -107,14 +138,94 @@ const AdminUserPayments = () => {
     }
   };
 
-  const handleSetWaitingPayment = async (paymentId) => {
+  const handleSendInstructions = async (e) => {
+    e.preventDefault();
     setActionLoading(true);
     try {
-      await paymentService.updatePaymentStatus(paymentId, PAYMENT_STATUS.WAITING_PAYMENT, 'Instructions de paiement envoyées');
+      if (!selectedPayment) return;
+
+      const type = selectedPayment.type; // 'bank_transfer' ou 'paypal'
+
+      await paymentService.sendPaymentInstructions(selectedPayment.id, type, instructionsData);
+
       setShowModal(false);
+      setShowInstructionsForm(false);
+      setInstructionsData({ iban: '', bic: '', beneficiary: '', paypalLink: '' });
+      alert('Instructions envoyées avec succès');
     } catch (error) {
-      console.error('Erreur lors de la mise à jour:', error);
-      alert('Erreur lors de la mise à jour du statut');
+      console.error('Erreur lors de l\'envoi des instructions:', error);
+      alert('Erreur lors de l\'envoi des instructions');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const openInstructionsForm = () => {
+    setShowInstructionsForm(true);
+    // Pré-remplir avec des valeurs par défaut si nécessaire
+    if (selectedPayment.type === 'bank_transfer') {
+      setInstructionsData(prev => ({
+        ...prev,
+        beneficiary: 'Ismo Connect TV',
+        // Vous pouvez ajouter des valeurs par défaut ici si vous voulez
+      }));
+    }
+  };
+
+  const handleEditPayment = (payment) => {
+    setSelectedPayment(payment);
+    setEditFormData({
+      amount: payment.amount || 0,
+      referenceCode: payment.referenceCode || '',
+      status: payment.status || PAYMENT_STATUS.PENDING,
+      planName: payment.plan?.name || 'Basic'
+    });
+    setShowEditModal(true);
+  };
+
+  const handleSaveEdit = async (e) => {
+    e.preventDefault();
+    setActionLoading(true);
+    try {
+      if (!selectedPayment) return;
+
+      const updates = {
+        amount: parseFloat(editFormData.amount),
+        referenceCode: editFormData.referenceCode,
+        status: editFormData.status,
+        'plan.name': editFormData.planName
+      };
+
+      await paymentService.updatePaymentDetails(selectedPayment.id, updates);
+
+      setShowEditModal(false);
+      alert('Paiement modifié avec succès');
+    } catch (error) {
+      console.error('Erreur lors de la modification:', error);
+      alert('Erreur lors de la modification du paiement');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleUpdatePlan = async (newPlan) => {
+    if (!userData || !currentUser) return;
+    if (!window.confirm(`Passer cet utilisateur au plan ${newPlan.toUpperCase()} ?`)) return;
+
+    setActionLoading(true);
+    try {
+      await adminService.changeUserPlan(userData.id, currentUser.uid, newPlan);
+      // Mettre à jour l'état local
+      setUserData(prev => ({
+        ...prev,
+        subscription: {
+          ...prev.subscription,
+          plan: newPlan
+        }
+      }));
+    } catch (error) {
+      console.error('Erreur lors du changement de plan:', error);
+      alert('Erreur lors du changement de plan');
     } finally {
       setActionLoading(false);
     }
@@ -225,6 +336,29 @@ const AdminUserPayments = () => {
               <span>{payment.paymentDetails.method}</span>
             </div>
           )}
+        </div>
+
+        {/* Actions Rapides */}
+        <div className="mt-4 flex gap-2">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              handleEditPayment(payment);
+            }}
+            className="flex-1 px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm font-medium flex items-center justify-center gap-2 transition-colors"
+          >
+            <Edit className="w-4 h-4" />
+            Éditer
+          </button>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              handleDeletePayment(payment.id);
+            }}
+            className="px-3 py-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg text-sm transition-colors"
+          >
+            <Trash2 className="w-4 h-4" />
+          </button>
         </div>
       </motion.div>
     );
@@ -337,6 +471,74 @@ const AdminUserPayments = () => {
               <div className="bg-gray-50 rounded-lg p-3 text-center">
                 <div className="text-2xl font-bold text-gray-700">{userStats.expired}</div>
                 <div className="text-xs text-gray-600">Expirés</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Plan Management Section */}
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+            <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+              <Crown className="w-5 h-5 text-indigo-600" />
+              Gestion du Plan de l'Utilisateur
+            </h3>
+
+            <div className="flex flex-col md:flex-row items-center gap-6">
+              <div className="flex-1">
+                <p className="text-sm text-gray-600 mb-4">
+                  Modifiez manuellement le forfait de l'utilisateur. Cela changera ses accès immédiatement.
+                </p>
+                <div className="flex flex-wrap gap-3">
+                  {[
+                    { id: 'basic', label: 'Basic', color: 'bg-blue-500', icon: Shield },
+                    { id: 'premium', label: 'Premium', color: 'bg-pink-500', icon: Crown },
+                    { id: 'vip', label: 'VIP Elite', color: 'bg-purple-600', icon: Diamond }
+                  ].map((plan) => (
+                    <button
+                      key={plan.id}
+                      onClick={() => handleUpdatePlan(plan.id)}
+                      disabled={actionLoading || userLoading || (userData?.subscription?.plan || userData?.subscription?.type) === plan.id}
+                      className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-bold text-xs uppercase tracking-wider transition-all min-w-[140px] ${(userData?.subscription?.plan || userData?.subscription?.type) === plan.id
+                        ? 'bg-gray-100 text-gray-400 border border-gray-200 cursor-not-allowed'
+                        : `${plan.color} text-white hover:opacity-90 shadow-md active:scale-95`
+                        }`}
+                    >
+                      <plan.icon className="w-4 h-4" />
+                      {plan.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="w-full md:w-64 bg-gray-50 rounded-xl p-4 border border-gray-100">
+                <div className="text-xs text-gray-500 uppercase font-black mb-2 tracking-widest">Plan Actuel</div>
+                <div className="flex items-center gap-3">
+                  {((plan) => {
+                    const p = userData?.subscription?.plan || userData?.subscription?.type || (userData?.subscription?.planName?.toLowerCase().includes('vip') ? 'vip' : userData?.subscription?.planName?.toLowerCase().includes('premium') ? 'premium' : 'basic');
+                    if (p === 'vip') return (
+                      <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+                        <Diamond className="w-6 h-6 text-purple-600" />
+                      </div>
+                    );
+                    if (p === 'premium') return (
+                      <div className="w-10 h-10 bg-pink-100 rounded-lg flex items-center justify-center">
+                        <Crown className="w-6 h-6 text-pink-600" />
+                      </div>
+                    );
+                    return (
+                      <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                        <Shield className="w-6 h-6 text-blue-600" />
+                      </div>
+                    );
+                  })()}
+                  <div>
+                    <div className="font-bold text-gray-800 uppercase">
+                      {userData?.subscription?.planName || userData?.subscription?.plan || userData?.subscription?.type || 'Inconnu'}
+                    </div>
+                    <div className="text-[10px] text-gray-500 font-bold uppercase">
+                      {userData?.subscription?.status === 'active' ? 'Compte Actif' : 'Statut: ' + (userData?.subscription?.status || 'N/A')}
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -486,8 +688,90 @@ const AdminUserPayments = () => {
                   </div>
                 )}
 
+                {/* Instruction Form */}
+                {showInstructionsForm ? (
+                  <form onSubmit={handleSendInstructions} className="mb-6 bg-blue-50 p-4 rounded-xl border border-blue-100">
+                    <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
+                      <Mail className="w-5 h-5 text-blue-600" />
+                      Envoyer les instructions de paiement
+                    </h3>
+
+                    {selectedPayment.type === 'bank_transfer' && (
+                      <div className="space-y-3">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Bénéficiaire</label>
+                          <input
+                            type="text"
+                            value={instructionsData.beneficiary}
+                            onChange={(e) => setInstructionsData({ ...instructionsData, beneficiary: e.target.value })}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                            placeholder="Nom du bénéficiaire"
+                            required
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">IBAN</label>
+                          <input
+                            type="text"
+                            value={instructionsData.iban}
+                            onChange={(e) => setInstructionsData({ ...instructionsData, iban: e.target.value })}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 font-mono"
+                            placeholder="FR76 ...."
+                            required
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">BIC/SWIFT</label>
+                          <input
+                            type="text"
+                            value={instructionsData.bic}
+                            onChange={(e) => setInstructionsData({ ...instructionsData, bic: e.target.value })}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 font-mono"
+                            placeholder="AGB...."
+                            required
+                          />
+                        </div>
+                      </div>
+                    )}
+
+                    {selectedPayment.type === 'paypal' && (
+                      <div className="space-y-3">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Lien PayPal ou Email</label>
+                          <input
+                            type="text"
+                            value={instructionsData.paypalLink}
+                            onChange={(e) => setInstructionsData({ ...instructionsData, paypalLink: e.target.value })}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                            placeholder="https://paypal.me/... ou email@exemple.com"
+                            required
+                          />
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="flex gap-3 mt-4">
+                      <button
+                        type="button"
+                        onClick={() => setShowInstructionsForm(false)}
+                        className="flex-1 px-4 py-2 bg-white text-gray-700 rounded-lg border border-gray-300 hover:bg-gray-50 font-medium"
+                      >
+                        Annuler
+                      </button>
+                      <button
+                        type="submit"
+                        disabled={actionLoading}
+                        className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium flex items-center justify-center gap-2"
+                      >
+                        {actionLoading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Mail className="w-4 h-4" />}
+                        Envoyer
+                      </button>
+                    </div>
+                  </form>
+                ) : null}
+
                 {/* Admin Note */}
-                {selectedPayment.adminNote && (
+                {selectedPayment.adminNote && !showInstructionsForm && (
                   <div className="mb-6">
                     <h3 className="font-semibold text-gray-800 mb-2">Note Admin</h3>
                     <p className="text-sm text-gray-600 bg-gray-50 rounded-lg p-3">
@@ -498,12 +782,12 @@ const AdminUserPayments = () => {
 
                 {/* Actions */}
                 <div className="flex space-x-3">
-                  {selectedPayment.status === PAYMENT_STATUS.PENDING && (
+                  {selectedPayment.status === PAYMENT_STATUS.PENDING && !showInstructionsForm && (
                     <>
                       <motion.button
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
-                        onClick={() => handleSetWaitingPayment(selectedPayment.id)}
+                        onClick={openInstructionsForm}
                         disabled={actionLoading}
                         className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-all font-medium"
                       >
@@ -564,6 +848,110 @@ const AdminUserPayments = () => {
                   )}
                 </div>
               </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Modal d'Édition Avancée */}
+      <AnimatePresence>
+        {showEditModal && selectedPayment && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-[60]"
+            onClick={(e) => e.target === e.currentTarget && setShowEditModal(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-white rounded-xl shadow-2xl w-full max-w-lg overflow-hidden"
+            >
+              <div className="bg-gray-800 text-white p-4 flex justify-between items-center">
+                <h3 className="text-lg font-bold flex items-center gap-2">
+                  <Edit className="w-5 h-5" />
+                  Modifier le Paiement
+                </h3>
+                <button onClick={() => setShowEditModal(false)} className="text-gray-400 hover:text-white">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <form onSubmit={handleSaveEdit} className="p-6 space-y-4">
+                {/* Reference */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Référence</label>
+                  <input
+                    type="text"
+                    value={editFormData.referenceCode}
+                    onChange={(e) => setEditFormData({ ...editFormData, referenceCode: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 font-mono"
+                  />
+                </div>
+
+                {/* Montant & Plan */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Montant (€)</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={editFormData.amount}
+                      onChange={(e) => setEditFormData({ ...editFormData, amount: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Nom du Plan</label>
+                    <select
+                      value={editFormData.planName}
+                      onChange={(e) => setEditFormData({ ...editFormData, planName: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="Basic">Basic</option>
+                      <option value="Premium">Premium</option>
+                      <option value="VIP Elite">VIP Elite</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Statut */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Statut</label>
+                  <select
+                    value={editFormData.status}
+                    onChange={(e) => setEditFormData({ ...editFormData, status: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value={PAYMENT_STATUS.PENDING}>En attente</option>
+                    <option value={PAYMENT_STATUS.WAITING_PAYMENT}>Attente paiement</option>
+                    <option value={PAYMENT_STATUS.VALIDATING}>En validation</option>
+                    <option value={PAYMENT_STATUS.COMPLETED}>Terminé (Payé)</option>
+                    <option value={PAYMENT_STATUS.REJECTED}>Rejeté</option>
+                    <option value={PAYMENT_STATUS.EXPIRED}>Expiré</option>
+                  </select>
+                </div>
+
+                <div className="pt-4 flex gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setShowEditModal(false)}
+                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 font-medium"
+                  >
+                    Annuler
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={actionLoading}
+                    className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium flex justify-center items-center gap-2"
+                  >
+                    {actionLoading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                    Enregistrer
+                  </button>
+                </div>
+              </form>
             </motion.div>
           </motion.div>
         )}

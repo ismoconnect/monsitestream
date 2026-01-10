@@ -13,6 +13,7 @@ import Dashboard from './pages/Dashboard';
 import PaymentPage from './pages/PaymentPage';
 import PaymentStatusPage from './pages/PaymentStatusPage';
 import PaymentTrackingPage from './pages/PaymentTrackingPage';
+import BillingPage from './pages/BillingPage';
 import Messages from './pages/Messages';
 
 // Styles
@@ -47,6 +48,7 @@ const App = () => {
                 <Route path="/dashboard/payment" element={<PaymentPage />} />
                 <Route path="/dashboard/payment-status" element={<PaymentStatusPage />} />
                 <Route path="/dashboard/payment-tracking" element={<PaymentTrackingPage />} />
+                <Route path="/dashboard/billing" element={<BillingPage />} />
 
                 {/* Dashboard catch-all route */}
                 <Route path="/dashboard/*" element={<Dashboard />} />

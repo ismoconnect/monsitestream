@@ -51,7 +51,8 @@ class FirebaseAuthService {
 // Recommençons avec une structure plus propre qui correspond à ce que AuthContext attend de authService
 const firebaseAuthService = {
     listeners: [],
-    currentAuthState: undefined, // undefined = pas encore su, null = déconnecté, object = connecté
+    currentAuthState: undefined, // undefined = pas encore connu, null = déconnecté, object = connecté
+    isInitialized: false, // Flag pour savoir si le premier chargement Firestore est terminé
 
     init() {
         if (!auth) return;
@@ -81,6 +82,7 @@ const firebaseAuthService = {
             }
             console.log("👤 Final user for listeners:", user ? `${user.email} (Role: ${user.role})` : "null");
             this.currentAuthState = user;
+            this.isInitialized = true; // Marquer comme initialisé après le premier chargement
             this.listeners.forEach(cb => cb(user));
         });
     },
@@ -88,8 +90,8 @@ const firebaseAuthService = {
     onAuthStateChanged(callback) {
         this.listeners.push(callback);
 
-        // Si on connaît déjà l'état, on informe le nouveau souscripteur immédiatement
-        if (this.currentAuthState !== undefined) {
+        // Si on connaît déjà l'état ET que l'initialisation est complète, on informe le nouveau souscripteur immédiatement
+        if (this.currentAuthState !== undefined && this.isInitialized) {
             callback(this.currentAuthState);
         }
 
@@ -221,8 +223,8 @@ const firebaseAuthService = {
             displayName: userData.displayName,
             role: 'client', // Par défaut
             subscription: {
-                plan: 'free',
-                status: 'pending',
+                plan: 'basic',
+                status: 'active',
                 requestedAt: serverTimestamp(),
                 expiresAt: null
             },

@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { 
-  CreditCard, 
-  Building2, 
-  Gift, 
-  Ticket, 
-  ArrowLeft, 
-  Check, 
-  Shield, 
-  Crown, 
+import {
+  CreditCard,
+  Building2,
+  Gift,
+  Ticket,
+  ArrowLeft,
+  Check,
+  Shield,
+  Crown,
   Diamond,
   Lock,
   Star,
@@ -55,7 +55,7 @@ const PaymentPage = () => {
       </div>
     );
   }
-  
+
   // Récupérer les données du plan depuis l'URL ou les props
   const selectedPlan = location.state?.plan || {
     id: 'premium',
@@ -71,7 +71,7 @@ const PaymentPage = () => {
   const [formData, setFormData] = useState({
     // Carte cadeau
     giftCardCode: '',
-    
+
     // Coupon
     couponCode: ''
   });
@@ -153,7 +153,7 @@ const PaymentPage = () => {
 
   const handlePayment = async () => {
     console.log('handlePayment appelé - currentUser:', currentUser);
-    
+
     if (!selectedPaymentMethod) {
       alert('Veuillez sélectionner un mode de paiement');
       return;
@@ -321,11 +321,10 @@ const PaymentPage = () => {
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                     onClick={() => setSelectedGiftCardType(cardType.id)}
-                    className={`p-3 rounded-lg border-2 transition-all ${
-                      selectedGiftCardType === cardType.id
+                    className={`p-3 rounded-lg border-2 transition-all ${selectedGiftCardType === cardType.id
                         ? 'border-pink-500 bg-pink-50'
                         : 'border-gray-200 hover:border-gray-300'
-                    }`}
+                      }`}
                   >
                     <div className="text-2xl mb-1">{cardType.icon}</div>
                     <div className="text-xs font-medium text-gray-700">{cardType.name}</div>
@@ -333,7 +332,7 @@ const PaymentPage = () => {
                 ))}
               </div>
             </div>
-            
+
             {selectedGiftCardType && (
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -387,211 +386,209 @@ const PaymentPage = () => {
   return (
     <div className="h-screen bg-gray-100 flex overflow-hidden">
       {/* Sidebar */}
-      <ClientSidebar 
-        currentUser={currentUser} 
+      <ClientSidebar
+        currentUser={currentUser}
         isMobileMenuOpen={isMobileMenuOpen}
         setIsMobileMenuOpen={setIsMobileMenuOpen}
         onSignOut={handleSignOut}
       />
-      
+
       {/* Main Content */}
       <div className="flex-1 flex flex-col min-w-0">
-        <ClientHeader 
+        <ClientHeader
           currentUser={currentUser}
           onMobileMenuToggle={() => setIsMobileMenuOpen(true)}
         />
-        
-        {/* Content Area */}
-        <main className="flex-1 overflow-y-auto bg-gradient-to-br from-gray-50 via-pink-50 to-purple-50 p-4">
+
+        {/* Content Area - Mobile optimized */}
+        <main className="flex-1 overflow-y-auto bg-gradient-to-br from-gray-50 via-pink-50 to-purple-50 p-4 pt-[80px] lg:pt-4">
           <div className="max-w-4xl mx-auto">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-2xl lg:text-3xl font-bold text-gray-800">Finaliser votre abonnement</h1>
-          <p className="text-gray-600">Choisissez votre mode de paiement préféré</p>
-        </div>
+            {/* Header */}
+            <div className="mb-8">
+              <h1 className="text-2xl lg:text-3xl font-bold text-gray-800">Finaliser votre abonnement</h1>
+              <p className="text-gray-600">Choisissez votre mode de paiement préféré</p>
+            </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
-          {/* Résumé du plan */}
-          <div className="lg:col-span-1">
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              className="bg-white rounded-2xl shadow-lg p-6 sticky top-8"
-            >
-              <div className={`bg-gradient-to-r ${getPlanColor(selectedPlan.id)} text-white rounded-xl p-6 mb-6`}>
-                <div className="flex items-center justify-center mb-4">
-                  {React.createElement(getPlanIcon(selectedPlan.id), { className: 'w-12 h-12' })}
-                </div>
-                <h3 className="text-xl font-bold text-center mb-2">{selectedPlan.name}</h3>
-                <div className="text-center">
-                  <span className="text-3xl font-bold">{selectedPlan.price}€</span>
-                  <span className="text-sm opacity-90">/mois</span>
-                </div>
-              </div>
-
-              <div className="space-y-3">
-                <h4 className="font-semibold text-gray-800">Fonctionnalités incluses :</h4>
-                {selectedPlan.features?.map((feature, index) => (
-                  <div key={index} className="flex items-center space-x-2">
-                    <Check className="h-4 w-4 text-green-500" />
-                    <span className="text-sm text-gray-600">{feature}</span>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
+              {/* Résumé du plan */}
+              <div className="lg:col-span-1">
+                <motion.div
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  className="bg-white rounded-2xl shadow-lg p-6 sticky top-8"
+                >
+                  <div className={`bg-gradient-to-r ${getPlanColor(selectedPlan.id)} text-white rounded-xl p-6 mb-6`}>
+                    <div className="flex items-center justify-center mb-4">
+                      {React.createElement(getPlanIcon(selectedPlan.id), { className: 'w-12 h-12' })}
+                    </div>
+                    <h3 className="text-xl font-bold text-center mb-2">{selectedPlan.name}</h3>
+                    <div className="text-center">
+                      <span className="text-3xl font-bold">{selectedPlan.price}€</span>
+                      <span className="text-sm opacity-90">/mois</span>
+                    </div>
                   </div>
-                ))}
-              </div>
 
-              <div className="mt-6 pt-6 border-t border-gray-200">
-                <div className="flex justify-between items-center text-lg font-bold">
-                  <span>Total :</span>
-                  <span className="text-pink-600">{selectedPlan.price}€</span>
-                </div>
-              </div>
-            </motion.div>
-          </div>
-
-          {/* Modes de paiement */}
-          <div className="lg:col-span-2">
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              className="bg-white rounded-2xl shadow-lg p-6"
-            >
-              <h2 className="text-xl font-bold text-gray-800 mb-6">Choisissez votre mode de paiement</h2>
-
-              {/* Méthodes de paiement */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
-                {paymentMethods.map((method) => {
-                  const Icon = method.icon;
-                  return (
-                    <motion.button
-                      key={method.id}
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      onClick={() => setSelectedPaymentMethod(method.id)}
-                      className={`p-4 border-2 rounded-xl transition-all ${
-                        selectedPaymentMethod === method.id
-                          ? 'border-pink-500 bg-pink-50'
-                          : 'border-gray-200 hover:border-gray-300'
-                      }`}
-                    >
-                      <div className="flex items-center space-x-3">
-                        <div className={`w-12 h-12 bg-gradient-to-r ${method.color} rounded-lg flex items-center justify-center`}>
-                          <Icon className="h-6 w-6 text-white" />
-                        </div>
-                        <div className="text-left">
-                          <h3 className="font-semibold text-gray-800">{method.name}</h3>
-                          <p className="text-sm text-gray-600">{method.description}</p>
-                        </div>
+                  <div className="space-y-3">
+                    <h4 className="font-semibold text-gray-800">Fonctionnalités incluses :</h4>
+                    {selectedPlan.features?.map((feature, index) => (
+                      <div key={index} className="flex items-center space-x-2">
+                        <Check className="h-4 w-4 text-green-500" />
+                        <span className="text-sm text-gray-600">{feature}</span>
                       </div>
-                    </motion.button>
-                  );
-                })}
+                    ))}
+                  </div>
+
+                  <div className="mt-6 pt-6 border-t border-gray-200">
+                    <div className="flex justify-between items-center text-lg font-bold">
+                      <span>Total :</span>
+                      <span className="text-pink-600">{selectedPlan.price}€</span>
+                    </div>
+                  </div>
+                </motion.div>
               </div>
 
-              {/* Formulaire de paiement */}
-              <AnimatePresence mode="wait">
-                {selectedPaymentMethod && (
-                  <motion.div
-                    key={selectedPaymentMethod}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -20 }}
-                    className="bg-gray-50 rounded-xl p-6 mb-6"
+              {/* Modes de paiement */}
+              <div className="lg:col-span-2">
+                <motion.div
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  className="bg-white rounded-2xl shadow-lg p-6"
+                >
+                  <h2 className="text-xl font-bold text-gray-800 mb-6">Choisissez votre mode de paiement</h2>
+
+                  {/* Méthodes de paiement */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+                    {paymentMethods.map((method) => {
+                      const Icon = method.icon;
+                      return (
+                        <motion.button
+                          key={method.id}
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                          onClick={() => setSelectedPaymentMethod(method.id)}
+                          className={`p-4 border-2 rounded-xl transition-all ${selectedPaymentMethod === method.id
+                              ? 'border-pink-500 bg-pink-50'
+                              : 'border-gray-200 hover:border-gray-300'
+                            }`}
+                        >
+                          <div className="flex items-center space-x-3">
+                            <div className={`w-12 h-12 bg-gradient-to-r ${method.color} rounded-lg flex items-center justify-center`}>
+                              <Icon className="h-6 w-6 text-white" />
+                            </div>
+                            <div className="text-left">
+                              <h3 className="font-semibold text-gray-800">{method.name}</h3>
+                              <p className="text-sm text-gray-600">{method.description}</p>
+                            </div>
+                          </div>
+                        </motion.button>
+                      );
+                    })}
+                  </div>
+
+                  {/* Formulaire de paiement */}
+                  <AnimatePresence mode="wait">
+                    {selectedPaymentMethod && (
+                      <motion.div
+                        key={selectedPaymentMethod}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -20 }}
+                        className="bg-gray-50 rounded-xl p-6 mb-6"
+                      >
+                        <h3 className="font-semibold text-gray-800 mb-4">
+                          Informations de paiement - {paymentMethods.find(m => m.id === selectedPaymentMethod)?.name}
+                        </h3>
+                        {renderPaymentForm()}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+
+                  {/* Sécurité et conditions */}
+                  <div className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl p-4 mb-6">
+                    <div className="flex items-center space-x-3 mb-3">
+                      <Lock className="h-5 w-5 text-gray-600" />
+                      <span className="font-medium text-gray-800">Paiement 100% sécurisé</span>
+                    </div>
+                    <div className="text-sm text-gray-600 space-y-1">
+                      <p>• Vos données sont cryptées et protégées</p>
+                      <p>• Aucune information bancaire stockée</p>
+                      <p>• Annulation possible à tout moment</p>
+                      <p>• Support client 24h/7j</p>
+                    </div>
+                  </div>
+
+                  {/* Bouton de paiement */}
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={handlePayment}
+                    disabled={!selectedPaymentMethod || isProcessing}
+                    className={`w-full py-4 px-6 bg-gradient-to-r ${selectedPaymentMethod === 'paypal'
+                        ? 'from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700'
+                        : selectedPaymentMethod === 'bank_transfer'
+                          ? 'from-green-500 to-green-600 hover:from-green-600 hover:to-green-700'
+                          : selectedPaymentMethod === 'gift_card'
+                            ? 'from-pink-500 to-pink-600 hover:from-pink-600 hover:to-pink-700'
+                            : selectedPaymentMethod === 'coupon'
+                              ? 'from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700'
+                              : getPlanColor(selectedPlan.id)
+                      } text-white rounded-xl font-semibold text-lg transition-all shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed`}
                   >
-                    <h3 className="font-semibold text-gray-800 mb-4">
-                      Informations de paiement - {paymentMethods.find(m => m.id === selectedPaymentMethod)?.name}
-                    </h3>
-                    {renderPaymentForm()}
-                  </motion.div>
-                )}
-              </AnimatePresence>
+                    {isProcessing ? (
+                      <div className="flex items-center justify-center space-x-2">
+                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                        <span>Traitement en cours...</span>
+                      </div>
+                    ) : (
+                      <div className="flex items-center justify-center space-x-2">
+                        {selectedPaymentMethod === 'paypal' && (
+                          <>
+                            <CreditCard className="h-5 w-5" />
+                            <span>{getButtonText()}</span>
+                            <span>→</span>
+                          </>
+                        )}
+                        {selectedPaymentMethod === 'bank_transfer' && (
+                          <>
+                            <Building2 className="h-5 w-5" />
+                            <span>{getButtonText()}</span>
+                            <Sparkles className="h-5 w-5" />
+                          </>
+                        )}
+                        {selectedPaymentMethod === 'gift_card' && (
+                          <>
+                            <Gift className="h-5 w-5" />
+                            <span>{getButtonText()}</span>
+                            <Check className="h-5 w-5" />
+                          </>
+                        )}
+                        {selectedPaymentMethod === 'coupon' && (
+                          <>
+                            <Ticket className="h-5 w-5" />
+                            <span>{getButtonText()}</span>
+                            <Check className="h-5 w-5" />
+                          </>
+                        )}
+                        {!selectedPaymentMethod && (
+                          <>
+                            <Heart className="h-5 w-5" />
+                            <span>{getButtonText()}</span>
+                            <Sparkles className="h-5 w-5" />
+                          </>
+                        )}
+                      </div>
+                    )}
+                  </motion.button>
 
-              {/* Sécurité et conditions */}
-              <div className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl p-4 mb-6">
-                <div className="flex items-center space-x-3 mb-3">
-                  <Lock className="h-5 w-5 text-gray-600" />
-                  <span className="font-medium text-gray-800">Paiement 100% sécurisé</span>
-                </div>
-                <div className="text-sm text-gray-600 space-y-1">
-                  <p>• Vos données sont cryptées et protégées</p>
-                  <p>• Aucune information bancaire stockée</p>
-                  <p>• Annulation possible à tout moment</p>
-                  <p>• Support client 24h/7j</p>
-                </div>
+                  {/* Conditions */}
+                  <p className="text-xs text-gray-500 text-center mt-4">
+                    En confirmant, vous acceptez nos{' '}
+                    <a href="#" className="text-pink-600 hover:underline">conditions d'utilisation</a> et notre{' '}
+                    <a href="#" className="text-pink-600 hover:underline">politique de confidentialité</a>.
+                  </p>
+                </motion.div>
               </div>
-
-              {/* Bouton de paiement */}
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={handlePayment}
-                disabled={!selectedPaymentMethod || isProcessing}
-                className={`w-full py-4 px-6 bg-gradient-to-r ${
-                  selectedPaymentMethod === 'paypal' 
-                    ? 'from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700' 
-                    : selectedPaymentMethod === 'bank_transfer'
-                    ? 'from-green-500 to-green-600 hover:from-green-600 hover:to-green-700'
-                    : selectedPaymentMethod === 'gift_card'
-                    ? 'from-pink-500 to-pink-600 hover:from-pink-600 hover:to-pink-700'
-                    : selectedPaymentMethod === 'coupon'
-                    ? 'from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700'
-                    : getPlanColor(selectedPlan.id)
-                } text-white rounded-xl font-semibold text-lg transition-all shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed`}
-              >
-                {isProcessing ? (
-                  <div className="flex items-center justify-center space-x-2">
-                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                    <span>Traitement en cours...</span>
-                  </div>
-                ) : (
-                  <div className="flex items-center justify-center space-x-2">
-                    {selectedPaymentMethod === 'paypal' && (
-                      <>
-                        <CreditCard className="h-5 w-5" />
-                        <span>{getButtonText()}</span>
-                        <span>→</span>
-                      </>
-                    )}
-                    {selectedPaymentMethod === 'bank_transfer' && (
-                      <>
-                        <Building2 className="h-5 w-5" />
-                        <span>{getButtonText()}</span>
-                        <Sparkles className="h-5 w-5" />
-                      </>
-                    )}
-                    {selectedPaymentMethod === 'gift_card' && (
-                      <>
-                        <Gift className="h-5 w-5" />
-                        <span>{getButtonText()}</span>
-                        <Check className="h-5 w-5" />
-                      </>
-                    )}
-                    {selectedPaymentMethod === 'coupon' && (
-                      <>
-                        <Ticket className="h-5 w-5" />
-                        <span>{getButtonText()}</span>
-                        <Check className="h-5 w-5" />
-                      </>
-                    )}
-                    {!selectedPaymentMethod && (
-                      <>
-                        <Heart className="h-5 w-5" />
-                        <span>{getButtonText()}</span>
-                        <Sparkles className="h-5 w-5" />
-                      </>
-                    )}
-                  </div>
-                )}
-              </motion.button>
-
-              {/* Conditions */}
-              <p className="text-xs text-gray-500 text-center mt-4">
-                En confirmant, vous acceptez nos{' '}
-                <a href="#" className="text-pink-600 hover:underline">conditions d'utilisation</a> et notre{' '}
-                <a href="#" className="text-pink-600 hover:underline">politique de confidentialité</a>.
-              </p>
-            </motion.div>
-          </div>
-        </div>
+            </div>
           </div>
         </main>
       </div>

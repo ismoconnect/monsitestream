@@ -1,9 +1,9 @@
 import { db } from './firebase';
-import { 
-  doc, 
-  getDoc, 
-  updateDoc, 
-  serverTimestamp, 
+import {
+  doc,
+  getDoc,
+  updateDoc,
+  serverTimestamp,
   increment
 } from 'firebase/firestore';
 import { messagesService } from './messagesService';
@@ -16,33 +16,33 @@ class StatsService {
       // Récupérer les stats de base depuis le document utilisateur
       const userRef = doc(db, 'users', userId);
       const userDoc = await getDoc(userRef);
-      
+
       if (!userDoc.exists()) {
         throw new Error('Utilisateur non trouvé');
       }
-      
+
       const userData = userDoc.data();
       const baseStats = userData.stats || {};
-      
+
       // Récupérer les stats détaillées des messages et rendez-vous
       const [messageStats, appointmentStats] = await Promise.all([
         messagesService.getMessageStats(userId),
         appointmentsService.getAppointmentStats(userId)
       ]);
-      
+
       // Calculer les stats de streaming et galerie (simulées pour l'instant)
       const streamingStats = {
         totalSessions: baseStats.liveSessions || 0,
         totalMinutes: baseStats.streamingMinutes || 0,
         averageSession: baseStats.liveSessions > 0 ? Math.round((baseStats.streamingMinutes || 0) / baseStats.liveSessions) : 0
       };
-      
+
       const galleryStats = {
         totalViews: baseStats.galleryViews || 0,
         totalPhotos: baseStats.galleryPhotos || 0,
         totalVideos: baseStats.galleryVideos || 0
       };
-      
+
       return {
         overview: {
           totalMessages: messageStats.total,
@@ -57,7 +57,7 @@ class StatsService {
         profile: {
           memberSince: userData.createdAt,
           lastLogin: userData.lastLoginAt,
-          subscriptionPlan: userData.subscription?.plan || 'free',
+          subscriptionPlan: userData.subscription?.plan || 'basic',
           subscriptionStatus: userData.subscription?.status || 'inactive'
         }
       };
@@ -66,7 +66,7 @@ class StatsService {
       return this.getDefaultStats();
     }
   }
-  
+
   // Statistiques par défaut en cas d'erreur
   getDefaultStats() {
     return {
@@ -83,12 +83,12 @@ class StatsService {
       profile: {
         memberSince: null,
         lastLogin: null,
-        subscriptionPlan: 'free',
+        subscriptionPlan: 'basic',
         subscriptionStatus: 'inactive'
       }
     };
   }
-  
+
   // Incrémenter les vues de galerie
   async incrementGalleryViews(userId, viewType = 'photo') {
     try {
@@ -97,13 +97,13 @@ class StatsService {
         'stats.galleryViews': increment(1),
         updatedAt: serverTimestamp()
       };
-      
+
       if (viewType === 'photo') {
         updates['stats.galleryPhotos'] = increment(1);
       } else if (viewType === 'video') {
         updates['stats.galleryVideos'] = increment(1);
       }
-      
+
       await updateDoc(userRef, updates);
       return { success: true };
     } catch (error) {
@@ -111,7 +111,7 @@ class StatsService {
       return { success: false, error: error.message };
     }
   }
-  
+
   // Incrémenter les sessions de streaming
   async incrementStreamingSessions(userId, minutes = 0) {
     try {
@@ -127,7 +127,7 @@ class StatsService {
       return { success: false, error: error.message };
     }
   }
-  
+
   // Obtenir les activités récentes
   async getRecentActivity(userId, limit = 10) {
     try {
@@ -136,10 +136,10 @@ class StatsService {
         messagesService.getUserMessages(userId, { limit: 5 }),
         appointmentsService.getUserAppointments(userId, { limit: 5 })
       ]);
-      
+
       // Combiner et trier par date
       const activities = [];
-      
+
       // Ajouter les messages
       recentMessages.forEach(message => {
         activities.push({
@@ -152,7 +152,7 @@ class StatsService {
           icon: 'message'
         });
       });
-      
+
       // Ajouter les rendez-vous
       recentAppointments.forEach(appointment => {
         activities.push({
@@ -165,14 +165,14 @@ class StatsService {
           icon: 'calendar'
         });
       });
-      
+
       // Trier par date (plus récent en premier) et limiter
       activities.sort((a, b) => {
         const dateA = a.date?.toDate?.() || new Date(a.date);
         const dateB = b.date?.toDate?.() || new Date(b.date);
         return dateB - dateA;
       });
-      
+
       return activities.slice(0, limit);
     } catch (error) {
       console.error('Erreur lors de la récupération des activités:', error);

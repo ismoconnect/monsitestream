@@ -103,7 +103,7 @@ const AdminDashboard = () => {
   const handleValidateAccount = async (userId) => {
     setActionLoading(true);
     try {
-      await adminService.validateAccount(userId, 'admin_demo');
+      await adminService.validateAccount(userId, currentUser.uid);
 
       // Recharger les données
       await loadData();
@@ -122,7 +122,7 @@ const AdminDashboard = () => {
 
     setActionLoading(true);
     try {
-      await adminService.rejectSubscription(userId, 'admin_demo', reason);
+      await adminService.rejectSubscription(userId, currentUser.uid, reason);
       await loadData();
       setSelectedUser(null);
     } catch (error) {
@@ -139,7 +139,7 @@ const AdminDashboard = () => {
 
     setActionLoading(true);
     try {
-      await adminService.suspendUser(userId, 'admin_demo', reason);
+      await adminService.suspendUser(userId, currentUser.uid, reason);
       await loadData();
       setSelectedUser(null);
     } catch (error) {
@@ -150,10 +150,34 @@ const AdminDashboard = () => {
     }
   };
 
+  const handleUpdatePlan = async (userId, newPlan) => {
+    if (!window.confirm(`Passer cet utilisateur au plan ${newPlan.toUpperCase()} ?`)) return;
+
+    setActionLoading(true);
+    try {
+      await adminService.changeUserPlan(userId, currentUser.uid, newPlan);
+      await loadData();
+
+      // Mettre à jour l'utilisateur sélectionné localement pour refléter le changement
+      setSelectedUser(prev => ({
+        ...prev,
+        subscription: {
+          ...prev.subscription,
+          plan: newPlan
+        }
+      }));
+    } catch (error) {
+      console.error('Erreur lors du changement de plan:', error);
+      alert('Erreur lors du changement de plan');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
   const handleReactivateUser = async (userId) => {
     setActionLoading(true);
     try {
-      await adminService.reactivateUser(userId, 'admin_demo');
+      await adminService.reactivateUser(userId, currentUser.uid);
       await loadData();
       setSelectedUser(null);
     } catch (error) {
@@ -174,7 +198,8 @@ const AdminDashboard = () => {
     return colors[status] || 'bg-gray-100 text-gray-800';
   };
 
-  const getPlanIcon = (plan) => {
+  const getPlanIcon = (subscription) => {
+    const plan = subscription?.plan || subscription?.type || (subscription?.planName?.toLowerCase().includes('vip') ? 'vip' : subscription?.planName?.toLowerCase().includes('premium') ? 'premium' : 'basic');
     const icons = {
       basic: Shield,
       premium: Crown,
@@ -183,7 +208,8 @@ const AdminDashboard = () => {
     return icons[plan] || Shield;
   };
 
-  const getPlanColor = (plan) => {
+  const getPlanColor = (subscription) => {
+    const plan = subscription?.plan || subscription?.type || (subscription?.planName?.toLowerCase().includes('vip') ? 'vip' : subscription?.planName?.toLowerCase().includes('premium') ? 'premium' : 'basic');
     const colors = {
       basic: 'text-blue-600',
       premium: 'text-pink-600',
@@ -386,9 +412,11 @@ const AdminDashboard = () => {
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-2 flex-wrap">
                                 <h3 className="font-semibold text-gray-800 text-sm lg:text-base truncate">{user.displayName}</h3>
-                                <div className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs ${getPlanColor(user.subscription?.plan)}`}>
+                                <div className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs ${getPlanColor(user.subscription)}`}>
                                   <PlanIcon className="w-3 h-3" />
-                                  <span className="hidden sm:inline">{user.subscription?.plan}</span>
+                                  <span className="hidden sm:inline">
+                                    {user.subscription?.planName || user.subscription?.plan || user.subscription?.type || 'Basic'}
+                                  </span>
                                 </div>
                               </div>
                               <p className="text-xs lg:text-sm text-gray-600 truncate">{user.email}</p>
@@ -523,7 +551,9 @@ const AdminDashboard = () => {
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                           <div>
                             <span className="text-gray-600">Plan:</span>
-                            <p className="font-medium">{selectedUser.subscription?.plan}</p>
+                            <p className="font-bold text-indigo-600 uppercase">
+                              {selectedUser.subscription?.planName || selectedUser.subscription?.plan || selectedUser.subscription?.type || 'Basic'}
+                            </p>
                           </div>
                           <div>
                             <span className="text-gray-600">Statut:</span>
@@ -570,6 +600,34 @@ const AdminDashboard = () => {
                             <span className="text-gray-600">Vues galerie:</span>
                             <p className="font-medium">{selectedUser.stats?.galleryViews || 0}</p>
                           </div>
+                        </div>
+                      </div>
+
+                      {/* Upgrade/Downgrade Plan Sections */}
+                      <div className="bg-indigo-50 border border-indigo-100 rounded-lg p-4">
+                        <h3 className="font-bold text-indigo-900 mb-3 flex items-center gap-2">
+                          <Crown className="w-5 h-5" />
+                          Gestion des privilèges (Plan)
+                        </h3>
+                        <div className="flex flex-wrap gap-3">
+                          {[
+                            { id: 'basic', label: 'Basic', color: 'bg-blue-500', icon: Shield },
+                            { id: 'premium', label: 'Premium', color: 'bg-pink-500', icon: Crown },
+                            { id: 'vip', label: 'VIP Elite', color: 'bg-purple-600', icon: Diamond }
+                          ].map((plan) => (
+                            <button
+                              key={plan.id}
+                              onClick={() => handleUpdatePlan(selectedUser.id, plan.id)}
+                              disabled={actionLoading || (selectedUser.subscription?.plan || selectedUser.subscription?.type) === plan.id}
+                              className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-bold text-xs uppercase tracking-wider transition-all ${(selectedUser.subscription?.plan || selectedUser.subscription?.type) === plan.id
+                                  ? 'bg-white text-indigo-400 border-2 border-indigo-100 cursor-not-allowed'
+                                  : `${plan.color} text-white hover:opacity-90 shadow-md active:scale-95`
+                                }`}
+                            >
+                              <plan.icon className="w-4 h-4" />
+                              {plan.label}
+                            </button>
+                          ))}
                         </div>
                       </div>
                     </div>
