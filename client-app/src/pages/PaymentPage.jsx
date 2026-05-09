@@ -78,14 +78,6 @@ const PaymentPage = () => {
 
   const paymentMethods = [
     {
-      id: 'paypal',
-      name: 'PayPal',
-      icon: CreditCard,
-      description: 'Paiement sécurisé via PayPal',
-      color: 'from-blue-500 to-blue-600',
-      available: true
-    },
-    {
       id: 'bank_transfer',
       name: 'Virement Bancaire',
       icon: Building2,
@@ -138,8 +130,6 @@ const PaymentPage = () => {
 
   const getButtonText = () => {
     switch (selectedPaymentMethod) {
-      case 'paypal':
-        return 'Continuer vers votre paiement PayPal';
       case 'bank_transfer':
         return 'Demander les informations de virement';
       case 'gift_card':
@@ -208,13 +198,6 @@ const PaymentPage = () => {
       let paymentRequest;
 
       switch (selectedPaymentMethod) {
-        case 'paypal':
-          paymentRequest = await paymentService.createPayPalRequest(
-            userId,
-            selectedPlan,
-            currentUser.email
-          );
-          break;
 
         case 'bank_transfer':
           paymentRequest = await paymentService.createBankTransferRequest(
@@ -275,20 +258,6 @@ const PaymentPage = () => {
 
   const renderPaymentForm = () => {
     switch (selectedPaymentMethod) {
-      case 'paypal':
-        return (
-          <div className="space-y-4">
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <h4 className="font-medium text-blue-800 mb-2">💳 Processus PayPal :</h4>
-              <div className="text-sm text-blue-700 space-y-1">
-                <p>• Après confirmation, notre équipe préparera votre demande de paiement</p>
-                <p>• Vous recevrez un email avec le lien PayPal sécurisé personnalisé</p>
-                <p>• Cliquez sur le lien pour effectuer votre paiement en toute sécurité</p>
-                <p>• Votre abonnement sera activé dès réception du paiement</p>
-              </div>
-            </div>
-          </div>
-        );
 
       case 'bank_transfer':
         return (
@@ -523,9 +492,8 @@ const PaymentPage = () => {
                     whileTap={{ scale: 0.98 }}
                     onClick={handlePayment}
                     disabled={!selectedPaymentMethod || isProcessing}
-                    className={`w-full py-4 px-6 bg-gradient-to-r ${selectedPaymentMethod === 'paypal'
-                        ? 'from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700'
-                        : selectedPaymentMethod === 'bank_transfer'
+                    className={`w-full py-4 px-6 bg-gradient-to-r ${
+                        selectedPaymentMethod === 'bank_transfer'
                           ? 'from-green-500 to-green-600 hover:from-green-600 hover:to-green-700'
                           : selectedPaymentMethod === 'gift_card'
                             ? 'from-pink-500 to-pink-600 hover:from-pink-600 hover:to-pink-700'
@@ -541,13 +509,6 @@ const PaymentPage = () => {
                       </div>
                     ) : (
                       <div className="flex items-center justify-center space-x-2">
-                        {selectedPaymentMethod === 'paypal' && (
-                          <>
-                            <CreditCard className="h-5 w-5" />
-                            <span>{getButtonText()}</span>
-                            <span>→</span>
-                          </>
-                        )}
                         {selectedPaymentMethod === 'bank_transfer' && (
                           <>
                             <Building2 className="h-5 w-5" />

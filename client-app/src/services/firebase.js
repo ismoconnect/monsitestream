@@ -2,7 +2,6 @@
 import { initializeApp } from 'firebase/app';
 import { getFirestore } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
-import { getFunctions } from 'firebase/functions';
 import { getAuth } from 'firebase/auth';
 
 // Firebase configuration
@@ -17,7 +16,7 @@ const firebaseConfig = {
 
 // Initialize Firebase
 let app;
-let db, storage, functions, auth;
+let db, storage, auth;
 
 try {
   app = initializeApp(firebaseConfig);
@@ -25,7 +24,6 @@ try {
   // Initialize Firebase services
   db = getFirestore(app);
   storage = getStorage(app);
-  functions = getFunctions(app);
   auth = getAuth(app);
   console.log('Firebase initialized successfully');
 } catch (error) {
@@ -33,11 +31,10 @@ try {
   // Create mock services for development
   db = null;
   storage = null;
-  functions = null;
   auth = null;
 }
 
-export { db, storage, functions, auth };
+export { db, storage, auth };
 
 // Connect to emulators in development (DISABLED - using production Firebase)
 // if (import.meta.env.DEV) {

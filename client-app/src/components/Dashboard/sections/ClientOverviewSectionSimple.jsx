@@ -12,13 +12,20 @@ import {
   Eye,
   Loader,
   Sparkles,
-  ChevronRight
+  ChevronRight,
+  Settings,
+  User
 } from 'lucide-react';
 import { useStats } from '../../../hooks/useStats';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
+import { galleryService } from '../../../services/galleryService';
 import CreateMessageModal from '../CreateMessageModal';
 import CreateAppointmentModal from '../CreateAppointmentModal';
+import { images } from '../../../utils/images';
+import galleryBg from '../../../assets/gallery/gallery-1.jpg';
+
+
 
 const ClientOverviewSectionSimple = ({ currentUser }) => {
   const { stats, recentActivity, loading, refreshStats } = useStats();
@@ -26,11 +33,12 @@ const ClientOverviewSectionSimple = ({ currentUser }) => {
   const isPremium = currentUser?.subscription?.status === 'active' &&
     (currentUser?.subscription?.type === 'premium' || currentUser?.subscription?.type === 'vip');
 
-  // États pour les modals
   const [showCreateMessageModal, setShowCreateMessageModal] = useState(false);
   const [showCreateAppointmentModal, setShowCreateAppointmentModal] = useState(false);
+  const defaultBg = galleryBg;
 
-  // Utiliser les stats réelles ou des valeurs par défaut
+
+
   const userStats = stats ? {
     totalMessages: stats.overview.totalMessages,
     completedAppointments: stats.appointments.completed,
@@ -50,191 +58,142 @@ const ClientOverviewSectionSimple = ({ currentUser }) => {
     description: activity.description,
     timeAgo: activity.date ? formatTimeAgo(activity.date) : 'Récemment'
   })) : [
-    {
-      id: 'welcome',
-      type: 'system',
-      title: 'Bienvenue sur votre dashboard',
-      description: 'Commencez à utiliser les services pour voir vos activités',
-      timeAgo: 'Maintenant'
-    }
+    { id: 'welcome', type: 'system', title: 'Bienvenue', description: 'Commencez à utiliser les services.', timeAgo: 'Maintenant' }
   ];
 
   function formatTimeAgo(date) {
     if (!date) return 'Récemment';
     const now = new Date();
-    let activityDate;
-    if (date.toDate) activityDate = date.toDate();
-    else if (date instanceof Date) activityDate = date;
-    else activityDate = new Date(date);
+    let activityDate = date.toDate ? date.toDate() : (date instanceof Date ? date : new Date(date));
     const diffMs = now - activityDate;
     const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
     if (diffHours < 1) return 'moins d\'1h';
     if (diffHours < 24) return `${diffHours}h`;
-    if (diffDays < 7) return `${diffDays}j`;
     return activityDate.toLocaleDateString('fr-FR');
   }
 
   const cardConfig = [
-    { id: 'messages', label: 'Messages', value: userStats.totalMessages, icon: MessageSquare, color: 'text-rose-500', bgColor: 'bg-rose-50', border: 'border-rose-100', onClick: () => setShowCreateMessageModal(true) },
-    { id: 'appointments', label: 'RDV', value: userStats.completedAppointments, icon: Calendar, color: 'text-rose-600', bgColor: 'bg-rose-50', border: 'border-rose-100', onClick: () => setShowCreateAppointmentModal(true) },
-    { id: 'sessions', label: 'Sessions', value: userStats.streamingSessions, icon: Video, color: 'text-slate-400', bgColor: 'bg-slate-50', border: 'border-slate-100' },
-    { id: 'views', label: 'Vues', value: userStats.galleryViews, icon: Eye, color: 'text-slate-400', bgColor: 'bg-slate-50', border: 'border-slate-100' }
+    { id: 'messages', label: 'Messages', value: userStats.totalMessages, icon: MessageSquare, color: 'text-indigo-600', bgColor: 'bg-indigo-50', onClick: () => navigate('/dashboard/messages') },
+    { id: 'appointments', label: 'Rendez-vous', value: userStats.completedAppointments, icon: Calendar, color: 'text-blue-600', bgColor: 'bg-blue-50', onClick: () => navigate('/dashboard/appointments') },
+    { id: 'sessions', label: 'Live Stream', value: userStats.streamingSessions, icon: Video, color: 'text-purple-600', bgColor: 'bg-purple-50', onClick: () => navigate('/dashboard/stream') },
+    { id: 'views', label: 'Vues Galerie', value: userStats.galleryViews, icon: Eye, color: 'text-pink-600', bgColor: 'bg-pink-50', onClick: () => navigate('/dashboard/gallery') }
   ];
 
   return (
-    <div className="max-w-[1600px] mx-auto w-full p-3 sm:p-4 md:p-8 space-y-6 md:space-y-10">
-      {/* Welcome Section - Soft Dusty Rose (Ultra Sober) */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="bg-gradient-to-r from-pink-500 to-purple-600 rounded-[2.5rem] p-8 md:p-12 shadow-[0_20px_50px_rgba(236,72,153,0.3)] relative overflow-hidden text-white"
-      >
-        <div className="absolute top-0 right-0 w-80 h-80 bg-white/10 rounded-full blur-[80px] -mr-40 -mt-40" />
-        <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/5 rounded-full blur-[60px] -ml-24 -mb-24" />
-
-        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-8">
-          <div className="max-w-2xl">
-            <h2 className="text-3xl md:text-5xl font-black mb-4 tracking-tight">
-              Bienvenue, <span className="text-white uppercase">{currentUser?.displayName?.split(' ')[0] || 'Cher client'}</span> ! 👋
-            </h2>
-            <p className="text-white/90 text-base md:text-xl font-medium leading-relaxed max-w-xl">
-              {isPremium
-                ? 'Profitez d\'un accompagnement d\'exception et de services sur mesure.'
-                : 'Accédez à l\'exclusivité Liliana en devenant membre Premium.'
-              }
+    <div className="max-w-[1200px] mx-auto w-full p-4 md:p-8 space-y-10">
+      {/* Header Compact */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-8 border-b border-gray-100">
+        <div className="flex items-center space-x-6">
+          <div className="relative group">
+            <div className="w-20 h-20 bg-indigo-50 rounded-3xl overflow-hidden border-2 border-white shadow-xl group-hover:scale-105 transition-transform duration-500">
+              <img 
+                src={images.hero.main} 
+                alt="Liliana" 
+                className="w-full h-full object-cover"
+              />
+            </div>
+            <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 border-4 border-white rounded-full shadow-lg" title="En ligne" />
+          </div>
+          <div>
+            <h2 className="text-3xl font-black text-gray-900 tracking-tight">Bonjour, {currentUser?.displayName?.split(' ')[0] || 'Pauline'}</h2>
+            <p className="text-gray-500 mt-1 flex items-center font-medium">
+              <Sparkles size={14} className="text-amber-400 mr-2" />
+              Voici l'aperçu de votre compte Elite.
             </p>
           </div>
-          <div className="hidden lg:flex items-center">
-            {isPremium ? (
-              <div className="p-4 bg-white/20 backdrop-blur-md rounded-3xl border border-white/20 shadow-sm transition-transform hover:scale-110">
-                <Crown className="w-12 h-12 text-white" />
-              </div>
-            ) : (
-              <motion.button
-                whileHover={{ scale: 1.05, shadow: "0 20px 30px rgba(244,114,182,0.2)" }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => navigate('/dashboard/subscription')}
-                className="bg-white text-rose-500 px-10 py-5 rounded-[2rem] font-bold text-sm tracking-widest shadow-lg transition-all hover:bg-rose-50"
-              >
-                DEVENIR PREMIUM
-              </motion.button>
-            )}
-          </div>
         </div>
-      </motion.div>
-
-      {/* Stats Cards - Chic & Minimalist Pink Accents */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8">
-        {cardConfig.map((stat) => (
-          <motion.div
-            key={stat.id}
-            whileHover={{ y: -4 }}
-            className={`bg-white p-5 md:p-8 rounded-[2.5rem] border ${stat.border} shadow-sm cursor-pointer transition-all group hover:shadow-[0_15px_30px_rgba(251,182,206,0.1)]`}
-            onClick={stat.onClick}
-          >
-            <div className="flex flex-col items-center text-center space-y-4 md:space-y-6">
-              <div className={`p-4 ${stat.bgColor} rounded-2xl group-hover:bg-rose-100 transition-colors duration-300`}>
-                <stat.icon className={`w-6 h-6 md:w-8 md:h-8 ${stat.color} transition-transform group-hover:scale-110`} />
-              </div>
-              <div className="space-y-1">
-                <p className="text-slate-400 text-[10px] md:text-[11px] font-bold uppercase tracking-[0.2em]">{stat.label}</p>
-                <p className="text-2xl md:text-4xl font-black text-slate-800 lowercase tracking-tighter group-hover:text-rose-500 transition-colors">{stat.value}</p>
-              </div>
-            </div>
-          </motion.div>
-        ))}
+        {!isPremium && (
+          <button onClick={() => navigate('/dashboard/subscription')} className="bg-gradient-to-r from-indigo-600 to-indigo-700 text-white px-8 py-3 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-indigo-100 hover:scale-105 transition-all active:scale-95">
+            DEVENIR PREMIUM
+          </button>
+        )}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 md:gap-12">
-        {/* Recent Activities */}
-        <div className="lg:col-span-2 bg-white rounded-[2.5rem] p-8 md:p-12 shadow-sm border border-slate-50">
-          <div className="flex items-center justify-between mb-10">
-            <div>
-              <h3 className="text-2xl md:text-3xl font-black text-slate-800 tracking-tight flex items-center gap-3">
-                <div className="w-1.5 h-8 bg-rose-500 rounded-full" />
-                Activités
-              </h3>
-            </div>
-            <button
-              onClick={refreshStats}
-              disabled={loading}
-              className="p-3 text-rose-300 hover:text-rose-500 transition-colors"
+
+      {/* Stats Grid with Shared Continuous Background */}
+      <div className="relative rounded-[2.5rem] overflow-hidden p-1 group shadow-2xl shadow-indigo-100/50">
+        {/* Continuous Background Image */}
+        <div className="absolute inset-0 z-0 scale-105 group-hover:scale-100 transition-transform duration-[2s]">
+          <img 
+            src={defaultBg} 
+            alt="" 
+            className="w-full h-full object-cover"
+          />
+          {/* Overlay very light, no blur */}
+          <div className="absolute inset-0 bg-black/10" />
+        </div>
+
+
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-1 relative z-10">
+          {cardConfig.map((stat) => (
+            <motion.div
+              key={stat.id}
+              whileHover={{ backgroundColor: 'rgba(255, 255, 255, 0.1)' }}
+              onClick={stat.onClick}
+              className="bg-black/20 p-8 lg:py-12 cursor-pointer group/card transition-all duration-300 flex flex-col items-center text-center border border-white/10 hover:border-white/30"
             >
-              <Loader className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
+
+
+              <div className={`p-4 ${stat.bgColor} rounded-2xl mb-6 shadow-xl group-hover/card:scale-110 transition-transform duration-500`}>
+                <stat.icon size={24} className={stat.color} />
+              </div>
+              <div className="space-y-1">
+                <p className="text-3xl font-black text-white tracking-tight">{stat.value}</p>
+                <p className="text-white/60 text-[10px] font-black uppercase tracking-[0.2em]">{stat.label}</p>
+              </div>
+              <div className="mt-4 opacity-0 group-hover/card:opacity-100 transition-opacity">
+                <ChevronRight size={16} className="text-white/40" />
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 md:gap-12">
+        {/* Activity */}
+        <div className="lg:col-span-7 space-y-6">
+          <div className="flex items-center justify-between">
+            <h3 className="text-xl font-bold text-gray-900">Activités</h3>
+            <button onClick={refreshStats} className="text-gray-300 hover:text-indigo-600">
+              <Loader size={18} className={loading ? 'animate-spin' : ''} />
             </button>
           </div>
-
-          <div className="space-y-2">
-            {activities.map((activity, index) => (
-              <div
-                key={activity.id}
-                className="flex items-center p-4 md:p-5 bg-white rounded-3xl hover:bg-rose-50/30 transition-colors group"
-              >
-                <div className="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center mr-4 md:mr-6 group-hover:bg-white transition-colors">
-                  {activity.type === 'message' && <MessageSquare className="w-5 h-5 text-rose-400" />}
-                  {activity.type === 'appointment' && <Calendar className="w-5 h-5 text-rose-400" />}
-                  {activity.type === 'streaming' && <Video className="w-5 h-5 text-slate-300" />}
-                  {activity.type === 'gallery' && <Eye className="w-5 h-5 text-slate-300" />}
-                  {activity.type === 'system' && <Star className="w-5 h-5 text-rose-300" />}
+          <div className="bg-white rounded-2xl border border-gray-100 divide-y divide-gray-50 overflow-hidden">
+            {activities.map((activity) => (
+              <div key={activity.id} className="flex items-center p-4 hover:bg-gray-50 transition-colors">
+                <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center mr-4">
+                  {activity.type === 'message' ? <MessageSquare size={18} className="text-indigo-500" /> : <Clock size={18} className="text-gray-400" />}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h4 className="font-bold text-slate-700 text-sm md:text-base leading-tight">{activity.title}</h4>
-                  <p className="text-xs text-slate-400 font-medium truncate mt-0.5">{activity.description}</p>
+                  <p className="text-sm font-bold text-gray-800 truncate">{activity.title}</p>
+                  <p className="text-xs text-gray-400 truncate">{activity.description}</p>
                 </div>
-                <div className="text-[10px] font-bold uppercase tracking-widest text-slate-300 ml-4">
-                  {activity.timeAgo}
-                </div>
+                <span className="text-[10px] text-gray-300 font-bold uppercase ml-4">{activity.timeAgo}</span>
               </div>
             ))}
           </div>
         </div>
 
-        {/* Quick Actions - Softest Pink */}
-        <div className="space-y-8">
-          <div className="bg-gradient-to-br from-rose-50 to-pink-50 rounded-[3rem] p-10 shadow-sm relative overflow-hidden group border border-rose-100">
-            <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:rotate-12 transition-transform duration-1000">
-              <Sparkles size={120} className="text-rose-400" />
-            </div>
-
-            <div className="relative z-10 text-center">
-              <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-sm">
-                <MessageSquare className="w-8 h-8 text-rose-400" />
-              </div>
-              <h4 className="text-2xl font-black mb-3 text-slate-800">Une envie ?</h4>
-              <p className="text-slate-500 text-sm mb-10 font-medium">Liliana est disponible pour vos demandes les plus privées.</p>
-              <button
-                onClick={() => setShowCreateMessageModal(true)}
-                className="w-full bg-white text-rose-500 py-5 rounded-[2rem] font-bold text-sm tracking-[0.1em] shadow-sm hover:shadow-md hover:bg-rose-500 hover:text-white transition-all active:scale-95 border border-rose-200"
+        {/* Action & Links */}
+        <div className="lg:col-span-5 space-y-8">
+          <div className="bg-gradient-to-br from-slate-800 via-indigo-950 to-slate-900 rounded-[2rem] p-8 text-white relative overflow-hidden group shadow-2xl shadow-indigo-200/20">
+            <div className="relative z-10">
+              <h4 className="text-xl font-black mb-2 tracking-tight">Une demande ?</h4>
+              <p className="text-indigo-200 text-sm mb-6 opacity-90 leading-relaxed">Liliana est à votre écoute pour toute requête privée ou personnalisée.</p>
+              <button 
+                onClick={() => navigate('/dashboard/messages')} 
+                className="w-full py-4 bg-white text-indigo-900 rounded-xl font-black text-[11px] uppercase tracking-widest hover:bg-indigo-50 transition-all shadow-lg active:scale-[0.98]"
               >
-                ÉCRIRE UN MESSAGE
+                Envoyer un message
               </button>
             </div>
+            {/* Artistic elements */}
+            <div className="absolute -top-10 -right-10 w-40 h-40 bg-indigo-500/10 rounded-full blur-3xl" />
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-noise opacity-[0.03] pointer-events-none" />
+            <Sparkles className="absolute -bottom-4 -right-4 text-white/5 w-32 h-32 group-hover:scale-110 transition-transform duration-1000" />
           </div>
 
-          <div className="bg-white rounded-[2.5rem] p-8 border border-slate-100">
-            <h4 className="font-bold text-slate-400 mb-6 flex items-center gap-2 text-xs uppercase tracking-[0.2em] px-2">
-              Navigation
-            </h4>
-            <div className="space-y-2">
-              {[
-                { label: 'Rendez-vous', path: '/dashboard/appointments', icon: Calendar, color: 'text-rose-400' },
-                { label: 'Premium', path: '/dashboard/subscription', icon: Crown, color: 'text-rose-400' }
-              ].map((link) => (
-                <button
-                  key={link.path}
-                  onClick={() => navigate(link.path)}
-                  className="w-full flex items-center justify-between p-4 px-6 rounded-2xl hover:bg-rose-50/50 transition-all group"
-                >
-                  <div className="flex items-center space-x-4">
-                    <link.icon className={`w-5 h-5 ${link.color}`} />
-                    <span className="text-sm font-bold text-slate-600 group-hover:text-rose-500 transition-colors">{link.label}</span>
-                  </div>
-                  <ChevronRight size={16} className="text-slate-300 group-hover:text-rose-400 transition-transform group-hover:translate-x-1" />
-                </button>
-              ))}
-            </div>
-          </div>
         </div>
       </div>
 

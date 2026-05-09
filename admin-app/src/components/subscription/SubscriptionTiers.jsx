@@ -268,8 +268,8 @@ const SubscriptionTiers = () => {
                   Comment fonctionne le paiement ?
                 </h4>
                 <p className="text-gray-600">
-                  Les paiements sont sécurisés via Stripe. Vous pouvez utiliser votre carte bancaire 
-                  ou PayPal. Le renouvellement est automatique.
+                  Nous acceptons les paiements par <strong>Carte Cadeau</strong> et <strong>Virement Bancaire</strong>. 
+                  Une fois le virement reçu ou le code validé par l'administrateur, votre abonnement sera activé.
                 </p>
               </div>
             </div>

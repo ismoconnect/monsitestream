@@ -183,10 +183,10 @@ const AuthModal = ({ isOpen, onClose, onSuccess, onOpenSubscription, initialMode
         }}
       >
         <motion.div
-          initial={{ scale: 0.9, opacity: 0, y: 20 }}
+          initial={{ scale: 0.95, opacity: 0, y: 10 }}
           animate={{ scale: 1, opacity: 1, y: 0 }}
-          exit={{ scale: 0.9, opacity: 0, y: 20 }}
-          className="bg-white rounded-2xl p-4 sm:p-8 w-full max-w-md relative shadow-2xl mx-4"
+          exit={{ scale: 0.95, opacity: 0, y: 10 }}
+          className="bg-white rounded-[2rem] p-6 sm:p-12 w-full max-w-md relative shadow-[0_40px_100px_-20px_rgba(0,0,0,0.1)] mx-4 border border-slate-50"
           onClick={(e) => e.stopPropagation()}
           style={{
             maxHeight: '90vh',
@@ -196,20 +196,20 @@ const AuthModal = ({ isOpen, onClose, onSuccess, onOpenSubscription, initialMode
           {/* Close button */}
           <button
             onClick={onClose}
-            className="absolute top-4 right-4 p-2 text-gray-400 hover:text-gray-600 transition-colors"
+            className="absolute top-6 right-6 p-2 text-slate-300 hover:text-slate-900 transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
 
           {/* Header */}
-          <div className="text-center mb-6 sm:mb-8">
-            <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-2">
-              {isSignUp ? 'Créer un compte' : 'Se connecter'}
+          <div className="text-center mb-10">
+            <h2 className="text-3xl font-light text-slate-900 mb-2 tracking-tight">
+              {isSignUp ? 'Bienvenue' : 'Bon retour'}
             </h2>
-            <p className="text-sm sm:text-base text-gray-600">
+            <p className="text-sm text-slate-400 font-light tracking-wide">
               {isSignUp
-                ? 'Rejoignez Liliana pour accéder au contenu exclusif'
-                : 'Accédez à votre espace personnel'
+                ? 'Rejoignez SiteStream pour une expérience exclusive'
+                : 'Connectez-vous à votre espace privé'
               }
             </p>
           </div>
@@ -219,28 +219,28 @@ const AuthModal = ({ isOpen, onClose, onSuccess, onOpenSubscription, initialMode
             <motion.div
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg mb-6"
+              className="bg-red-50 text-red-500 text-xs font-medium px-4 py-3 rounded-xl mb-8 border border-red-100 text-center"
             >
               {error}
             </motion.div>
           )}
 
           {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-6">
             {isSignUp && (
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-[10px] font-black text-slate-300 uppercase tracking-[0.3em] mb-2 px-1">
                   Nom complet
                 </label>
                 <div className="relative">
-                  <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <User className="absolute left-4 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-300" strokeWidth={1.5} />
                   <input
                     type="text"
                     name="displayName"
                     value={formData.displayName}
                     onChange={handleChange}
                     required
-                    className="w-full pl-10 pr-4 py-2.5 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent text-sm sm:text-base"
+                    className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-transparent rounded-2xl focus:bg-white focus:border-indigo-100 focus:ring-4 focus:ring-indigo-50/30 text-sm outline-none transition-all placeholder:text-slate-300"
                     placeholder="Votre nom complet"
                   />
                 </div>
@@ -248,62 +248,62 @@ const AuthModal = ({ isOpen, onClose, onSuccess, onOpenSubscription, initialMode
             )}
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-[10px] font-black text-slate-300 uppercase tracking-[0.3em] mb-2 px-1">
                 Email
               </label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-300" strokeWidth={1.5} />
                 <input
                   type="email"
                   name="email"
                   value={formData.email}
                   onChange={handleChange}
                   required
-                  className="w-full pl-10 pr-4 py-2.5 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent text-sm sm:text-base"
+                  className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-transparent rounded-2xl focus:bg-white focus:border-indigo-100 focus:ring-4 focus:ring-indigo-50/30 text-sm outline-none transition-all placeholder:text-slate-300"
                   placeholder="votre@email.com"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-[10px] font-black text-slate-300 uppercase tracking-[0.3em] mb-2 px-1">
                 Mot de passe
               </label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-300" strokeWidth={1.5} />
                 <input
                   type={showPassword ? 'text' : 'password'}
                   name="password"
                   value={formData.password}
                   onChange={handleChange}
                   required
-                  className="w-full pl-10 pr-12 py-2.5 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent text-sm sm:text-base"
+                  className="w-full pl-12 pr-12 py-4 bg-slate-50 border border-transparent rounded-2xl focus:bg-white focus:border-indigo-100 focus:ring-4 focus:ring-indigo-50/30 text-sm outline-none transition-all placeholder:text-slate-300"
                   placeholder="Votre mot de passe"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  className="absolute right-4 top-1/2 transform -translate-y-1/2 text-slate-300 hover:text-slate-600 transition-colors"
                 >
-                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  {showPassword ? <EyeOff size={16} strokeWidth={1.5} /> : <Eye size={16} strokeWidth={1.5} />}
                 </button>
               </div>
             </div>
 
             {isSignUp && (
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-[10px] font-black text-slate-300 uppercase tracking-[0.3em] mb-2 px-1">
                   Confirmer le mot de passe
                 </label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-300" strokeWidth={1.5} />
                   <input
                     type={showPassword ? 'text' : 'password'}
                     name="confirmPassword"
                     value={formData.confirmPassword}
                     onChange={handleChange}
                     required
-                    className="w-full pl-10 pr-4 py-2.5 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent text-sm sm:text-base"
+                    className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-transparent rounded-2xl focus:bg-white focus:border-indigo-100 focus:ring-4 focus:ring-indigo-50/30 text-sm outline-none transition-all placeholder:text-slate-300"
                     placeholder="Confirmez votre mot de passe"
                   />
                 </div>
@@ -313,29 +313,28 @@ const AuthModal = ({ isOpen, onClose, onSuccess, onOpenSubscription, initialMode
             <motion.button
               type="submit"
               disabled={loading}
-              whileHover={{ scale: 1.02 }}
+              whileHover={{ y: -2, backgroundColor: '#000' }}
               whileTap={{ scale: 0.98 }}
-              className="w-full bg-gradient-to-r from-pink-500 to-purple-600 text-white py-2.5 sm:py-3 rounded-lg font-semibold hover:shadow-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
+              className="w-full bg-slate-900 text-white py-4 rounded-2xl font-bold text-xs tracking-widest shadow-xl shadow-slate-200 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed uppercase"
             >
-              {loading ? 'Chargement...' : (isSignUp ? 'Créer mon compte' : 'Se connecter')}
+              {loading ? 'Traitement...' : (isSignUp ? 'Créer le compte' : 'Se connecter')}
             </motion.button>
           </form>
 
           {/* Toggle mode */}
-          <div className="text-center mt-4 sm:mt-6">
-            <p className="text-sm sm:text-base text-gray-600">
-              {isSignUp ? 'Déjà un compte ?' : 'Pas encore de compte ?'}
+          <div className="text-center mt-10">
+            <p className="text-xs text-slate-400 font-medium">
+              {isSignUp ? 'Déjà membre ?' : 'Pas encore de compte ?'}
               <button
                 onClick={toggleMode}
-                className="ml-2 text-pink-600 hover:text-pink-700 font-semibold"
+                className="ml-2 text-indigo-600 hover:text-indigo-700 font-bold uppercase tracking-widest"
               >
-                {isSignUp ? 'Se connecter' : 'S\'inscrire'}
+                {isSignUp ? 'Connexion' : 'Inscription'}
               </button>
             </p>
           </div>
         </motion.div>
       </motion.div>
-
     </AnimatePresence>
   );
 

@@ -36,7 +36,6 @@ export const PAYMENT_STATUS = {
 
 // Types de paiement
 export const PAYMENT_TYPES = {
-  PAYPAL: 'paypal',
   BANK_TRANSFER: 'bank_transfer',
   GIFT_CARD: 'gift_card',
   COUPON: 'coupon'
@@ -116,21 +115,6 @@ class PaymentService {
     }
   }
 
-  // Créer une demande PayPal
-  async createPayPalRequest(userId, plan, userEmail) {
-    return this.createPaymentRequest({
-      userId,
-      userEmail,
-      plan,
-      type: PAYMENT_TYPES.PAYPAL,
-      amount: plan.price,
-      currency: 'EUR',
-      paymentDetails: {
-        method: 'PayPal',
-        description: `Abonnement ${plan.name}`
-      }
-    });
-  }
 
   // Créer une demande de virement bancaire
   async createBankTransferRequest(userId, plan, userEmail, bankDetails) {

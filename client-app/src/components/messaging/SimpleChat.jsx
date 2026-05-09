@@ -119,7 +119,7 @@ const SimpleChat = () => {
   return (
     <div className="h-screen bg-white flex flex-col">
       {/* En-tête de discussion - Liliana */}
-      <div className="bg-gradient-to-r from-pink-500 to-purple-600 text-white p-4 shadow-lg flex-shrink-0">
+      <div className="bg-gradient-to-r from-[#1e1b4b] to-[#4338ca] text-white p-4 shadow-lg flex-shrink-0">
         <div className="flex items-center space-x-4">
           {/* Avatar de Liliana */}
           <div className="w-14 h-14 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
@@ -127,12 +127,12 @@ const SimpleChat = () => {
           </div>
           <div className="flex-1">
             <h1 className="text-xl font-bold">Liliana</h1>
-            <p className="text-pink-100 text-sm flex items-center">
+            <p className="text-indigo-100 text-sm flex items-center">
               <div className="w-2 h-2 bg-green-400 rounded-full mr-2 animate-pulse"></div>
               Accompagnatrice de luxe • En ligne
             </p>
           </div>
-          <div className="text-pink-100">
+          <div className="text-indigo-100">
             <MessageSquare className="h-6 w-6" />
           </div>
         </div>
@@ -160,7 +160,7 @@ const SimpleChat = () => {
                     {/* Avatar et nom pour Liliana */}
                     {!isOwn && (
                       <div className="flex items-center space-x-2 mb-2">
-                        <div className="w-8 h-8 bg-gradient-to-r from-pink-500 to-purple-600 rounded-full flex items-center justify-center">
+                        <div className="w-8 h-8 bg-gradient-to-r from-[#4338ca] to-[#7c3aed] rounded-full flex items-center justify-center">
                           <span className="text-sm font-bold text-white">L</span>
                         </div>
                         <p className="text-sm text-gray-700 font-medium">
@@ -172,7 +172,7 @@ const SimpleChat = () => {
                     {/* Bulle de message */}
                     <div
                       className={`px-4 py-3 rounded-2xl shadow-sm ${isOwn
-                          ? 'bg-gradient-to-r from-pink-500 to-purple-600 text-white rounded-br-md'
+                          ? 'bg-gradient-to-r from-[#4338ca] to-[#7c3aed] text-white rounded-br-md'
                           : 'bg-white text-gray-900 border border-gray-200 rounded-bl-md'
                         }`}
                     >
@@ -234,7 +234,7 @@ const SimpleChat = () => {
                   e.target.style.height = Math.min(e.target.scrollHeight, 120) + 'px';
                 }}
                 placeholder="Écrivez votre message à Liliana..."
-                className="w-full px-4 py-3 border-2 border-gray-200 rounded-2xl focus:outline-none focus:border-pink-400 focus:ring-2 focus:ring-pink-100 resize-none bg-gray-50 hover:bg-white focus:bg-white transition-all duration-200"
+                className="w-full px-4 py-3 border-2 border-gray-200 rounded-2xl focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 resize-none bg-gray-50 hover:bg-white focus:bg-white transition-all duration-200"
                 rows={1}
                 style={{ minHeight: '48px', maxHeight: '120px' }}
                 onKeyDown={(e) => {
@@ -251,7 +251,7 @@ const SimpleChat = () => {
               whileTap={{ scale: 0.95 }}
               type="submit"
               disabled={!newMessage.trim() || isLoading}
-              className="w-12 h-12 bg-gradient-to-r from-pink-500 to-purple-600 text-white rounded-full hover:from-pink-600 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center shadow-lg"
+              className="w-12 h-12 bg-gradient-to-r from-[#4338ca] to-[#7c3aed] text-white rounded-full hover:from-[#312e81] hover:to-[#5b21b6] disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center shadow-lg"
             >
               {isLoading ? (
                 <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>

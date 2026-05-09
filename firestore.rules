@@ -31,8 +31,16 @@ service cloud.firestore {
     match /users/{userId} {
       allow list: if isAdmin();
       allow get: if isOwner(userId) || isAdmin();
-      allow create: if isAuthenticated() && request.auth.uid == userId;
-      allow update, delete: if isOwner(userId) || isAdmin();
+      
+      // Sécurité: Empêcher un utilisateur de se donner le rôle admin
+      allow create: if isAuthenticated() && request.auth.uid == userId 
+                    && (!('role' in request.resource.data) || request.resource.data.role == 'client');
+      
+      // Sécurité: Seul l'admin peut changer le rôle
+      allow update: if (isOwner(userId) && (!('role' in request.resource.data) || request.resource.data.role == resource.data.role))
+                    || isAdmin();
+      
+      allow delete: if isAdmin();
       
       // Sous-collections (appointments, notifications, messages privés...)
       match /{document=**} {
@@ -92,6 +100,12 @@ service cloud.firestore {
     
     match /typing/{docId} {
       allow read, write: if isAuthenticated();
+    }
+
+    // 7. CARTES CADEAUX
+    match /gift_cards/{cardId} {
+      allow read: if isAuthenticated(); // Pour vérification par le client
+      allow write: if isAdmin(); // Seul l'admin gère les cartes
     }
   }
 }

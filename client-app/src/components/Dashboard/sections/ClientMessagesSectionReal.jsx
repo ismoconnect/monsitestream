@@ -322,60 +322,62 @@ const ClientMessagesSectionReal = ({ currentUser }) => {
   }
 
   return (
-    <div className="flex-1 w-full h-full sm:p-4 lg:p-6">
+    <div className="flex-1 w-full h-[calc(100vh-80px)] overflow-hidden sm:p-4 lg:p-6 flex flex-col">
       {/* Bloc de Chat Principal - Mobile Independent Absolute Layout */}
       {/* Bloc de Chat Principal - Mobile Fixed / Desktop Flex */}
-      <div className="fixed top-[65px] left-0 right-0 bottom-0 z-0 bg-white lg:static lg:flex lg:flex-col lg:w-full lg:h-[70vh] lg:max-w-6xl lg:mx-auto lg:rounded-[3rem] lg:shadow-[0_20px_70px_-10px_rgba(0,0,0,0.05)] lg:border lg:border-gray-100/80 overflow-hidden transition-all duration-300 flex flex-col">
+      <div className="fixed top-[65px] left-0 right-0 bottom-0 z-0 bg-[#fafafa] lg:relative lg:flex lg:flex-col lg:w-full lg:h-full lg:max-w-[480px] lg:ml-auto lg:mr-0 lg:rounded-3xl lg:shadow-[0_40px_120px_-20px_rgba(0,0,0,0.15)] lg:border lg:border-gray-100/80 overflow-hidden transition-all duration-300 flex flex-col">
 
-        {/* Header - Static Top */}
-        <div className="flex-shrink-0 h-[85px] z-10 bg-gradient-to-r from-pink-500 to-purple-600 p-4 sm:p-5 flex items-center justify-between shadow-md">
-          <div className="flex items-center space-x-4">
+        {/* Pro Header - Rectangular & Sharp */}
+        <div className="flex-shrink-0 h-[110px] z-10 bg-gradient-to-r from-[#1e1b4b] via-[#4338ca] to-[#701a75] p-6 flex items-center justify-between border-b border-white/10 shadow-2xl relative overflow-hidden">
+          {/* Subtle light effect for pro feel */}
+          <div className="absolute inset-0 bg-gradient-to-b from-white/10 to-transparent pointer-events-none" />
+          
+          <div className="flex items-center space-x-5 relative z-10">
             <div className="relative">
-              <div className="w-12 h-12 sm:w-14 sm:h-14 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center text-white border border-white/30">
-                <span className="text-xl font-bold tracking-tight">L</span>
+              <div className="w-16 h-16 rounded-2xl bg-white/10 backdrop-blur-xl flex items-center justify-center text-white border border-white/20 shadow-2xl">
+                <span className="text-3xl font-black tracking-tighter opacity-90">L</span>
               </div>
-              <div className={`absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full border-2 border-white shadow-sm ${adminPresence.isOnline ? 'bg-green-400' : 'bg-gray-300'}`}></div>
+              <div className="absolute bottom-0 right-0 w-4 h-4 rounded-md bg-green-500 border-2 border-[#312e81] shadow-sm"></div>
             </div>
-            <div>
-              <h3 className="text-lg font-bold text-white tracking-tight leading-none mb-1">Liliana</h3>
+            <div className="flex flex-col">
+              <h3 className="text-2xl font-black text-white tracking-tight uppercase leading-none mb-1.5 drop-shadow-md">Liliana</h3>
               <div className="flex items-center space-x-2">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-pink-100/80">
-                  {presenceService.getStatusText(adminPresence)}
+                <div className="w-1.5 h-1.5 bg-indigo-300/60 animate-pulse" />
+                <span className="text-[10px] font-black uppercase tracking-[0.3em] text-indigo-100/70">
+                  {adminPresence.isOnline ? 'Active Maintenant' : 'Hors ligne • 7h'}
                 </span>
-                {adminPresence.isOnline && <span className="flex h-1.5 w-1.5 rounded-full bg-green-400"></span>}
               </div>
             </div>
           </div>
 
-          <div className="flex items-center space-x-1 sm:space-x-2 text-white">
+          <div className="flex items-center space-x-2 text-white/90 relative z-10">
             {[
-              { icon: Video, action: handleVideoCall, level: 'vip' },
-              { icon: Phone, action: handleAudioCall, level: 'vip' }
-            ].map((item, idx) => {
-              const hasAccess = item.level === 'vip' ? isVIP : isPremium;
-              return (
-                <motion.button
-                  key={idx}
-                  whileHover={{ scale: 1.05, backgroundColor: 'rgba(255,255,255,0.1)' }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={item.action}
-                  className="p-3 hover:text-white rounded-xl transition-all relative"
-                >
-                  <item.icon className="w-5 h-5 stroke-[2]" />
-                  {!hasAccess && (
-                    <Crown className={`w-3 h-3 absolute top-1 right-1 ${item.level === 'vip' ? 'text-yellow-300' : 'text-yellow-300/50'}`} />
-                  )}
-                </motion.button>
-              );
-            })}
-            <button className="p-3 opacity-50 hover:opacity-100 transition-opacity">
-              <Heart className="w-5 h-5 fill-current" />
-            </button>
+              { icon: Video, action: handleVideoCall, vip: true },
+              { icon: Phone, action: handleAudioCall, vip: true },
+              { icon: Heart, action: null, vip: false }
+            ].map((btn, i) => (
+              <motion.button
+                key={i}
+                whileHover={{ backgroundColor: 'rgba(255,255,255,0.15)', y: -2 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={btn.action}
+                className="w-12 h-12 rounded-xl flex items-center justify-center border border-white/10 hover:border-white/30 transition-all relative"
+              >
+                <btn.icon size={20} className="stroke-[2]" />
+                {btn.vip && <Crown size={8} className="absolute top-1.5 right-1.5 text-yellow-300 fill-yellow-300" />}
+              </motion.button>
+            ))}
           </div>
         </div>
 
+
         {/* Messages - Flex Grow with Scroll */}
-        <div className="flex-1 overflow-y-auto bg-white px-4 sm:px-8 py-4 sm:py-8 space-y-6 scrollbar-hide font-sans overscroll-contain z-0 relative">
+        <div className="flex-1 overflow-y-auto bg-[#fcfaff] px-4 sm:px-8 py-4 sm:py-8 space-y-6 scrollbar-hide font-sans overscroll-contain z-0 relative">
+          {/* Subtle Decorative Elements for "Life" */}
+          <div className="absolute inset-0 pointer-events-none overflow-hidden opacity-40">
+            <div className="absolute -top-[10%] -left-[10%] w-[50%] h-[50%] bg-indigo-100 rounded-full blur-[100px]" />
+            <div className="absolute -bottom-[10%] -right-[10%] w-[50%] h-[50%] bg-purple-100 rounded-full blur-[100px]" />
+          </div>
           <AnimatePresence initial={false}>
             {messages.map((message) => {
               const mUserId = currentUser?.uid || currentUser?.id;
@@ -384,28 +386,29 @@ const ClientMessagesSectionReal = ({ currentUser }) => {
               return (
                 <motion.div
                   key={message.id}
-                  initial={{ opacity: 0, y: 5 }}
-                  animate={{ opacity: 1, y: 0 }}
+                  initial={{ opacity: 0, x: isOwn ? 20 : -20 }}
+                  animate={{ opacity: 1, x: 0 }}
                   className={`flex ${isOwn ? 'justify-end' : 'justify-start'}`}
                 >
-                  <div className={`max-w-[85%] sm:max-w-[70%] ${isOwn ? 'ml-10' : ''}`}>
+                  <div className={`max-w-[85%] ${isOwn ? 'ml-12' : 'mr-12'}`}>
                     <div className={`
-                      px-5 py-3 rounded-[1.4rem] text-[15px] leading-snug shadow-sm
+                      px-6 py-4 relative group rounded-2xl
                       ${isOwn
-                        ? 'bg-gradient-to-br from-pink-500 to-purple-600 text-white rounded-tr-none font-medium'
-                        : 'bg-gray-50 text-gray-700 rounded-tl-none border border-gray-100'
+                        ? 'bg-gradient-to-br from-[#4338ca] via-[#6366f1] to-[#a855f7] text-white font-bold rounded-tr-sm'
+                        : 'bg-gradient-to-br from-indigo-200/70 via-white to-purple-300/60 backdrop-blur-sm text-gray-800 border border-indigo-300/30 rounded-tl-sm'
                       }
                     `}>
-                      <p className="whitespace-pre-wrap break-words">{message.content}</p>
+                      <p className="whitespace-pre-wrap break-words text-[14px] leading-relaxed tracking-wide">{message.content}</p>
                     </div>
-                    <div className={`flex mt-2 px-1 items-center space-x-2 ${isOwn ? 'justify-end' : 'justify-start'}`}>
-                      <span className="text-[9px] text-gray-400 font-bold uppercase tracking-widest">
+                    <div className={`flex mt-2.5 px-1 items-center space-x-3 ${isOwn ? 'justify-end' : 'justify-start'}`}>
+                      <span className="text-[9px] text-gray-400 font-black uppercase tracking-[0.2em]">
                         {formatTime(message.timestamp)}
                       </span>
-                      {isOwn && <CheckCircle2 className="w-3 h-3 text-pink-200" />}
+                      {isOwn && <CheckCircle2 className="w-3.5 h-3.5 text-indigo-400 opacity-60" />}
                     </div>
                   </div>
                 </motion.div>
+
               );
             })}
           </AnimatePresence>
@@ -433,19 +436,18 @@ const ClientMessagesSectionReal = ({ currentUser }) => {
           <div ref={messagesEndRef} />
         </div>
 
-        {/* Barre de saisie - Static Bottom */}
-        <div className="flex-shrink-0 z-20 bg-white p-4 sm:p-6 border-t border-gray-50 relative">
-          <form onSubmit={handleSendMessage} className="flex items-center space-x-3 max-w-5xl mx-auto">
-            <button
-              type="button"
-              whileTap={{ scale: 0.9 }}
-              onClick={() => setShowOptions(!showOptions)}
-              className="p-3 text-pink-500 bg-pink-50/50 rounded-xl transition-all hover:bg-pink-100/50"
-            >
-              <Plus className="w-5 h-5 stroke-[2.5]" />
-            </button>
+        {/* Pro Input Area */}
+        <div className="flex-shrink-0 z-20 bg-white/80 backdrop-blur-md p-5 border-t border-indigo-50 shadow-[0_-15px_50px_rgba(0,0,0,0.03)]">
+          <div className="flex items-center space-x-4 max-w-4xl mx-auto">
+            <form onSubmit={handleSendMessage} className="flex-1 flex items-center bg-[#fcfcfc] border border-gray-100 rounded-2xl group focus-within:border-indigo-200 transition-all overflow-hidden">
+              <button
+                type="button"
+                onClick={() => setShowOptions(!showOptions)}
+                className="w-14 h-14 flex items-center justify-center text-gray-400 hover:text-indigo-500 hover:bg-indigo-50/50 border-r border-gray-50 transition-colors"
+              >
+                <Plus size={20} className="stroke-[3]" />
+              </button>
 
-            <div className="flex-1 relative">
               <textarea
                 value={newMessage}
                 onChange={(e) => {
@@ -460,10 +462,9 @@ const ClientMessagesSectionReal = ({ currentUser }) => {
                     setTypingTimeout(timeout);
                   }
                 }}
-                placeholder="Écrivez votre message..."
-                className="w-full bg-gray-50 border-none rounded-xl px-4 py-3.5 pr-10 focus:ring-2 focus:ring-pink-100 transition-all resize-none text-[13px] sm:text-[14px] font-medium text-gray-700 placeholder-gray-500"
+                placeholder="Message à Liliana..."
+                className="flex-1 bg-transparent border-none px-5 py-4 focus:ring-0 resize-none text-[14px] font-bold text-gray-800 placeholder-gray-400 min-h-[56px] max-h-[150px]"
                 rows={1}
-                style={{ minHeight: '48px', maxHeight: '120px' }}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' && !e.shiftKey) {
                     e.preventDefault();
@@ -471,24 +472,26 @@ const ClientMessagesSectionReal = ({ currentUser }) => {
                   }
                 }}
               />
+
               <button
                 type="button"
                 onClick={handleStickers}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-300 hover:text-pink-400 transition-colors"
+                className="px-4 text-gray-300 hover:text-indigo-500 transition-colors"
               >
-                <Smile className="w-5 h-5" />
+                <Smile size={22} />
               </button>
-            </div>
+              
+              <motion.button
+                whileTap={{ scale: 0.9 }}
+                disabled={!newMessage.trim() || isLoading}
+                className="w-14 h-14 rounded-xl bg-gradient-to-br from-[#6366f1] to-[#a855f7] text-white disabled:opacity-20 flex items-center justify-center transition-all m-1 shadow-lg shadow-indigo-100"
+              >
+                <Send size={20} className="fill-white" />
+              </motion.button>
+            </form>
+          </div>
+        </div>
 
-            <motion.button
-              whileHover={{ scale: 1.05, boxShadow: '0 10px 20px -5px rgba(236,72,153,0.3)' }}
-              whileTap={{ scale: 0.95 }}
-              disabled={!newMessage.trim() || isLoading}
-              className="h-12 w-12 bg-gradient-to-br from-pink-500 to-purple-600 text-white rounded-xl shadow-lg shadow-pink-100 disabled:opacity-30 disabled:shadow-none flex items-center justify-center flex-shrink-0 transition-all"
-            >
-              <Send className="w-5 h-5" />
-            </motion.button>
-          </form>
 
           {/* Panels d'options */}
           <AnimatePresence>
@@ -497,7 +500,7 @@ const ClientMessagesSectionReal = ({ currentUser }) => {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: 10 }}
-                className="absolute bottom-28 left-4 right-4 bg-white/95 backdrop-blur-md p-6 rounded-3xl shadow-2xl border border-gray-100 z-50"
+                className="absolute bottom-32 left-4 right-4 bg-white/95 backdrop-blur-md p-6 rounded-[2rem] shadow-2xl border border-gray-100 z-50"
               >
                 <div className="grid grid-cols-6 sm:grid-cols-10 gap-3 max-h-48 overflow-y-auto">
                   {stickers.map((s, i) => (
@@ -511,10 +514,10 @@ const ClientMessagesSectionReal = ({ currentUser }) => {
                 initial={{ opacity: 0, scale: 0.9, x: -20 }}
                 animate={{ opacity: 1, scale: 1, x: 0 }}
                 exit={{ opacity: 0, scale: 0.9 }}
-                className="absolute bottom-28 left-6 bg-white rounded-3xl shadow-2xl border border-gray-100 p-2 min-w-[240px] z-50 flex flex-col"
+                className="absolute bottom-32 left-6 bg-white rounded-[2rem] shadow-2xl border border-gray-100 p-2 min-w-[240px] z-50 flex flex-col"
               >
                 <button onClick={handleImageUpload} className="flex items-center space-x-3 p-4 hover:bg-gray-50 rounded-2xl transition-colors text-left group">
-                  <div className="p-2 bg-pink-50 text-pink-500 rounded-xl group-hover:bg-pink-500 group-hover:text-white transition-colors relative">
+                  <div className="p-2 bg-indigo-50 text-indigo-500 rounded-xl group-hover:bg-indigo-500 group-hover:text-white transition-colors relative">
                     <Image className="w-5 h-5" />
                     {!isPremium && <Crown className="w-2.5 h-2.5 absolute -top-1 -right-1 text-yellow-500" />}
                   </div>
@@ -539,61 +542,60 @@ const ClientMessagesSectionReal = ({ currentUser }) => {
             )}
           </AnimatePresence>
         </div>
-      </div>
 
-      {/* Modal Premium */}
-      <AnimatePresence>
-        {showPremiumModal && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center p-4 z-[100]"
-            onClick={(e) => e.target === e.currentTarget && setShowPremiumModal(false)}
-          >
+        {/* Modal Premium */}
+        <AnimatePresence>
+          {showPremiumModal && (
             <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-white rounded-[2.5rem] shadow-2xl w-full max-w-md overflow-hidden"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center p-4 z-[100]"
+              onClick={(e) => e.target === e.currentTarget && setShowPremiumModal(false)}
             >
-              <div className="bg-gradient-to-br from-pink-500 to-purple-700 text-white p-8 text-center">
-                <div className="w-20 h-20 bg-white/20 rounded-3xl flex items-center justify-center mx-auto mb-6 backdrop-blur-md border border-white/30 rotate-3">
-                  <Crown className="h-10 w-10 text-yellow-300" />
+              <motion.div
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.9, opacity: 0 }}
+                className="bg-white rounded-[2.5rem] shadow-2xl w-full max-w-md overflow-hidden"
+              >
+                <div className="bg-gradient-to-br from-indigo-500 to-purple-700 text-white p-8 text-center">
+                  <div className="w-20 h-20 bg-white/20 rounded-3xl flex items-center justify-center mx-auto mb-6 backdrop-blur-md border border-white/30 rotate-3">
+                    <Crown className="h-10 w-10 text-yellow-300" />
+                  </div>
+                  <h2 className="text-2xl font-black mb-2">{requiredPlan === 'VIP Elite' ? 'VIP Elite' : 'Expérience Premium'}</h2>
+                  <p className="text-indigo-100 font-medium">Accès Privilégié</p>
                 </div>
-                <h2 className="text-2xl font-black mb-2">{requiredPlan === 'VIP Elite' ? 'VIP Elite' : 'Expérience Premium'}</h2>
-                <p className="text-pink-100 font-medium">Accès Privilégié</p>
-              </div>
 
-              <div className="p-8">
-                <div className="bg-pink-50 rounded-2xl p-4 mb-8 border border-pink-100 italic text-center">
-                  <p className="text-pink-700 font-bold text-sm">
-                    "La fonction {premiumFeatureName} est réservée à mes membres {requiredPlan === 'VIP Elite' ? 'VIP Elite' : 'Premium'}."
-                  </p>
-                </div>
+                <div className="p-8">
+                  <div className="bg-indigo-50 rounded-2xl p-4 mb-8 border border-indigo-100 italic text-center">
+                    <p className="text-indigo-700 font-bold text-sm">
+                      "La fonction {premiumFeatureName} est réservée à mes membres {requiredPlan === 'VIP Elite' ? 'VIP Elite' : 'Premium'}."
+                    </p>
+                  </div>
 
-                <div className="flex flex-col space-y-3">
-                  <motion.button
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={() => {
-                      setShowPremiumModal(false);
-                      navigate('/dashboard/payment', { state: { from: premiumFeatureName } });
-                    }}
-                    className="w-full py-4 bg-gradient-to-r from-pink-500 to-purple-600 text-white rounded-2xl shadow-xl shadow-pink-100 font-black text-sm"
-                  >
-                    DÉCOUVRIR LES PLANS
-                  </motion.button>
-                  <button onClick={() => setShowPremiumModal(false)} className="w-full py-3 text-gray-400 font-bold text-xs uppercase tracking-widest hover:text-gray-600">
-                    Plus tard
-                  </button>
+                  <div className="flex flex-col space-y-3">
+                    <motion.button
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => {
+                        setShowPremiumModal(false);
+                        navigate('/dashboard/payment', { state: { from: premiumFeatureName } });
+                      }}
+                      className="w-full py-4 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-2xl shadow-xl shadow-indigo-100 font-black text-sm"
+                    >
+                      DÉCOUVRIR LES PLANS
+                    </motion.button>
+                    <button onClick={() => setShowPremiumModal(false)} className="w-full py-3 text-gray-400 font-bold text-xs uppercase tracking-widest hover:text-gray-600">
+                      Plus tard
+                    </button>
+                  </div>
                 </div>
-              </div>
+              </motion.div>
             </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div >
+          )}
+        </AnimatePresence>
+      </div>
   );
 };
 

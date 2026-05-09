@@ -100,81 +100,135 @@ const AdminSidebar = ({ currentAdmin, onSignOut, isMobileMenuOpen, setIsMobileMe
   };
 
   const SidebarContent = () => (
-    <>
-      {/* Header */}
-      <div className="p-6 border-b border-gray-800">
-        <div className="flex items-center justify-between">
+    <div className="bg-gray-950 h-full flex flex-col overflow-hidden text-white border-r border-white/5">
+      {/* Admin Header Premium */}
+      <div className="p-5 bg-gradient-to-br from-indigo-900 via-slate-900 to-black relative">
+        <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/10 rounded-full blur-3xl"></div>
+        
+        <div className="relative flex items-center justify-between mb-6">
           <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-gradient-to-r from-pink-500 to-purple-600 rounded-full flex items-center justify-center">
+            <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/20">
               <Shield className="h-6 w-6 text-white" />
             </div>
             <div>
-              <h2 className="text-lg font-bold">Admin Panel</h2>
-              <p className="text-gray-400 text-sm">Liliana - Accompagnatrice</p>
+              <h2 className="text-base font-black tracking-tighter uppercase italic">SiteStream</h2>
+              <p className="text-[10px] text-indigo-400 font-bold uppercase tracking-widest">Admin Control</p>
             </div>
           </div>
-          {/* Bouton fermer pour mobile */}
+          {/* Mobile Close */}
           <button
             onClick={() => setIsMobileMenuOpen && setIsMobileMenuOpen(false)}
-            className="lg:hidden p-2 hover:bg-gray-800 rounded-lg transition-colors"
+            className="lg:hidden p-2 bg-white/5 rounded-lg hover:bg-white/10 transition-colors"
           >
             <X className="h-5 w-5" />
           </button>
         </div>
+
+        {/* Profile Card Admin */}
+        <div className="bg-white/5 border border-white/10 rounded-xl p-3 flex items-center space-x-3">
+          <div className="w-10 h-10 bg-gradient-to-tr from-pink-500 to-purple-600 rounded-lg flex items-center justify-center font-bold text-lg shadow-lg">
+            L
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-xs font-bold truncate">Liliana</p>
+            <p className="text-[10px] text-gray-400">Propriétaire</p>
+          </div>
+          <div className="w-2 h-2 bg-green-500 rounded-full shadow-sm shadow-green-500/50"></div>
+        </div>
       </div>
 
-      {/* Navigation */}
-      <nav className="flex-1 p-4">
-        <div className="space-y-2">
-          {menuItems.map((item) => {
-            const Icon = item.icon;
-            const active = isActive(item);
-
-            return (
-              <motion.button
-                key={item.id}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={() => handleNavigation(item)}
-                className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200 ${active
-                  ? 'bg-gradient-to-r from-pink-500 to-purple-600 text-white shadow-lg'
-                  : 'text-gray-300 hover:text-white hover:bg-gray-800'
-                  }`}
-              >
-                <Icon className="h-5 w-5" />
-                <div className="flex-1 text-left">
-                  <div className="font-medium">{item.label}</div>
-                  <div className="text-xs opacity-75">{item.description}</div>
-                </div>
-              </motion.button>
-            );
-          })}
-        </div>
-      </nav>
-
-      {/* User Info & Logout */}
-      <div className="p-4 border-t border-gray-800">
-        <div className="flex items-center space-x-3 mb-4">
-          <div className="w-8 h-8 bg-pink-500 rounded-full flex items-center justify-center">
-            <span className="text-sm font-bold">L</span>
-          </div>
-          <div className="flex-1">
-            <div className="font-medium text-sm">Liliana</div>
-            <div className="text-gray-400 text-xs">Administratrice</div>
+      {/* Navigation Admin Scrollable - Plus compact pour éviter le scroll */}
+      <div className="flex-1 overflow-y-auto py-4 px-3 space-y-5 scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+        <style dangerouslySetInnerHTML={{__html: `
+          .scrollbar-hide::-webkit-scrollbar { display: none; }
+        `}} />
+        
+        {/* Section: Analyse */}
+        <div>
+          <h4 className="px-3 text-[9px] font-black text-gray-500 uppercase tracking-widest mb-2">Analyse</h4>
+          <div className="space-y-0.5">
+            {menuItems.slice(0, 1).map((item) => {
+              const Icon = item.icon;
+              const active = isActive(item);
+              return (
+                <motion.button
+                  key={item.id}
+                  whileHover={{ x: 2 }}
+                  onClick={() => handleNavigation(item)}
+                  className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg transition-all ${active 
+                    ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20' 
+                    : 'text-gray-400 hover:text-white hover:bg-white/5'}`}
+                >
+                  <Icon className="h-4 w-4" />
+                  <span className="text-xs font-semibold">{item.label}</span>
+                </motion.button>
+              );
+            })}
           </div>
         </div>
 
+        {/* Section: Gestion */}
+        <div>
+          <h4 className="px-3 text-[9px] font-black text-gray-500 uppercase tracking-widest mb-2">Gestion</h4>
+          <div className="space-y-0.5">
+            {menuItems.slice(1, 6).map((item) => {
+              const Icon = item.icon;
+              const active = isActive(item);
+              return (
+                <motion.button
+                  key={item.id}
+                  whileHover={{ x: 2 }}
+                  onClick={() => handleNavigation(item)}
+                  className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg transition-all ${active 
+                    ? 'bg-pink-600 text-white shadow-lg shadow-pink-500/20' 
+                    : 'text-gray-400 hover:text-white hover:bg-white/5'}`}
+                >
+                  <Icon className="h-4 w-4" />
+                  <span className="text-xs font-semibold">{item.label}</span>
+                </motion.button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Section: Système */}
+        <div>
+          <h4 className="px-3 text-[9px] font-black text-gray-500 uppercase tracking-widest mb-2">Système</h4>
+          <div className="space-y-0.5">
+            {menuItems.slice(6).map((item) => {
+              const Icon = item.icon;
+              const active = isActive(item);
+              return (
+                <motion.button
+                  key={item.id}
+                  whileHover={{ x: 2 }}
+                  onClick={() => handleNavigation(item)}
+                  className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg transition-all ${active 
+                    ? 'bg-slate-700 text-white shadow-lg' 
+                    : 'text-gray-400 hover:text-white hover:bg-white/5'}`}
+                >
+                  <Icon className="h-4 w-4" />
+                  <span className="text-xs font-semibold">{item.label}</span>
+                </motion.button>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
+      {/* Footer Logout */}
+      <div className="p-4 bg-black/20">
         <motion.button
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
           onClick={onSignOut}
-          className="w-full flex items-center space-x-2 px-3 py-2 text-gray-300 hover:text-white hover:bg-gray-800 rounded-lg transition-colors"
+          className="w-full flex items-center justify-center space-x-2 py-2 rounded-2xl bg-white/5 border border-white/5 text-gray-400 hover:text-white hover:bg-white/10 hover:border-red-500/30 transition-all font-bold text-[10px] uppercase tracking-widest"
         >
           <LogOut className="h-4 w-4" />
-          <span className="text-sm">Déconnexion</span>
+          <span>Déconnexion</span>
         </motion.button>
       </div>
-    </>
+    </div>
   );
 
   return (

@@ -49,8 +49,7 @@ const AdminUserPayments = () => {
   const [instructionsData, setInstructionsData] = useState({
     iban: '',
     bic: '',
-    beneficiary: '',
-    paypalLink: ''
+    beneficiary: ''
   });
 
   // États pour l'édition avancée
@@ -144,13 +143,13 @@ const AdminUserPayments = () => {
     try {
       if (!selectedPayment) return;
 
-      const type = selectedPayment.type; // 'bank_transfer' ou 'paypal'
+      const type = selectedPayment.type; // 'bank_transfer'
 
       await paymentService.sendPaymentInstructions(selectedPayment.id, type, instructionsData);
 
       setShowModal(false);
       setShowInstructionsForm(false);
-      setInstructionsData({ iban: '', bic: '', beneficiary: '', paypalLink: '' });
+      setInstructionsData({ iban: '', bic: '', beneficiary: '' });
       alert('Instructions envoyées avec succès');
     } catch (error) {
       console.error('Erreur lors de l\'envoi des instructions:', error);
@@ -260,7 +259,6 @@ const AdminUserPayments = () => {
 
   const getPaymentMethodIcon = (type) => {
     const icons = {
-      paypal: CreditCard,
       bank_transfer: Banknote,
       gift_card: Gift,
       coupon: Ticket
@@ -734,21 +732,6 @@ const AdminUserPayments = () => {
                       </div>
                     )}
 
-                    {selectedPayment.type === 'paypal' && (
-                      <div className="space-y-3">
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">Lien PayPal ou Email</label>
-                          <input
-                            type="text"
-                            value={instructionsData.paypalLink}
-                            onChange={(e) => setInstructionsData({ ...instructionsData, paypalLink: e.target.value })}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                            placeholder="https://paypal.me/... ou email@exemple.com"
-                            required
-                          />
-                        </div>
-                      </div>
-                    )}
 
                     <div className="flex gap-3 mt-4">
                       <button

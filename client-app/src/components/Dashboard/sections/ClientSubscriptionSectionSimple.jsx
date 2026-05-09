@@ -1,278 +1,102 @@
 import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Search } from 'lucide-react';
 import { useAuth } from '../../../contexts/AuthContext';
-import { useNotification } from '../../../contexts/NotificationContext';
 import {
-  CreditCard,
   Crown,
-  Star,
   Check,
-  Lock,
-  Gift,
-  Calendar,
-  Heart,
-  Video,
-  Image,
-  MessageSquare,
-  Sparkles,
-  Zap,
+  Star,
   Shield,
-  Award,
-  TrendingUp,
-  Diamond,
-  Gem,
-  Settings,
-  X,
-  AlertCircle,
-  CheckCircle,
-  Clock,
-  Infinity,
-  Target,
-  ChevronRight
+  Video,
+  MessageSquare,
+  Search
 } from 'lucide-react';
 
 const ClientSubscriptionSectionSimple = ({ currentUser }) => {
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(false);
-  const { purchaseSubscription } = useAuth();
-  const { showSuccess, showError } = useNotification();
-
-  const isPremium = currentUser?.subscription?.status === 'active' &&
-    (currentUser?.subscription?.plan === 'premium' || currentUser?.subscription?.plan === 'vip');
-
-  const isBasicUser = currentUser?.subscription?.plan === 'basic' || !currentUser?.subscription?.plan;
+  const currentPlan = currentUser?.subscription?.plan || 'basic';
+  const subscriptionStatus = currentUser?.subscription?.status || 'inactive';
 
   const subscriptionPlans = [
     {
       id: 'premium',
-      name: 'Premium VIP',
+      name: 'Premium Pass',
       price: 49,
-      period: 'mois',
-      features: [
-        'Tout du plan Basic',
-        'Accès complet à la Galerie',
-        'Photos & Vidéos HD privées',
-        'Support prioritaire',
-        'Contenu exclusif quotidien'
-      ],
-      popular: true,
-      color: 'rose'
+      features: ['Galerie HD complète', 'Contenu privé exclusif', 'Chat prioritaire', 'Photos quotidiennes'],
+      popular: true
     },
     {
       id: 'vip',
-      name: 'VIP Elite',
+      name: 'Elite VIP',
       price: 199,
-      period: 'mois',
-      features: [
-        'Tout du plan Premium',
-        'ACCÈS LIVE ILLIMITÉ (Streaming)',
-        'Appels vidéo 1:1 prioritaires',
-        'Ligne directe WhatsApp',
-        'Contenu sur mesure à la demande',
-        'Accès total sans limites'
-      ],
-      color: 'slate'
+      features: ['Live Streaming illimité', 'Appels vidéo privés', 'WhatsApp direct', 'Contenu sur mesure'],
+      popular: false
     }
   ];
 
-  const currentPlan = currentUser?.subscription?.plan || 'basic';
-  const subscriptionStatus = currentUser?.subscription?.status || 'inactive';
-
-  const handlePurchaseSubscription = (planId) => {
-    const selectedPlan = subscriptionPlans.find(plan => plan.id === planId);
-    if (selectedPlan) {
-      navigate('/dashboard/payment', {
-        state: {
-          plan: {
-            id: selectedPlan.id,
-            name: selectedPlan.name,
-            price: selectedPlan.price,
-            features: selectedPlan.features,
-          },
-          user: {
-            uid: currentUser?.uid,
-            email: currentUser?.email,
-            displayName: currentUser?.displayName
-          },
-          fromDashboard: true
-        }
-      });
-    }
+  const handlePurchase = (plan) => {
+    navigate('/dashboard/payment', {
+      state: {
+        plan: { id: plan.id, name: plan.name, price: plan.price },
+        user: { uid: currentUser?.uid, email: currentUser?.email, displayName: currentUser?.displayName },
+        fromDashboard: true
+      }
+    });
   };
 
   return (
-    <div className="max-w-[1600px] mx-auto w-full p-3 sm:p-4 md:p-8 space-y-6 md:space-y-12">
-      {/* Header - Sober Pink Style */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="bg-gradient-to-r from-pink-500 to-purple-600 rounded-[1.5rem] md:rounded-[2.5rem] p-6 md:p-12 shadow-[0_20px_50px_rgba(236,72,153,0.3)] relative overflow-hidden text-white"
-      >
-        <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-[60px] -mr-32 -mt-32" />
-        <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+    <div className="max-w-[1000px] mx-auto w-full p-4 md:p-8 space-y-12">
+      <div className="text-center space-y-4">
+        <h1 className="text-3xl font-bold text-gray-900">Abonnements Elite</h1>
+        <p className="text-gray-500 max-w-lg mx-auto text-sm">Débloquez l'accès exclusif à mes contenus privés et services VIP.</p>
+      </div>
+
+      <div className="flex justify-center">
+        <div className="flex items-center gap-4 p-4 bg-white rounded-2xl border border-gray-100 shadow-sm">
+          <div className="w-10 h-10 bg-indigo-50 rounded-lg flex items-center justify-center">
+            <Crown size={20} className="text-indigo-600" />
+          </div>
           <div>
-            <h1 className="text-2xl md:text-5xl font-black mb-1 md:mb-3 tracking-tight text-white">
-              Mon <span className="text-white uppercase">Abonnement</span>
-            </h1>
-            <p className="text-white/80 text-[10px] md:text-sm font-bold uppercase tracking-widest">
-              Gérez votre accès aux services premium
-            </p>
+            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Statut</p>
+            <p className="text-sm font-bold text-gray-800">{currentPlan.toUpperCase()} — {subscriptionStatus.toUpperCase()}</p>
           </div>
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            onClick={() => navigate('/dashboard/payment-tracking')}
-            className="flex items-center justify-center gap-2 bg-slate-50 text-slate-600 px-6 py-3.5 rounded-xl font-black text-[10px] md:text-xs tracking-widest border border-slate-100 hover:bg-white hover:shadow-md transition-all sm:w-fit"
-          >
-            <Search className="w-4 h-4" />
-            SUIVI PAIEMENTS
-          </motion.button>
-        </div>
-      </motion.div>
-
-      {/* Current Plan Status Card */}
-      <motion.div
-        initial={{ opacity: 0, scale: 0.98 }}
-        animate={{ opacity: 1, scale: 1 }}
-        className="bg-white rounded-[2rem] p-5 md:p-8 border border-rose-50 shadow-sm relative overflow-hidden"
-      >
-        <div className="flex flex-col md:flex-row items-center gap-6">
-          <div className="w-20 h-20 md:w-24 md:h-24 bg-rose-50 rounded-3xl flex items-center justify-center border border-rose-100">
-            <Crown className="w-10 h-10 md:w-12 md:h-12 text-rose-500" />
-          </div>
-          <div className="flex-1 text-center md:text-left">
-            <div className="flex flex-wrap justify-center md:justify-start items-center gap-3 mb-2">
-              <h3 className="text-xl md:text-3xl font-black text-slate-800 uppercase tracking-tighter">
-                {currentPlan === 'basic' ? 'Plan Basic (Inclus)' :
-                  currentPlan === 'vip' ? 'Plan VIP Elite' :
-                    'Plan Premium VIP'}
-              </h3>
-              <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${subscriptionStatus === 'active' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-slate-50 text-slate-400 border border-slate-100'
-                }`}>
-                {subscriptionStatus === 'active' ? 'Actif' : 'Inactif'}
-              </span>
-            </div>
-            <p className="text-slate-400 text-xs md:text-base font-medium">
-              {subscriptionStatus === 'active' && currentPlan !== 'basic'
-                ? `Votre abonnement se renouvèle le ${(() => {
-                  const endDate = currentUser?.subscription?.endDate;
-                  if (!endDate) return "prochainement";
-                  const date = endDate.toDate ? endDate.toDate() : new Date(endDate);
-                  return isNaN(date.getTime()) ? "prochainement" : date.toLocaleDateString('fr-FR');
-                })()}`
-                : currentPlan === 'basic'
-                  ? "Accès standard inclus à vie."
-                  : "Choisissez un plan ci-dessous pour débloquer l'expérience complète."}
-            </p>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="px-6 py-3 bg-emerald-500 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-emerald-100 border border-emerald-400">
-              PLAN ACTUEL
-            </div>
-          </div>
-        </div>
-      </motion.div>
-
-      {/* Plans Section */}
-      <div className="space-y-6">
-        <div className="flex items-center gap-3 px-2">
-          <div className="w-1.5 h-8 bg-rose-500 rounded-full" />
-          <h2 className="text-2xl md:text-3xl font-black text-slate-800 tracking-tight">Nos Offres</h2>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 max-w-5xl mx-auto">
-          {subscriptionPlans.map((plan, index) => (
-            <motion.div
-              key={plan.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1 }}
-              className={`bg-white rounded-[2.5rem] p-8 md:p-10 border transition-all duration-500 flex flex-col relative overflow-hidden group ${plan.popular ? 'border-rose-400 shadow-xl shadow-rose-100 ring-2 ring-rose-50' : 'border-slate-50 shadow-sm hover:shadow-xl hover:border-rose-100'
-                }`}
-            >
-              {plan.popular && (
-                <div className="absolute top-6 right-6">
-                  <span className="bg-rose-500 text-white px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-[0.2em] shadow-lg">
-                    Populaire
-                  </span>
-                </div>
-              )}
-
-              {/* Icon at center */}
-              <div className="flex justify-center mb-6">
-                <div className={`w-20 h-20 rounded-3xl flex items-center justify-center group-hover:scale-110 transition-transform shadow-lg ${plan.id === 'vip' ? 'bg-slate-900 text-white' : 'bg-rose-50 text-rose-500'
-                  }`}>
-                  {plan.id === 'basic' && <Shield size={36} />}
-                  {plan.id === 'premium' && <Crown size={36} />}
-                  {plan.id === 'vip' && <Diamond size={36} />}
-                </div>
-              </div>
-
-              {/* Plan Name - centered */}
-              <div className="text-center mb-2">
-                <h4 className="text-2xl font-black text-slate-800 uppercase tracking-tight">{plan.name}</h4>
-              </div>
-
-              {/* Price - centered */}
-              <div className="flex items-baseline justify-center gap-1 mb-8">
-                <span className="text-5xl font-black text-slate-800 tracking-tighter">{plan.price}€</span>
-                <span className="text-slate-400 text-sm font-bold uppercase">/{plan.period}</span>
-              </div>
-
-              {/* Features List - left aligned */}
-              <ul className="space-y-3 mb-8 flex-1">
-                {plan.features.map((feature, i) => (
-                  <li key={i} className="flex items-start gap-3">
-                    <div className="w-5 h-5 bg-emerald-50 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                      <Check className="w-3 h-3 text-emerald-500" />
-                    </div>
-                    <span className="text-slate-600 text-sm font-medium">{feature}</span>
-                  </li>
-                ))}
-              </ul>
-
-              <button
-                onClick={() => handlePurchaseSubscription(plan.id)}
-                disabled={plan.id === currentPlan}
-                className={`w-full py-5 rounded-[1.5rem] font-black text-xs tracking-[0.2em] transition-all active:scale-95 ${plan.id === currentPlan
-                  ? 'bg-slate-50 text-slate-300 cursor-not-allowed border border-slate-100'
-                  : plan.id === 'vip'
-                    ? 'bg-slate-900 text-white hover:bg-slate-800 shadow-xl shadow-slate-200'
-                    : 'bg-rose-500 text-white hover:bg-rose-600 shadow-xl shadow-rose-100'
-                  }`}
-              >
-                {plan.id === currentPlan ? 'PLAN ACTUEL' : 'CHOISIR'}
-              </button>
-            </motion.div>
-          ))}
+          <button onClick={() => navigate('/dashboard/payment-tracking')} className="ml-4 p-2 text-gray-300 hover:text-indigo-600 border-l pl-4"><Search size={18} /></button>
         </div>
       </div>
 
-      {/* Perks Grid - More Compact on Mobile */}
-      <div className="bg-slate-50/50 rounded-[3rem] p-8 md:p-12 border border-slate-100">
-        <div className="text-center max-w-2xl mx-auto mb-10">
-          <h3 className="text-2xl md:text-4xl font-black text-slate-800 mb-4 tracking-tight">Avantages Membres</h3>
-          <p className="text-slate-400 text-sm md:text-base font-bold uppercase tracking-widest">Une expérience sans aucune limite</p>
-        </div>
-
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-8">
-          {[
-            { icon: Image, label: 'Photos', desc: 'Accès Illimité', color: 'text-rose-400' },
-            { icon: Video, label: 'Streaming', desc: 'Direct Privé', color: 'text-rose-400' },
-            { icon: MessageSquare, label: 'Chat VIP', desc: 'Surtaxe Offerte', color: 'text-rose-400' },
-            { icon: Sparkles, label: 'Contenu', desc: 'Personnalisé', color: 'text-rose-400' }
-          ].map((perk, i) => (
-            <div key={i} className="bg-white p-6 rounded-[2rem] text-center border border-slate-50 shadow-sm hover:shadow-md transition-shadow">
-              <div className={`w-12 h-12 ${perk.color} bg-rose-50/50 rounded-2xl flex items-center justify-center mx-auto mb-4`}>
-                <perk.icon size={24} />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {subscriptionPlans.map((plan) => (
+          <div key={plan.id} className={`bg-white rounded-[2rem] p-8 border ${plan.popular ? 'border-indigo-600 shadow-xl shadow-indigo-50' : 'border-gray-100'} flex flex-col relative`}>
+            {plan.popular && <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-indigo-600 text-white px-4 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest">Populaire</span>}
+            <div className="mb-8">
+              <h4 className="text-xl font-bold text-gray-900">{plan.name}</h4>
+              <div className="flex items-baseline mt-2">
+                <span className="text-4xl font-black text-gray-900">{plan.price}€</span>
+                <span className="text-gray-400 text-sm ml-1">/mois</span>
               </div>
-              <h5 className="font-black text-slate-800 text-sm uppercase mb-1">{perk.label}</h5>
-              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-tighter">{perk.desc}</p>
             </div>
-          ))}
-        </div>
+            <ul className="space-y-4 mb-10 flex-1">
+              {plan.features.map((f, i) => (
+                <li key={i} className="flex items-center gap-3">
+                  <div className="w-5 h-5 rounded-full bg-indigo-50 flex items-center justify-center"><Check size={12} className="text-indigo-600" /></div>
+                  <span className="text-sm text-gray-600">{f}</span>
+                </li>
+              ))}
+            </ul>
+            <button onClick={() => handlePurchase(plan)} disabled={plan.id === currentPlan} className={`w-full py-4 rounded-xl font-bold text-sm tracking-widest transition-all ${plan.id === currentPlan ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-gray-900 text-white hover:bg-indigo-600 shadow-lg shadow-gray-200'}`}>
+              {plan.id === currentPlan ? 'Plan Actuel' : 'Choisir ce plan'}
+            </button>
+          </div>
+        ))}
+      </div>
+
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-6 pt-12 border-t border-gray-50">
+        {[{ icon: Shield, label: 'Sécurisé' }, { icon: Video, label: 'HD Live' }, { icon: MessageSquare, label: 'Support' }, { icon: Star, label: 'Exclusif' }].map((p, i) => (
+          <div key={i} className="text-center">
+            <div className="w-10 h-10 mx-auto mb-3 bg-gray-50 rounded-xl flex items-center justify-center text-gray-300"><p.icon size={18} /></div>
+            <p className="text-[10px] font-bold text-gray-800 uppercase tracking-widest">{p.label}</p>
+          </div>
+        ))}
       </div>
     </div>
   );
