@@ -1,6 +1,6 @@
 // Firebase configuration and initialization
 import { initializeApp } from 'firebase/app';
-import { getFirestore } from 'firebase/firestore';
+import { getFirestore, initializeFirestore, CACHE_SIZE_UNLIMITED } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 import { getAuth } from 'firebase/auth';
 
@@ -21,11 +21,15 @@ let db, storage, auth;
 try {
   app = initializeApp(firebaseConfig);
 
-  // Initialize Firebase services
-  db = getFirestore(app);
+  // Initialize Firebase services with robust settings
+  // experimentalForceLongPolling can help in some restricted environments
+  db = initializeFirestore(app, {
+    experimentalForceLongPolling: true,
+  });
+  
   storage = getStorage(app);
   auth = getAuth(app);
-  console.log('Firebase initialized successfully');
+  console.log('Firebase initialized successfully with Long Polling');
 } catch (error) {
   console.warn('Firebase initialization failed:', error);
   // Create mock services for development
