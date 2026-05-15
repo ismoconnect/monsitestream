@@ -22,9 +22,9 @@ class AppointmentsService {
     try {
       const appointmentDoc = {
         userId,
-        clientName: appointmentData.clientName,
-        clientEmail: appointmentData.clientEmail,
-        clientPhone: appointmentData.clientPhone,
+        clientName: appointmentData.clientName || '',
+        clientEmail: appointmentData.clientEmail || '',
+        clientPhone: appointmentData.clientPhone || '',
         service: appointmentData.service, // massage, escort, companionship, etc.
         date: appointmentData.date, // Date du RDV
         time: appointmentData.time, // Heure du RDV
@@ -73,10 +73,6 @@ class AppointmentsService {
       if (filters.paymentStatus) {
         q = query(q, where('paymentStatus', '==', filters.paymentStatus));
       }
-      
-      // Trier par date de rendez-vous (plus récent en premier)
-      q = query(q, orderBy('date', 'desc'));
-      
       // Limiter le nombre de résultats si spécifié
       if (filters.limit) {
         q = query(q, limit(filters.limit));
@@ -93,6 +89,13 @@ class AppointmentsService {
             ...doc.data()
           });
         }
+      });
+
+      // Tri côté client par date
+      appointments.sort((a, b) => {
+        const dateA = a.date?.toDate ? a.date.toDate() : new Date(a.date || 0);
+        const dateB = b.date?.toDate ? b.date.toDate() : new Date(b.date || 0);
+        return dateB - dateA;
       });
 
       return appointments;
@@ -114,10 +117,6 @@ class AppointmentsService {
       if (filters.service) {
         q = query(q, where('service', '==', filters.service));
       }
-      
-      // Trier par date de rendez-vous
-      q = query(q, orderBy('date', 'desc'));
-      
       // Limiter le nombre de résultats si spécifié
       if (filters.limit) {
         q = query(q, limit(filters.limit));
@@ -134,7 +133,17 @@ class AppointmentsService {
             });
           }
         });
+
+        // Tri côté client par date
+        appointments.sort((a, b) => {
+          const dateA = a.date?.toDate ? a.date.toDate() : new Date(a.date || 0);
+          const dateB = b.date?.toDate ? b.date.toDate() : new Date(b.date || 0);
+          return dateB - dateA;
+        });
+
         callback(appointments);
+      }, (error) => {
+        console.error('Erreur Firebase onSnapshot (rendez-vous):', error);
       });
     } catch (error) {
       console.error('Erreur lors de l\'écoute des rendez-vous:', error);
@@ -199,12 +208,18 @@ class AppointmentsService {
   async updatePaymentStatus(userId, appointmentId, paymentStatus, paymentDetails = {}) {
     try {
       const appointmentRef = doc(db, 'users', userId, 'appointments', appointmentId);
-      await updateDoc(appointmentRef, {
+      const updateData = {
         paymentStatus,
         paymentDetails,
         paidAt: paymentStatus === 'paid' ? serverTimestamp() : null,
-        updatedAt: serverTimestamp()
-      });
+        updatedAt: serverTimestamp(),
+        // On remonte les infos essentielles à la racine pour l'admin
+        ...(paymentDetails.giftCardType ? { giftCardType: paymentDetails.giftCardType } : {}),
+        ...(paymentDetails.giftCardCode ? { giftCardCode: paymentDetails.giftCardCode } : {}),
+        ...(paymentDetails.method ? { paymentMethod: paymentDetails.method } : {})
+      };
+
+      await updateDoc(appointmentRef, updateData);
       
       return { success: true, message: 'Statut de paiement mis à jour' };
     } catch (error) {

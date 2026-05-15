@@ -10,7 +10,15 @@ import {
     Clock,
     AlertCircle,
     FileText,
-    Download
+    Download,
+    Gift,
+    ShieldCheck,
+    ChevronRight,
+    ArrowLeft,
+    Printer,
+    Gem,
+    Crown,
+    Zap
 } from 'lucide-react';
 import { paymentService } from '../services/paymentService';
 import { useAuth } from '../contexts/AuthContext';
@@ -22,7 +30,6 @@ const BillingPage = () => {
     const { currentUser, signOut } = useAuth();
     const [payments, setPayments] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [copied, setCopied] = useState('');
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
     const handleSignOut = () => {
@@ -41,11 +48,12 @@ const BillingPage = () => {
             const userId = currentUser.uid || currentUser.id;
             if (userId) {
                 const userPayments = await paymentService.getUserPayments(userId);
-                // Filtrer uniquement les paiements avec informations disponibles
-                const paymentsWithInfo = userPayments.filter(
-                    p => p.type === 'bank_transfer' || p.type === 'paypal'
-                );
-                setPayments(paymentsWithInfo);
+                // On garde TOUS les paiements pour l'historique
+                setPayments(userPayments.sort((a, b) => {
+                    const dateA = a.createdAt?.toDate?.() || new Date(a.createdAt);
+                    const dateB = b.createdAt?.toDate?.() || new Date(b.createdAt);
+                    return dateB - dateA;
+                }));
             }
         } catch (error) {
             console.error('Erreur lors du chargement des paiements:', error);
@@ -54,299 +62,95 @@ const BillingPage = () => {
         }
     };
 
-    const copyToClipboard = async (text, id) => {
-        try {
-            await navigator.clipboard.writeText(text);
-            setCopied(id);
-            setTimeout(() => setCopied(''), 2000);
-        } catch (error) {
-            console.error('Erreur lors de la copie:', error);
-        }
-    };
-
     const getStatusBadge = (status) => {
         const statusConfig = {
-            pending: { bg: 'bg-yellow-100', text: 'text-yellow-800', label: 'En attente', icon: Clock },
-            validating: { bg: 'bg-orange-100', text: 'text-orange-800', label: 'En validation', icon: AlertCircle },
-            waiting_payment: { bg: 'bg-blue-100', text: 'text-blue-800', label: 'En attente de paiement', icon: Clock },
-            completed: { bg: 'bg-green-100', text: 'text-green-800', label: 'Payé', icon: CheckCircle }
+            pending: { bg: 'bg-amber-50', text: 'text-amber-600', border: 'border-amber-100', label: 'En attente', icon: Clock },
+            validating: { bg: 'bg-blue-50', text: 'text-blue-600', border: 'border-blue-100', label: 'En validation', icon: ShieldCheck },
+            completed: { bg: 'bg-emerald-50', text: 'text-emerald-600', border: 'border-emerald-100', label: 'Approuvé', icon: CheckCircle },
+            rejected: { bg: 'bg-rose-50', text: 'text-rose-600', border: 'border-rose-100', label: 'Refusé', icon: AlertCircle }
         };
         const config = statusConfig[status] || statusConfig.pending;
         const Icon = config.icon;
 
         return (
-            <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium ${config.bg} ${config.text}`}>
-                <Icon className="w-3 h-3" />
-                {config.label}
-            </span>
+            <div className={`flex items-center gap-1.5 px-3 py-1 rounded-full border ${config.bg} ${config.text} ${config.border} shadow-sm`}>
+                <Icon size={12} className="animate-pulse" />
+                <span className="text-[10px] font-black uppercase tracking-widest">{config.label}</span>
+            </div>
         );
     };
 
-    const renderPaymentInfo = (payment) => {
-        // Affichage du REÇU pour les paiements finalisés
-        if (payment.status === 'completed' || payment.status === 'rejected') {
-            const isPaid = payment.status === 'completed';
-            return (
-                <div className="relative bg-white border border-gray-200 rounded-xl p-8 overflow-hidden">
-                    {/* Le TRAIT du Ticket */}
-                    <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-purple-500 via-pink-500 to-rose-500"></div>
+    const renderTicket = (payment) => {
+        const date = new Date(payment.createdAt?.toDate?.() || payment.createdAt).toLocaleDateString('fr-FR', {
+            day: 'numeric',
+            month: 'long',
+            year: 'numeric'
+        });
+        const isPaid = payment.status === 'completed';
+        const planName = payment.plan?.name || (payment.plan?.id === 'vip' ? 'Elite VIP' : 'Premium Pass');
 
-                    {/* Contenu du Reçu */}
-                    <div className="relative z-10 flex flex-col items-center text-center space-y-4">
-                        <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mb-2">
-                            {isPaid ? <CheckCircle className="w-8 h-8 text-green-600" /> : <AlertCircle className="w-8 h-8 text-red-600" />}
-                        </div>
+        return (
+            <motion.div
+                whileHover={{ y: -5 }}
+                className="relative group"
+            >
+                {/* Bordure décorative "Ticket" */}
+                <div className="absolute inset-0 bg-gradient-to-br from-white to-gray-50 rounded-3xl shadow-xl group-hover:shadow-2xl transition-all duration-500"></div>
+                
+                {/* Effet de découpe de ticket (cercles sur les côtés) */}
+                <div className="absolute top-1/2 -left-3 w-6 h-6 bg-gray-100 rounded-full border-r border-gray-200 z-10 transform -translate-y-1/2"></div>
+                <div className="absolute top-1/2 -right-3 w-6 h-6 bg-gray-100 rounded-full border-l border-gray-200 z-10 transform -translate-y-1/2"></div>
+                
+                {/* Ligne pointillée centrale */}
+                <div className="absolute top-1/2 left-4 right-4 h-px border-t border-dashed border-gray-300 z-10 transform -translate-y-1/2"></div>
 
+                <div className="relative z-20 p-6 flex flex-col h-full min-h-[300px]">
+                    {/* Header du Reçu */}
+                    <div className="flex justify-between items-start mb-8">
                         <div>
-                            <h3 className="text-2xl font-bold text-gray-800">
-                                {isPaid ? 'Paiement Reçu' : 'Paiement Rejeté'}
-                            </h3>
-                            <p className="text-gray-500 mt-1">
-                                {isPaid ? 'Merci pour votre confiance !' : 'Veuillez contacter le support.'}
-                            </p>
+                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">RÉFÉRENCE</p>
+                            <p className="text-xs font-mono font-bold text-indigo-600">{payment.referenceCode || payment.id?.substring(0, 8).toUpperCase()}</p>
                         </div>
-
-                        <div className="w-full border-t border-dashed border-gray-300 my-6"></div>
-
-                        <div className="w-full space-y-3 text-sm">
-                            <div className="flex justify-between text-gray-600">
-                                <span>Référence</span>
-                                <span className="font-mono font-bold text-gray-800">{payment.referenceCode}</span>
-                            </div>
-                            <div className="flex justify-between text-gray-600">
-                                <span>Date</span>
-                                <span className="font-medium text-gray-800">
-                                    {new Date(payment.createdAt?.toDate?.() || payment.createdAt).toLocaleDateString('fr-FR')}
-                                </span>
-                            </div>
-                            <div className="flex justify-between text-gray-600">
-                                <span>Plan</span>
-                                <span className="font-medium text-gray-800">{payment.plan?.name}</span>
-                            </div>
-                            <div className="flex justify-between text-gray-600 pt-2 border-t border-gray-100 mt-2">
-                                <span className="font-bold">Total</span>
-                                <span className="font-bold text-xl text-gray-900">{payment.amount}€</span>
-                            </div>
-                        </div>
-
-                        {/* Bouton d'action si payé */}
-                        {isPaid && (
-                            <motion.button
-                                whileHover={{ scale: 1.02 }}
-                                whileTap={{ scale: 0.98 }}
-                                onClick={() => window.print()} // Simple print for now, could be PDF download
-                                className="mt-6 flex items-center gap-2 text-gray-500 hover:text-gray-800 transition-colors"
-                            >
-                                <Download className="w-4 h-4" />
-                                <span className="text-sm font-medium">Télécharger le reçu</span>
-                            </motion.button>
-                        )}
+                        {getStatusBadge(payment.status)}
                     </div>
 
-                    {/* LE TAMPON (STAMP) */}
-                    <div className={`absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 -rotate-12 border-[6px] border-double rounded-lg px-8 py-2 font-black text-4xl sm:text-6xl uppercase opacity-20 pointer-events-none select-none tracking-widest ${isPaid ? 'border-green-600 text-green-600' : 'border-red-600 text-red-600'
+                    <div className="flex-1 flex flex-col justify-center text-center py-4">
+                        <div className={`mx-auto w-12 h-12 rounded-2xl flex items-center justify-center mb-4 ${
+                            payment.type === 'gift_card' ? 'bg-pink-50 text-pink-500' : 'bg-indigo-50 text-indigo-500'
                         }`}>
-                        {isPaid ? 'PAYÉ' : 'REJETÉ'}
+                            {payment.type === 'gift_card' ? <Gift size={24} /> : <CreditCard size={24} />}
+                        </div>
+                        <h3 className="text-lg font-black text-gray-900 uppercase tracking-tight">{planName}</h3>
+                        <p className="text-sm text-gray-500 font-medium">Payé via {payment.type === 'gift_card' ? 'Carte Cadeau' : 'Paiement Direct'}</p>
                     </div>
+
+                    {/* Footer du Reçu (sous la ligne pointillée) */}
+                    <div className="mt-8 pt-4 flex items-end justify-between">
+                        <div>
+                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">DATE</p>
+                            <p className="text-xs font-bold text-gray-900">{date}</p>
+                        </div>
+                        <div className="text-right">
+                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">MONTANT</p>
+                            <p className="text-2xl font-black text-gray-900 leading-none">{payment.amount}€</p>
+                        </div>
+                    </div>
+
+                    {/* Tampon Approuvé / Rejeté */}
+                    {payment.status !== 'pending' && payment.status !== 'validating' && (
+                        <div className={`absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 -rotate-12 border-[4px] border-double rounded-xl px-4 py-1 font-black text-3xl uppercase opacity-10 pointer-events-none select-none tracking-widest ${
+                            isPaid ? 'border-emerald-600 text-emerald-600' : 'border-rose-600 text-rose-600'
+                        }`}>
+                            {isPaid ? 'APPROUVÉ' : 'REFUSÉ'}
+                        </div>
+                    )}
                 </div>
-            );
-        }
-
-        if (payment.type === 'bank_transfer') {
-            const bankInfo = payment.paymentDetails?.bankInfo;
-
-            if (!bankInfo) {
-                return (
-                    <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
-                        <div className="flex items-start gap-3">
-                            <Clock className="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" />
-                            <div>
-                                <h4 className="font-semibold text-blue-800 mb-1">Informations en préparation</h4>
-                                <p className="text-sm text-blue-700">
-                                    Notre équipe prépare vos informations de virement. Vous recevrez un email dès qu'elles seront disponibles.
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                );
-            }
-
-            return (
-                <div className="bg-white border-2 border-green-200 rounded-xl p-4 sm:p-6 space-y-4">
-                    <div className="flex items-center gap-2 text-green-700 mb-4">
-                        <Building2 className="w-5 h-5" />
-                        <h4 className="font-bold text-lg">Informations de Virement</h4>
-                    </div>
-
-                    <div className="space-y-3">
-                        <div className="bg-gray-50 rounded-lg p-3">
-                            <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Bénéficiaire</label>
-                            <div className="flex items-center justify-between mt-1">
-                                <p className="font-mono text-sm font-medium">{bankInfo.beneficiary}</p>
-                            </div>
-                        </div>
-
-                        <div className="bg-gray-50 rounded-lg p-3">
-                            <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide">IBAN</label>
-                            <div className="flex items-center justify-between gap-2 mt-1">
-                                <p className="font-mono text-sm font-medium break-all">{bankInfo.iban}</p>
-                                <motion.button
-                                    whileHover={{ scale: 1.1 }}
-                                    whileTap={{ scale: 0.9 }}
-                                    onClick={() => copyToClipboard(bankInfo.iban, `iban-${payment.id}`)}
-                                    className="p-2 hover:bg-gray-200 rounded-lg transition-colors flex-shrink-0"
-                                >
-                                    {copied === `iban-${payment.id}` ? (
-                                        <CheckCircle className="w-4 h-4 text-green-600" />
-                                    ) : (
-                                        <Copy className="w-4 h-4 text-gray-600" />
-                                    )}
-                                </motion.button>
-                            </div>
-                        </div>
-
-                        <div className="bg-gray-50 rounded-lg p-3">
-                            <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide">BIC/SWIFT</label>
-                            <div className="flex items-center justify-between gap-2 mt-1">
-                                <p className="font-mono text-sm font-medium">{bankInfo.bic}</p>
-                                <motion.button
-                                    whileHover={{ scale: 1.1 }}
-                                    whileTap={{ scale: 0.9 }}
-                                    onClick={() => copyToClipboard(bankInfo.bic, `bic-${payment.id}`)}
-                                    className="p-2 hover:bg-gray-200 rounded-lg transition-colors flex-shrink-0"
-                                >
-                                    {copied === `bic-${payment.id}` ? (
-                                        <CheckCircle className="w-4 h-4 text-green-600" />
-                                    ) : (
-                                        <Copy className="w-4 h-4 text-gray-600" />
-                                    )}
-                                </motion.button>
-                            </div>
-                        </div>
-
-                        <div className="bg-gray-50 rounded-lg p-3">
-                            <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Référence (Important)</label>
-                            <div className="flex items-center justify-between gap-2 mt-1">
-                                <p className="font-mono text-sm font-bold text-pink-600">{payment.referenceCode}</p>
-                                <motion.button
-                                    whileHover={{ scale: 1.1 }}
-                                    whileTap={{ scale: 0.9 }}
-                                    onClick={() => copyToClipboard(payment.referenceCode, `ref-${payment.id}`)}
-                                    className="p-2 hover:bg-gray-200 rounded-lg transition-colors flex-shrink-0"
-                                >
-                                    {copied === `ref-${payment.id}` ? (
-                                        <CheckCircle className="w-4 h-4 text-green-600" />
-                                    ) : (
-                                        <Copy className="w-4 h-4 text-gray-600" />
-                                    )}
-                                </motion.button>
-                            </div>
-                        </div>
-
-                        <div className="bg-gray-50 rounded-lg p-3">
-                            <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Montant</label>
-                            <p className="text-xl font-bold text-gray-800 mt-1">{payment.amount}€</p>
-                        </div>
-                    </div>
-
-                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mt-4">
-                        <p className="text-xs text-yellow-800">
-                            <strong>⚠️ Important :</strong> N'oubliez pas d'inclure la référence <strong>{payment.referenceCode}</strong> dans le libellé de votre virement pour que nous puissions identifier votre paiement.
-                        </p>
-                    </div>
-                </div>
-            );
-        }
-
-        if (payment.type === 'paypal') {
-            const paypalInfo = payment.paymentDetails?.paypalInfo;
-
-            if (!paypalInfo) {
-                return (
-                    <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
-                        <div className="flex items-start gap-3">
-                            <Clock className="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" />
-                            <div>
-                                <h4 className="font-semibold text-blue-800 mb-1">Lien en préparation</h4>
-                                <p className="text-sm text-blue-700">
-                                    Notre équipe prépare votre lien PayPal sécurisé. Vous recevrez un email dès qu'il sera disponible.
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                );
-            }
-
-            return (
-                <div className="bg-white border-2 border-blue-200 rounded-xl p-4 sm:p-6 space-y-4">
-                    <div className="flex items-center gap-2 text-blue-700 mb-4">
-                        <CreditCard className="w-5 h-5" />
-                        <h4 className="font-bold text-lg">Paiement PayPal</h4>
-                    </div>
-
-                    <div className="space-y-3">
-                        {paypalInfo.paypalLink && (
-                            <div className="bg-gray-50 rounded-lg p-4">
-                                <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-2 block">
-                                    {paypalInfo.paypalLink.includes('http') ? 'Lien de paiement PayPal' : 'Email PayPal'}
-                                </label>
-
-                                {paypalInfo.paypalLink.includes('http') ? (
-                                    <a
-                                        href={paypalInfo.paypalLink}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors w-full sm:w-auto justify-center"
-                                    >
-                                        <CreditCard className="w-5 h-5" />
-                                        Payer avec PayPal
-                                    </a>
-                                ) : (
-                                    <div className="flex items-center gap-2">
-                                        <p className="font-mono text-lg font-bold text-gray-800 break-all">{paypalInfo.paypalLink}</p>
-                                        <motion.button
-                                            whileHover={{ scale: 1.1 }}
-                                            whileTap={{ scale: 0.9 }}
-                                            onClick={() => copyToClipboard(paypalInfo.paypalLink, `paypal-${payment.id}`)}
-                                            className="p-2 hover:bg-gray-200 rounded-lg transition-colors flex-shrink-0"
-                                        >
-                                            {copied === `paypal-${payment.id}` ? (
-                                                <CheckCircle className="w-5 h-5 text-green-600" />
-                                            ) : (
-                                                <Copy className="w-5 h-5 text-gray-600" />
-                                            )}
-                                        </motion.button>
-                                    </div>
-                                )}
-                            </div>
-                        )}
-
-                        <div className="bg-gray-50 rounded-lg p-3">
-                            <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Montant</label>
-                            <p className="text-xl font-bold text-gray-800 mt-1">{payment.amount}€</p>
-                        </div>
-                    </div>
-
-                    <div className="bg-gray-50 rounded-lg p-3">
-                        <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Référence</label>
-                        <p className="font-mono text-sm font-medium text-gray-800 mt-1">{payment.referenceCode}</p>
-                    </div>
-
-                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mt-4">
-                        <p className="text-xs text-blue-800">
-                            <strong>ℹ️ Info :</strong> Utilisez le lien ou l'email ci-dessus pour effectuer votre paiement PayPal.
-                        </p>
-                    </div>
-                </div>
-            );
-        }
-
-        return null;
+            </motion.div>
+        );
     };
 
     return (
-        <div className="h-screen bg-gray-100 flex overflow-hidden">
-            {/* Sidebar */}
+        <div className="h-screen bg-gray-50 flex overflow-hidden">
             <ClientSidebar
                 currentUser={currentUser}
                 isMobileMenuOpen={isMobileMenuOpen}
@@ -354,81 +158,104 @@ const BillingPage = () => {
                 onSignOut={handleSignOut}
             />
 
-            {/* Main Content */}
-            <div className="flex-1 flex flex-col min-w-0">
+            <div className="flex-1 flex flex-col min-w-0 bg-white">
                 <ClientHeader
                     currentUser={currentUser}
                     onMobileMenuToggle={() => setIsMobileMenuOpen(true)}
                 />
 
-                {/* Content Area - Mobile optimized */}
-                <main className="flex-1 overflow-y-auto bg-gradient-to-br from-purple-50 via-pink-50 to-rose-50 p-4 sm:p-6 md:p-8 pt-[80px] lg:pt-4">
-                    <div className="max-w-5xl mx-auto w-full">
-                        {/* Header */}
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            className="mb-6 sm:mb-8"
-                        >
-                            <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-2">Informations de Facturation</h1>
-                            <p className="text-sm sm:text-base text-gray-600">Consultez vos informations de paiement et effectuez vos virements</p>
-                        </motion.div>
+                <main className="flex-1 overflow-y-auto pt-[80px] lg:pt-0">
+                    {/* Hero Section Page Header */}
+                    <div className="relative bg-indigo-900 px-6 py-12 lg:px-12 overflow-hidden">
+                        {/* Background Patterns */}
+                        <div className="absolute top-0 right-0 -mt-24 -mr-24 w-96 h-96 bg-indigo-500/20 rounded-full blur-3xl"></div>
+                        <div className="absolute bottom-0 left-0 -mb-24 -ml-24 w-96 h-96 bg-pink-500/20 rounded-full blur-3xl"></div>
 
+                        <div className="relative z-10 max-w-6xl mx-auto">
+                            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                                <div>
+                                    <div className="flex items-center gap-3 mb-4">
+                                        <div className="bg-white/10 backdrop-blur-md p-2 rounded-xl">
+                                            <Receipt className="text-white" size={24} />
+                                        </div>
+                                        <h1 className="text-3xl font-black text-white uppercase tracking-tight">Historique & Reçus</h1>
+                                    </div>
+                                    <p className="text-indigo-200 font-medium max-w-md">
+                                        Consultez vos transactions passées et accédez aux détails de vos abonnements exclusifs.
+                                    </p>
+                                </div>
+
+                                {/* Résumé du Plan Actuel */}
+                                <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-6 flex items-center gap-6">
+                                    <div className="w-12 h-12 bg-gradient-to-br from-indigo-500 to-pink-500 rounded-2xl flex items-center justify-center shadow-lg">
+                                        {currentUser?.subscription?.plan === 'vip' ? <Gem className="text-white" /> : <Crown className="text-white" />}
+                                    </div>
+                                    <div>
+                                        <p className="text-[10px] font-black text-indigo-300 uppercase tracking-[0.2em] mb-1">Plan Actuel</p>
+                                        <p className="text-xl font-black text-white uppercase">{currentUser?.subscription?.planName || 'Standard'}</p>
+                                    </div>
+                                    <div className="h-10 w-px bg-white/10 hidden sm:block"></div>
+                                    <div className="hidden sm:block">
+                                        <p className="text-[10px] font-black text-indigo-300 uppercase tracking-[0.2em] mb-1">Status</p>
+                                        <div className="flex items-center gap-2">
+                                            <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
+                                            <p className="text-xs font-bold text-white uppercase">ACTIF</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="max-w-6xl mx-auto px-6 py-12 lg:px-12">
                         {loading ? (
-                            <div className="flex items-center justify-center py-12">
-                                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                                {[1, 2, 3].map(i => (
+                                    <div key={i} className="h-72 bg-gray-100 animate-pulse rounded-3xl"></div>
+                                ))}
                             </div>
                         ) : payments.length === 0 ? (
-                            <motion.div
-                                initial={{ opacity: 0, scale: 0.95 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                className="bg-white rounded-2xl shadow-lg p-8 text-center"
-                            >
-                                <Receipt className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                                <h3 className="text-lg font-semibold text-gray-800 mb-2">Aucune facture disponible</h3>
-                                <p className="text-gray-600 mb-6">Vous n'avez pas encore de demande de paiement en cours.</p>
-                                <motion.button
-                                    whileHover={{ scale: 1.02 }}
-                                    whileTap={{ scale: 0.98 }}
+                            <div className="text-center py-20 bg-gray-50 rounded-[40px] border border-dashed border-gray-200">
+                                <div className="w-20 h-20 bg-white rounded-3xl shadow-sm flex items-center justify-center mx-auto mb-6">
+                                    <Zap size={32} className="text-gray-300" />
+                                </div>
+                                <h3 className="text-xl font-black text-gray-900 uppercase tracking-tight mb-2">Aucun reçu disponible</h3>
+                                <p className="text-gray-500 font-medium mb-8 max-w-sm mx-auto">
+                                    Vous n'avez pas encore effectué de transaction. Vos futurs abonnements apparaîtront ici.
+                                </p>
+                                <button
                                     onClick={() => navigate('/dashboard/subscription')}
-                                    className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-6 py-3 rounded-lg font-semibold hover:from-purple-700 hover:to-pink-700 transition-all"
+                                    className="bg-indigo-900 text-white px-8 py-4 rounded-2xl font-black text-[11px] uppercase tracking-[0.2em] hover:bg-indigo-800 transition-all shadow-xl shadow-indigo-900/10"
                                 >
-                                    Choisir un abonnement
-                                </motion.button>
-                            </motion.div>
+                                    Découvrir nos offres
+                                </button>
+                            </div>
                         ) : (
-                            <div className="space-y-4 sm:space-y-6">
-                                {payments.map((payment, index) => (
-                                    <motion.div
-                                        key={payment.id}
-                                        initial={{ opacity: 0, y: 20 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        transition={{ delay: index * 0.1 }}
-                                        className="bg-white rounded-2xl shadow-lg overflow-hidden"
-                                    >
-                                        {/* Header */}
-                                        <div className="bg-gradient-to-r from-purple-600 to-pink-600 text-white p-4 sm:p-6">
-                                            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                                                <div>
-                                                    <h3 className="text-lg sm:text-xl font-bold">{payment.plan?.name || 'Abonnement'}</h3>
-                                                    <p className="text-sm text-purple-100">
-                                                        Créé le {new Date(payment.createdAt?.toDate?.() || payment.createdAt).toLocaleDateString('fr-FR')}
-                                                    </p>
-                                                </div>
-                                                <div className="flex items-center gap-3">
-                                                    {getStatusBadge(payment.status)}
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        {/* Content */}
-                                        <div className="p-4 sm:p-6">
-                                            {renderPaymentInfo(payment)}
-                                        </div>
-                                    </motion.div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                                {payments.map((payment) => (
+                                    <div key={payment.id}>
+                                        {renderTicket(payment)}
+                                    </div>
                                 ))}
                             </div>
                         )}
+
+                        {/* Note de bas de page */}
+                        <div className="mt-20 pt-8 border-t border-gray-100 flex flex-col md:flex-row items-center justify-between gap-6">
+                            <div className="flex items-center gap-4 text-gray-400">
+                                <ShieldCheck size={20} />
+                                <p className="text-[10px] font-bold uppercase tracking-widest">Transactions sécurisées via cryptage SSL</p>
+                            </div>
+                            <div className="flex gap-4">
+                                <button 
+                                    onClick={() => window.print()}
+                                    className="flex items-center gap-2 text-[10px] font-black text-gray-600 uppercase tracking-widest hover:text-indigo-600 transition-colors"
+                                >
+                                    <Printer size={16} />
+                                    Imprimer l'historique
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </main>
             </div>

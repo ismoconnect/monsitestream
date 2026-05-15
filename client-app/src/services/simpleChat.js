@@ -86,13 +86,23 @@ class SimpleChatService {
           conversationId = existingConversations[0].id;
           console.log(`Conversation existante trouvée pour l'utilisateur ${userId}: ${conversationId}`);
 
-          // Supprimer les conversations en double s'il y en a
+          // Supprimer les conversations en double s'il y en a (non-bloquant)
           if (existingConversations.length > 1) {
             console.warn(`⚠️ ${existingConversations.length} conversations trouvées pour ${userId}, nettoyage...`);
-            for (let i = 1; i < existingConversations.length; i++) {
-              await deleteDoc(existingConversations[i].ref);
-              console.log(`🗑️ Conversation en double supprimée: ${existingConversations[i].id}`);
-            }
+            // Ne pas bloquer l'initialisation si le nettoyage échoue
+            const cleanupPromises = existingConversations.slice(1).map(async (dupDoc) => {
+              try {
+                await deleteDoc(dupDoc.ref);
+                console.log(`🗑️ Conversation en double supprimée: ${dupDoc.id}`);
+              } catch (cleanupError) {
+                console.warn(`⚠️ Impossible de supprimer la conversation en double ${dupDoc.id}:`, cleanupError.message);
+                // On continue sans bloquer
+              }
+            });
+            // Lancer le nettoyage en arrière-plan sans attendre
+            Promise.allSettled(cleanupPromises).then(() => {
+              console.log('🧹 Nettoyage des doublons terminé.');
+            });
           }
           return conversationId;
         }
@@ -116,8 +126,9 @@ class SimpleChatService {
       const docRef = await addDoc(conversationsRef, conversationData);
       conversationId = docRef.id;
 
-      // Envoyer un message de bienvenue personnalisé pour la première fois
-      const welcomeMessage = `Bonjour ${userName} ! 👋\n\nJe suis Liliana, votre accompagnatrice de luxe personnelle. Je suis ravie de faire votre connaissance !\n\nCette conversation est notre espace privé où nous pouvons discuter librement de tout ce qui vous intéresse. N'hésitez pas à me parler de vos envies, vos questions, ou simplement à faire connaissance avec moi.\n\nComment puis-je vous accompagner aujourd'hui ? 😊✨`;
+      // Nettoyer le nom pour le message de bienvenue (enlever l'email si nécessaire)
+      const cleanName = userName && userName.includes('@') ? userName.split('@')[0] : userName;
+      const welcomeMessage = `Bonjour ${cleanName} ! 👋\n\nJe suis Liliana, votre accompagnatrice de luxe personnelle. Je suis ravie de faire votre connaissance !\n\nCette conversation est notre espace privé où nous pouvons discuter librement de tout ce qui vous intéresse. N'hésitez pas à me parler de vos envies, vos questions, ou simplement à faire connaissance avec moi.\n\nComment puis-je vous accompagner aujourd'hui ? 😊✨`;
 
       await this.sendMessage(conversationId, 'admin', welcomeMessage);
 
@@ -128,7 +139,7 @@ class SimpleChatService {
 
       return conversationId;
     } catch (error) {
-      console.error('Erreur lors de la création/récupération de la conversation:', error);
+      console.error('❌ Erreur Firestore dans _createOrFindConversation:', error.code, error.message);
       throw error;
     }
   }

@@ -25,7 +25,11 @@ import {
   CheckCircle,
   Settings,
   Lock,
-  Zap
+  Zap,
+  ChevronRight,
+  ShieldCheck,
+  UserCheck,
+  Gem
 } from 'lucide-react';
 
 const ClientProfileSectionSimple = ({ currentUser }) => {
@@ -61,7 +65,6 @@ const ClientProfileSectionSimple = ({ currentUser }) => {
   };
 
   const handleSave = () => {
-    // Ici, vous pourriez appeler une API pour sauvegarder les données
     console.log('Saving profile data:', formData);
     setIsEditing(false);
   };
@@ -82,427 +85,317 @@ const ClientProfileSectionSimple = ({ currentUser }) => {
     setIsEditing(false);
   };
 
+  const sub = currentUser?.subscription;
+  const currentPlan = (sub?.plan || sub?.type || 'basic').toLowerCase();
+  const isPremium = sub?.status === 'active' && (currentPlan.includes('premium') || currentPlan.includes('vip'));
+  const isVIP = sub?.status === 'active' && currentPlan.includes('vip');
+
   return (
-    <div className="bg-gradient-to-br from-gray-50 to-pink-50 p-4 sm:p-6 w-full max-w-full overflow-x-hidden">
-      <div className="max-w-7xl mx-auto space-y-6 sm:space-y-8 w-full max-w-full min-w-0">
-        {/* Header Élégant */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-6 sm:mb-8 w-full max-w-full overflow-hidden"
-        >
-          <div className="flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0 min-w-0 w-full max-w-full">
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center mb-3">
-                <div className="relative">
-                  <div className="absolute inset-0 bg-gradient-to-r from-pink-500 to-purple-600 rounded-full blur-lg opacity-30"></div>
-                  <div className="relative bg-gradient-to-r from-pink-500 to-purple-600 p-2 sm:p-3 rounded-full">
-                    <User className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+    <div className="w-full max-w-6xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+      
+      {/* 👑 Header Profile - Ultra Premium */}
+      <div className="relative rounded-[40px] overflow-hidden bg-slate-900 shadow-2xl">
+        {/* Background Gradients & Effects */}
+        <div className="absolute inset-0 bg-gradient-to-br from-indigo-950 via-slate-900 to-slate-950"></div>
+        <div className="absolute top-0 right-0 -mt-20 -mr-20 w-80 h-80 bg-pink-500/10 rounded-full blur-[100px]"></div>
+        <div className="absolute bottom-0 left-0 -mb-20 -ml-20 w-80 h-80 bg-indigo-500/10 rounded-full blur-[100px]"></div>
+        
+        <div className="relative z-10 p-8 lg:p-12">
+          <div className="flex flex-col lg:flex-row items-center lg:items-end gap-8">
+            {/* Avatar Central */}
+            <div className="relative group">
+              <div className="w-32 h-32 lg:w-40 lg:h-40 rounded-[35px] bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl border border-white/20 p-1 shadow-2xl transform group-hover:scale-[1.02] transition-transform duration-500">
+                <div className="w-full h-full rounded-[30px] bg-slate-800 flex items-center justify-center overflow-hidden relative">
+                  {currentUser?.photoURL ? (
+                    <img src={currentUser.photoURL} alt="" className="w-full h-full object-cover" />
+                  ) : (
+                    <span className="text-5xl font-black text-white/20 select-none">
+                      {formData.displayName?.charAt(0) || 'U'}
+                    </span>
+                  )}
+                  
+                  {/* Overlay Edit on Avatar */}
+                  <AnimatePresence>
+                    {isEditing && (
+                      <motion.div 
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="absolute inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center cursor-pointer"
+                      >
+                        <Camera className="text-white" size={32} />
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              </div>
+
+              {/* Status Badge */}
+              <div className={`absolute -bottom-2 -right-2 px-4 py-1.5 rounded-2xl shadow-xl border-2 border-slate-900 flex items-center gap-2 ${
+                isVIP ? 'bg-gradient-to-r from-amber-200 to-yellow-500' : isPremium ? 'bg-gradient-to-r from-indigo-400 to-purple-600' : 'bg-slate-700'
+              }`}>
+                {isVIP ? <Gem size={14} className="text-white" /> : isPremium ? <Crown size={14} className="text-white" /> : <User size={14} className="text-white/60" />}
+                <span className="text-[10px] font-black text-white uppercase tracking-widest">
+                  {isVIP ? 'Elite VIP' : isPremium ? 'Premium' : 'Standard'}
+                </span>
+              </div>
+            </div>
+
+            {/* Info Text */}
+            <div className="flex-1 text-center lg:text-left space-y-2">
+              <div className="flex flex-col lg:flex-row lg:items-center gap-3">
+                <h1 className="text-3xl lg:text-5xl font-black text-white tracking-tight uppercase">
+                  {formData.displayName || 'Utilisateur'}
+                </h1>
+                <div className="flex items-center justify-center lg:justify-start gap-2">
+                  <div className="bg-emerald-500/20 text-emerald-400 px-3 py-1 rounded-full border border-emerald-500/30 flex items-center gap-1.5">
+                    <ShieldCheck size={12} />
+                    <span className="text-[9px] font-black uppercase tracking-widest">Compte Vérifié</span>
                   </div>
                 </div>
-                <div className="ml-3 sm:ml-4 min-w-0 flex-1">
-                  <h2 className="text-xl sm:text-2xl md:text-3xl font-bold bg-gradient-to-r from-pink-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent truncate">
-                    Mon Profil
-                  </h2>
-                  <p className="text-xs sm:text-sm md:text-base text-gray-600 mt-1 truncate">
-                    Gérez vos informations personnelles et préférences
-                  </p>
-                </div>
               </div>
-
-              {/* Stats Élégantes */}
-              <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-4 md:space-x-6 mt-3 sm:mt-4">
-                <div className="flex items-center space-x-2">
-                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                  <span className="text-xs sm:text-sm text-gray-600">
-                    Profil actif
-                  </span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Crown className="w-3 h-3 sm:w-4 sm:h-4 text-purple-500" />
-                  <span className="text-xs sm:text-sm text-gray-600">
-                    Membre Premium
-                  </span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4 text-green-500" />
-                  <span className="text-xs sm:text-sm text-gray-600">
-                    Profil vérifié
-                  </span>
-                </div>
-              </div>
+              <p className="text-indigo-200/60 font-medium text-lg max-w-xl">
+                {formData.bio || "Aucune biographie définie pour le moment."}
+              </p>
             </div>
 
-            <div className="flex items-center space-x-2 sm:space-x-3 flex-shrink-0 mt-4 md:mt-0">
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => setIsEditing(!isEditing)}
-                className="bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg sm:rounded-xl flex items-center gap-1 sm:gap-2 font-medium shadow-lg shadow-pink-500/25 transition-all duration-300 text-sm sm:text-base"
-              >
-                <Edit className="w-4 h-4 sm:w-5 sm:h-5" />
-                <span className="hidden sm:inline">{isEditing ? 'Annuler' : 'Modifier'}</span>
-                <span className="sm:hidden">{isEditing ? '✕' : '✏️'}</span>
-              </motion.button>
+            {/* Edit Button */}
+            <div className="flex flex-col gap-3 w-full lg:w-auto">
+              {!isEditing ? (
+                <button 
+                  onClick={() => setIsEditing(true)}
+                  className="bg-white text-slate-900 px-8 py-4 rounded-2xl font-black text-[11px] uppercase tracking-[0.2em] hover:bg-indigo-50 transition-all shadow-xl shadow-white/5 active:scale-95"
+                >
+                  Modifier le profil
+                </button>
+              ) : (
+                <div className="flex gap-2">
+                  <button 
+                    onClick={handleSave}
+                    className="flex-1 bg-emerald-500 text-white px-6 py-4 rounded-2xl font-black text-[11px] uppercase tracking-[0.2em] hover:bg-emerald-400 transition-all shadow-xl shadow-emerald-500/20 active:scale-95"
+                  >
+                    Enregistrer
+                  </button>
+                  <button 
+                    onClick={handleCancel}
+                    className="bg-white/10 text-white px-6 py-4 rounded-2xl font-black text-[11px] uppercase tracking-[0.2em] hover:bg-white/20 transition-all active:scale-95 border border-white/10"
+                  >
+                    Annuler
+                  </button>
+                </div>
+              )}
             </div>
           </div>
-        </motion.div>
+        </div>
+      </div>
 
-        {/* Profile Card Élégante */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="bg-white rounded-xl p-4 sm:p-6 border border-gray-200 shadow-lg hover:shadow-xl transition-all duration-300 w-full max-w-full overflow-hidden"
-        >
-          <div className="flex flex-col sm:flex-row items-start gap-4 sm:gap-6 w-full max-w-full min-w-0">
-            {/* Avatar Élégant */}
-            <div className="relative mx-auto sm:mx-0">
-              <div className="w-20 h-20 sm:w-24 sm:h-24 bg-gradient-to-br from-pink-400 to-purple-500 rounded-full flex items-center justify-center text-white text-xl sm:text-2xl font-bold shadow-lg">
-                {currentUser?.displayName?.charAt(0) || 'U'}
+      {/* 📊 Main Content - Split Layout */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
+        {/* Left Column - Stats & Info */}
+        <div className="lg:col-span-2 space-y-8">
+          
+          {/* Section: Personal Info */}
+          <div className="bg-white rounded-[35px] p-8 border border-slate-100 shadow-xl shadow-slate-200/20">
+            <div className="flex items-center gap-4 mb-8">
+              <div className="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-600">
+                <UserCheck size={20} />
               </div>
-              <div className="absolute -top-1 -right-1 w-6 h-6 sm:w-8 sm:h-8 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full flex items-center justify-center">
-                <Crown className="w-3 h-3 sm:w-4 sm:h-4 text-white" />
-              </div>
-              <AnimatePresence>
-                {isEditing && (
-                  <motion.button
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    exit={{ scale: 0 }}
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.9 }}
-                    className="absolute -bottom-2 -right-2 bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white p-2 rounded-full transition-all duration-300 shadow-lg"
-                  >
-                    <Camera className="w-4 h-4" />
-                  </motion.button>
-                )}
-              </AnimatePresence>
+              <h3 className="text-lg font-black text-slate-900 uppercase tracking-tight">Informations Personnelles</h3>
             </div>
 
-            {/* Profile Info */}
-            <div className="flex-1 w-full max-w-full min-w-0">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 w-full max-w-full">
-                <motion.div
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.2 }}
-                  className="space-y-2"
-                >
-                  <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
-                    <User className="w-4 h-4 text-pink-500" />
-                    Nom d'affichage
-                  </label>
-                  {isEditing ? (
-                    <input
-                      type="text"
-                      value={formData.displayName}
-                      onChange={(e) => handleInputChange('displayName', e.target.value)}
-                      className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-pink-500 focus:border-transparent bg-gray-50 focus:bg-white transition-colors text-sm sm:text-base"
-                    />
-                  ) : (
-                    <div className="bg-gradient-to-r from-gray-50 to-pink-50 p-3 rounded-xl">
-                      <p className="text-gray-800 font-medium truncate">{currentUser?.displayName || 'Non défini'}</p>
-                    </div>
-                  )}
-                </motion.div>
-
-                <motion.div
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.3 }}
-                  className="space-y-2"
-                >
-                  <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
-                    <Mail className="w-4 h-4 text-purple-500" />
-                    Email
-                  </label>
-                  {isEditing ? (
-                    <input
-                      type="email"
-                      value={formData.email}
-                      onChange={(e) => handleInputChange('email', e.target.value)}
-                      className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-pink-500 focus:border-transparent bg-gray-50 focus:bg-white transition-colors text-sm sm:text-base"
-                    />
-                  ) : (
-                    <div className="bg-gradient-to-r from-gray-50 to-purple-50 p-3 rounded-xl">
-                      <p className="text-gray-800 truncate">{currentUser?.email || 'Non défini'}</p>
-                    </div>
-                  )}
-                </motion.div>
-
-                <motion.div
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.4 }}
-                  className="space-y-2"
-                >
-                  <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
-                    <Phone className="w-4 h-4 text-green-500" />
-                    Téléphone
-                  </label>
-                  {isEditing ? (
-                    <input
-                      type="tel"
-                      value={formData.phone}
-                      onChange={(e) => handleInputChange('phone', e.target.value)}
-                      className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-pink-500 focus:border-transparent bg-gray-50 focus:bg-white transition-colors text-sm sm:text-base"
-                    />
-                  ) : (
-                    <div className="bg-gradient-to-r from-gray-50 to-green-50 p-3 rounded-xl">
-                      <p className="text-gray-800 truncate">{currentUser?.phone || 'Non défini'}</p>
-                    </div>
-                  )}
-                </motion.div>
-
-                <motion.div
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.5 }}
-                  className="space-y-2"
-                >
-                  <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
-                    <MapPin className="w-4 h-4 text-blue-500" />
-                    Localisation
-                  </label>
-                  {isEditing ? (
-                    <input
-                      type="text"
-                      value={formData.location}
-                      onChange={(e) => handleInputChange('location', e.target.value)}
-                      className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-pink-500 focus:border-transparent bg-gray-50 focus:bg-white transition-colors text-sm sm:text-base"
-                    />
-                  ) : (
-                    <div className="bg-gradient-to-r from-gray-50 to-blue-50 p-3 rounded-xl">
-                      <p className="text-gray-800 truncate">{currentUser?.location || 'Non défini'}</p>
-                    </div>
-                  )}
-                </motion.div>
-              </div>
-
-              {/* Bio Élégante */}
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.6 }}
-                className="mt-4 sm:mt-6 space-y-2"
-              >
-                <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
-                  <Heart className="w-4 h-4 text-pink-500" />
-                  À propos de moi
-                </label>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div className="space-y-2">
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Nom Complet</label>
                 {isEditing ? (
-                  <textarea
-                    value={formData.bio}
-                    onChange={(e) => handleInputChange('bio', e.target.value)}
-                    rows={3}
-                    className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-pink-500 focus:border-transparent bg-gray-50 focus:bg-white transition-colors text-sm sm:text-base"
-                    placeholder="Parlez-nous de vous..."
+                  <input 
+                    type="text" 
+                    value={formData.displayName}
+                    onChange={(e) => handleInputChange('displayName', e.target.value)}
+                    className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-5 py-4 font-bold text-slate-800 focus:border-indigo-500 focus:bg-white transition-all outline-none"
                   />
                 ) : (
-                  <div className="bg-gradient-to-r from-gray-50 to-pink-50 p-3 sm:p-4 rounded-xl">
-                    <p className="text-gray-800 leading-relaxed">{currentUser?.bio || 'Aucune description disponible'}</p>
+                  <div className="bg-slate-50 rounded-2xl px-5 py-4 font-bold text-slate-800 border-2 border-transparent">
+                    {formData.displayName || '—'}
                   </div>
                 )}
-              </motion.div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Adresse Email</label>
+                <div className="bg-slate-50 rounded-2xl px-5 py-4 font-bold text-slate-400 border-2 border-slate-100/50 flex items-center justify-between">
+                  <span>{formData.email}</span>
+                  <Lock size={14} className="opacity-40" />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Numéro de Téléphone</label>
+                {isEditing ? (
+                  <input 
+                    type="tel" 
+                    value={formData.phone}
+                    onChange={(e) => handleInputChange('phone', e.target.value)}
+                    placeholder="+33 6 00 00 00 00"
+                    className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-5 py-4 font-bold text-slate-800 focus:border-indigo-500 focus:bg-white transition-all outline-none"
+                  />
+                ) : (
+                  <div className="bg-slate-50 rounded-2xl px-5 py-4 font-bold text-slate-800 border-2 border-transparent">
+                    {formData.phone || 'Non renseigné'}
+                  </div>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Localisation</label>
+                {isEditing ? (
+                  <input 
+                    type="text" 
+                    value={formData.location}
+                    onChange={(e) => handleInputChange('location', e.target.value)}
+                    placeholder="Ville, Pays"
+                    className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-5 py-4 font-bold text-slate-800 focus:border-indigo-500 focus:bg-white transition-all outline-none"
+                  />
+                ) : (
+                  <div className="bg-slate-50 rounded-2xl px-5 py-4 font-bold text-slate-800 border-2 border-transparent flex items-center gap-2">
+                    <MapPin size={14} className="text-slate-300" />
+                    {formData.location || 'Non renseigné'}
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
-        </motion.div>
 
-        {/* Préférences Élégantes */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="bg-white rounded-xl p-4 sm:p-6 border border-gray-200 shadow-lg hover:shadow-xl transition-all duration-300 w-full max-w-full overflow-hidden"
-        >
-          <div className="flex items-center justify-between mb-4 sm:mb-6">
-            <h3 className="text-lg sm:text-xl font-bold text-gray-800 flex items-center gap-3">
-              <div className="bg-gradient-to-r from-purple-100 to-indigo-100 p-2 rounded-lg">
-                <Settings className="w-5 h-5 text-purple-600" />
-              </div>
-              Préférences
-            </h3>
-          </div>
-
-          <div className="space-y-4 sm:space-y-6">
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.3 }}
-              className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 p-3 sm:p-4 bg-gradient-to-r from-gray-50 to-pink-50 rounded-xl"
-            >
-              <div className="flex items-center gap-3 min-w-0 flex-1">
-                <div className="bg-gradient-to-r from-pink-100 to-purple-100 p-2 rounded-lg">
-                  <Bell className="w-4 h-4 sm:w-5 sm:h-5 text-pink-600" />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <h4 className="font-semibold text-gray-800 text-sm sm:text-base">Notifications push</h4>
-                  <p className="text-xs sm:text-sm text-gray-600 truncate">Recevoir des notifications sur votre appareil</p>
-                </div>
-              </div>
-              <label className="relative inline-flex items-center cursor-pointer flex-shrink-0">
-                <input
-                  type="checkbox"
-                  checked={formData.preferences.notifications}
-                  onChange={(e) => handlePreferenceChange('notifications', e.target.checked)}
-                  disabled={!isEditing}
-                  className="sr-only peer"
-                />
-                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-pink-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-pink-500 peer-checked:to-purple-600"></div>
-              </label>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.4 }}
-              className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 p-3 sm:p-4 bg-gradient-to-r from-gray-50 to-purple-50 rounded-xl"
-            >
-              <div className="flex items-center gap-3 min-w-0 flex-1">
-                <div className="bg-gradient-to-r from-purple-100 to-indigo-100 p-2 rounded-lg">
-                  <Mail className="w-4 h-4 sm:w-5 sm:h-5 text-purple-600" />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <h4 className="font-semibold text-gray-800 text-sm sm:text-base">Mises à jour par email</h4>
-                  <p className="text-xs sm:text-sm text-gray-600 truncate">Recevoir des emails avec les actualités</p>
-                </div>
-              </div>
-              <label className="relative inline-flex items-center cursor-pointer flex-shrink-0">
-                <input
-                  type="checkbox"
-                  checked={formData.preferences.emailUpdates}
-                  onChange={(e) => handlePreferenceChange('emailUpdates', e.target.checked)}
-                  disabled={!isEditing}
-                  className="sr-only peer"
-                />
-                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-purple-500 peer-checked:to-indigo-600"></div>
-              </label>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.5 }}
-              className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 p-3 sm:p-4 bg-gradient-to-r from-gray-50 to-blue-50 rounded-xl"
-            >
-              <div className="flex items-center gap-3 min-w-0 flex-1">
-                <div className="bg-gradient-to-r from-blue-100 to-indigo-100 p-2 rounded-lg">
-                  <Shield className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <h4 className="font-semibold text-gray-800 text-sm sm:text-base">Confidentialité</h4>
-                  <p className="text-xs sm:text-sm text-gray-600 truncate">Niveau de confidentialité de votre profil</p>
-                </div>
-              </div>
+            {/* Bio Section */}
+            <div className="mt-8 space-y-2">
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Biographie / Bio</label>
               {isEditing ? (
-                <select
-                  value={formData.preferences.privacy}
-                  onChange={(e) => handlePreferenceChange('privacy', e.target.value)}
-                  className="px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white text-sm sm:text-base flex-shrink-0"
-                >
-                  <option value="public">Public</option>
-                  <option value="private">Privé</option>
-                  <option value="friends">Amis seulement</option>
-                </select>
+                <textarea 
+                  rows={4}
+                  value={formData.bio}
+                  onChange={(e) => handleInputChange('bio', e.target.value)}
+                  placeholder="Décrivez-vous en quelques mots..."
+                  className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-5 py-4 font-bold text-slate-800 focus:border-indigo-500 focus:bg-white transition-all outline-none resize-none"
+                />
               ) : (
-                <span className={`px-3 py-2 rounded-xl text-xs sm:text-sm font-medium flex-shrink-0 ${formData.preferences.privacy === 'private'
-                    ? 'bg-gradient-to-r from-red-100 to-pink-100 text-red-700'
-                    : formData.preferences.privacy === 'public'
-                      ? 'bg-gradient-to-r from-green-100 to-blue-100 text-green-700'
-                      : 'bg-gradient-to-r from-yellow-100 to-orange-100 text-yellow-700'
-                  }`}>
-                  {formData.preferences.privacy === 'public' ? 'Public' :
-                    formData.preferences.privacy === 'private' ? 'Privé' : 'Amis seulement'}
-                </span>
+                <div className="bg-slate-50 rounded-2xl px-5 py-4 font-bold text-slate-800 border-2 border-transparent leading-relaxed min-h-[100px]">
+                  {formData.bio || 'Aucune biographie disponible.'}
+                </div>
               )}
-            </motion.div>
+            </div>
           </div>
-        </motion.div>
 
-        {/* Statistiques Élégantes */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 w-full max-w-full"
-        >
-          <motion.div
-            whileHover={{ scale: 1.02, y: -5 }}
-            className="bg-white rounded-xl p-4 sm:p-6 border border-gray-200 text-center shadow-lg hover:shadow-xl transition-all duration-300 bg-gradient-to-br from-white to-pink-50"
-          >
-            <div className="relative mb-3">
-              <div className="absolute inset-0 bg-gradient-to-r from-pink-500 to-purple-600 rounded-full blur-lg opacity-20"></div>
-              <div className="relative bg-gradient-to-r from-pink-100 to-purple-100 p-3 rounded-full mx-auto w-12 h-12 sm:w-16 sm:h-16 flex items-center justify-center">
-                <Calendar className="w-6 h-6 sm:w-8 sm:h-8 text-pink-600" />
+          {/* Section: Privacy & Settings */}
+          <div className="bg-white rounded-[35px] p-8 border border-slate-100 shadow-xl shadow-slate-200/20">
+            <div className="flex items-center gap-4 mb-8">
+              <div className="w-10 h-10 bg-pink-50 rounded-xl flex items-center justify-center text-pink-600">
+                <Settings size={20} />
+              </div>
+              <h3 className="text-lg font-black text-slate-900 uppercase tracking-tight">Préférences & Confidentialité</h3>
+            </div>
+
+            <div className="space-y-4">
+              {[
+                { id: 'notifications', label: 'Notifications Push', desc: 'Alertes en temps réel sur vos messages et activités.', icon: Bell, color: 'bg-indigo-50 text-indigo-600' },
+                { id: 'emailUpdates', label: 'Mises à jour par Email', desc: 'Recevez les actualités et offres exclusives par mail.', icon: Mail, color: 'bg-emerald-50 text-emerald-600' }
+              ].map((pref) => (
+                <div key={pref.id} className="flex items-center justify-between p-5 rounded-3xl bg-slate-50/50 border border-slate-100 group hover:bg-white hover:shadow-lg transition-all duration-300">
+                  <div className="flex items-center gap-4">
+                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${pref.color}`}>
+                      <pref.icon size={20} />
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-slate-800">{pref.label}</h4>
+                      <p className="text-xs text-slate-400 font-medium">{pref.desc}</p>
+                    </div>
+                  </div>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input 
+                      type="checkbox" 
+                      checked={formData.preferences[pref.id]} 
+                      onChange={(e) => handlePreferenceChange(pref.id, e.target.checked)}
+                      disabled={!isEditing}
+                      className="sr-only peer" 
+                    />
+                    <div className="w-12 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[3px] after:left-[4px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-600"></div>
+                  </label>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Right Column - Account Stats & Security */}
+        <div className="space-y-8">
+          
+          {/* Quick Stats */}
+          <div className="bg-gradient-to-br from-indigo-900 to-slate-900 rounded-[35px] p-8 text-white shadow-xl">
+            <h3 className="text-sm font-black uppercase tracking-[0.2em] text-indigo-300 mb-8 text-center">Activité du Compte</h3>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="bg-white/5 backdrop-blur-md rounded-3xl p-5 text-center border border-white/10">
+                <p className="text-3xl font-black mb-1">12</p>
+                <p className="text-[8px] font-black uppercase tracking-widest text-indigo-300">Rendez-vous</p>
+              </div>
+              <div className="bg-white/5 backdrop-blur-md rounded-3xl p-5 text-center border border-white/10">
+                <p className="text-3xl font-black mb-1">156</p>
+                <p className="text-[8px] font-black uppercase tracking-widest text-indigo-300">Messages</p>
+              </div>
+              <div className="bg-white/5 backdrop-blur-md rounded-3xl p-5 text-center border border-white/10">
+                <p className="text-3xl font-black mb-1">8</p>
+                <p className="text-[8px] font-black uppercase tracking-widest text-indigo-300">Sessions Live</p>
+              </div>
+              <div className="bg-white/5 backdrop-blur-md rounded-3xl p-5 text-center border border-white/10">
+                <p className="text-3xl font-black mb-1">2.4k</p>
+                <p className="text-[8px] font-black uppercase tracking-widest text-indigo-300">Points</p>
               </div>
             </div>
-            <div className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-pink-500 to-purple-600 bg-clip-text text-transparent mb-2">12</div>
-            <div className="text-xs sm:text-sm text-gray-600 font-medium">Rendez-vous</div>
-            <div className="text-xs text-gray-500 mt-1">Ce mois-ci</div>
-          </motion.div>
-
-          <motion.div
-            whileHover={{ scale: 1.02, y: -5 }}
-            className="bg-white rounded-xl p-4 sm:p-6 border border-gray-200 text-center shadow-lg hover:shadow-xl transition-all duration-300 bg-gradient-to-br from-white to-purple-50"
-          >
-            <div className="relative mb-3">
-              <div className="absolute inset-0 bg-gradient-to-r from-purple-500 to-indigo-600 rounded-full blur-lg opacity-20"></div>
-              <div className="relative bg-gradient-to-r from-purple-100 to-indigo-100 p-3 rounded-full mx-auto w-12 h-12 sm:w-16 sm:h-16 flex items-center justify-center">
-                <Eye className="w-6 h-6 sm:w-8 sm:h-8 text-purple-600" />
+            
+            <div className="mt-8 pt-8 border-t border-white/10">
+              <div className="flex items-center justify-between text-xs font-bold text-indigo-200">
+                <span>Membre depuis :</span>
+                <span>Mars 2024</span>
               </div>
             </div>
-            <div className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-purple-500 to-indigo-600 bg-clip-text text-transparent mb-2">8</div>
-            <div className="text-xs sm:text-sm text-gray-600 font-medium">Sessions live</div>
-            <div className="text-xs text-gray-500 mt-1">Total</div>
-          </motion.div>
+          </div>
 
-          <motion.div
-            whileHover={{ scale: 1.02, y: -5 }}
-            className="bg-white rounded-xl p-4 sm:p-6 border border-gray-200 text-center shadow-lg hover:shadow-xl transition-all duration-300 bg-gradient-to-br from-white to-blue-50 sm:col-span-2 lg:col-span-1"
-          >
-            <div className="relative mb-3">
-              <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full blur-lg opacity-20"></div>
-              <div className="relative bg-gradient-to-r from-blue-100 to-indigo-100 p-3 rounded-full mx-auto w-12 h-12 sm:w-16 sm:h-16 flex items-center justify-center">
-                <MessageSquare className="w-6 h-6 sm:w-8 sm:h-8 text-blue-600" />
+          {/* Security Box */}
+          <div className="bg-white rounded-[35px] p-8 border border-slate-100 shadow-xl shadow-slate-200/20">
+            <div className="flex items-center gap-4 mb-6">
+              <div className="w-10 h-10 bg-rose-50 rounded-xl flex items-center justify-center text-rose-600">
+                <Shield size={20} />
+              </div>
+              <h3 className="text-lg font-black text-slate-900 uppercase tracking-tight">Sécurité</h3>
+            </div>
+            
+            <button className="w-full flex items-center justify-between p-4 rounded-2xl bg-slate-50 hover:bg-slate-100 transition-all group">
+              <div className="flex items-center gap-3">
+                <Lock size={18} className="text-slate-400 group-hover:text-rose-500 transition-colors" />
+                <span className="text-xs font-black uppercase tracking-widest text-slate-600">Changer le mot de passe</span>
+              </div>
+              <ChevronRight size={16} className="text-slate-300" />
+            </button>
+            
+            <div className="mt-6 p-4 rounded-2xl bg-indigo-50/50 border border-indigo-100">
+              <div className="flex gap-3">
+                <Zap size={16} className="text-indigo-600 flex-shrink-0" />
+                <p className="text-[10px] font-bold text-indigo-800 leading-relaxed uppercase tracking-wide">
+                  Activez l'authentification à deux facteurs pour une sécurité maximale de vos données privées.
+                </p>
               </div>
             </div>
-            <div className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-blue-500 to-indigo-600 bg-clip-text text-transparent mb-2">156</div>
-            <div className="text-xs sm:text-sm text-gray-600 font-medium">Messages</div>
-            <div className="text-xs text-gray-500 mt-1">Échangés</div>
-          </motion.div>
-        </motion.div>
+          </div>
 
-        {/* Save/Cancel Buttons */}
-        <AnimatePresence>
-          {isEditing && (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              className="flex flex-col sm:flex-row gap-3 sm:gap-4 w-full max-w-full"
-            >
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={handleSave}
-                className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-xl flex items-center justify-center gap-2 transition-all duration-300 shadow-lg shadow-green-500/25 font-medium text-sm sm:text-base"
-              >
-                <Save className="w-4 h-4 sm:w-5 sm:h-5" />
-                <span>Sauvegarder</span>
-              </motion.button>
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={handleCancel}
-                className="bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-xl flex items-center justify-center gap-2 transition-all duration-300 shadow-lg shadow-gray-500/25 font-medium text-sm sm:text-base"
-              >
-                <X className="w-4 h-4 sm:w-5 sm:h-5" />
-                <span>Annuler</span>
-              </motion.button>
-            </motion.div>
-          )}
-        </AnimatePresence>
+          {/* Help Card */}
+          <div className="bg-slate-50 rounded-[35px] p-8 border border-slate-100 text-center">
+            <Heart size={32} className="text-pink-500 mx-auto mb-4" />
+            <h4 className="text-sm font-black text-slate-800 uppercase tracking-tight mb-2">Besoin d'aide ?</h4>
+            <p className="text-xs text-slate-500 font-medium mb-6">
+              Notre conciergerie est disponible 24/7 pour répondre à vos questions.
+            </p>
+            <button className="text-[10px] font-black text-indigo-600 uppercase tracking-widest hover:text-indigo-800 transition-colors">
+              Contacter le support
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );

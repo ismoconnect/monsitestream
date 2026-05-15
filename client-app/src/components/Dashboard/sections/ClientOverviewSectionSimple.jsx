@@ -14,7 +14,9 @@ import {
   Sparkles,
   ChevronRight,
   Settings,
-  User
+  User,
+  Lock,
+  Compass
 } from 'lucide-react';
 import { useStats } from '../../../hooks/useStats';
 import { motion } from 'framer-motion';
@@ -95,11 +97,25 @@ const ClientOverviewSectionSimple = ({ currentUser }) => {
             <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 border-4 border-white rounded-full shadow-lg" title="En ligne" />
           </div>
           <div>
-            <h2 className="text-3xl font-black text-gray-900 tracking-tight">Bonjour, {currentUser?.displayName?.split(' ')[0] || 'Pauline'}</h2>
+            <h2 className="text-3xl font-black text-gray-900 tracking-tight">
+              Bonjour, {currentUser?.displayName ? (currentUser.displayName.includes('@') ? currentUser.displayName.split('@')[0] : currentUser.displayName) : 'Mon Compte'} ! 👋
+            </h2>
             <p className="text-gray-500 mt-1 flex items-center font-medium">
-              <Sparkles size={14} className="text-amber-400 mr-2" />
-              Voici l'aperçu de votre compte Elite.
+              <Sparkles size={14} className={currentUser?.subscription?.type === 'vip' ? 'text-amber-400 mr-2' : 'text-indigo-400 mr-2'} />
+              Voici l'aperçu de votre compte {currentUser?.subscription?.type === 'vip' ? 'Elite VIP' : currentUser?.subscription?.type === 'premium' ? 'Premium' : 'Standard'}.
             </p>
+            {currentUser?.profile?.lookingFor && (
+              <div className="mt-3 inline-flex items-center px-4 py-1.5 bg-white border border-indigo-100 text-indigo-600 rounded-2xl text-[9px] font-black uppercase tracking-[0.15em] shadow-sm">
+                <Compass size={12} className="mr-2 text-indigo-400" /> 
+                Ma Cible : {
+                  currentUser.profile.lookingFor === 'exclusive' ? 'Contenu Exclusif' :
+                  currentUser.profile.lookingFor === 'chat' ? 'Échanges & Chat' :
+                  currentUser.profile.lookingFor === 'appointments' ? 'Rendez-vous' :
+                  currentUser.profile.lookingFor === 'support' ? 'Soutien Créatif' : 
+                  currentUser.profile.lookingFor
+                }
+              </div>
+            )}
           </div>
         </div>
         {!isPremium && (
@@ -126,27 +142,44 @@ const ClientOverviewSectionSimple = ({ currentUser }) => {
 
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-1 relative z-10">
-          {cardConfig.map((stat) => (
-            <motion.div
-              key={stat.id}
-              whileHover={{ backgroundColor: 'rgba(255, 255, 255, 0.1)' }}
-              onClick={stat.onClick}
-              className="bg-black/20 p-8 lg:py-12 cursor-pointer group/card transition-all duration-300 flex flex-col items-center text-center border border-white/10 hover:border-white/30"
-            >
-
-
-              <div className={`p-4 ${stat.bgColor} rounded-2xl mb-6 shadow-xl group-hover/card:scale-110 transition-transform duration-500`}>
-                <stat.icon size={24} className={stat.color} />
-              </div>
-              <div className="space-y-1">
-                <p className="text-3xl font-black text-white tracking-tight">{stat.value}</p>
-                <p className="text-white/60 text-[10px] font-black uppercase tracking-[0.2em]">{stat.label}</p>
-              </div>
-              <div className="mt-4 opacity-0 group-hover/card:opacity-100 transition-opacity">
-                <ChevronRight size={16} className="text-white/40" />
-              </div>
-            </motion.div>
-          ))}
+          {cardConfig.map((stat) => {
+            const isLocked = (stat.id === 'sessions' && currentUser?.subscription?.type !== 'vip') ||
+                             (stat.id === 'appointments' && !isPremium);
+            
+            return (
+              <motion.div
+                key={stat.id}
+                whileHover={!isLocked ? { backgroundColor: 'rgba(255, 255, 255, 0.1)' } : {}}
+                onClick={!isLocked ? stat.onClick : undefined}
+                className={`bg-black/20 p-8 lg:py-12 transition-all duration-300 flex flex-col items-center text-center border border-white/10 ${
+                  isLocked 
+                    ? 'opacity-40 grayscale cursor-not-allowed' 
+                    : 'cursor-pointer group/card hover:border-white/30'
+                }`}
+              >
+                <div className={`relative p-4 ${stat.bgColor} rounded-2xl mb-6 shadow-xl ${!isLocked ? 'group-hover/card:scale-110' : ''} transition-transform duration-500`}>
+                  <stat.icon size={24} className={stat.color} />
+                  {isLocked && (
+                    <div className="absolute -top-1 -right-1 bg-white rounded-full p-1 shadow-md">
+                      <Lock size={10} className="text-gray-400" />
+                    </div>
+                  )}
+                </div>
+                <div className="space-y-1">
+                  <p className="text-3xl font-black text-white tracking-tight">{isLocked ? '—' : stat.value}</p>
+                  <div className="flex items-center justify-center space-x-2">
+                    <p className="text-white/60 text-[10px] font-black uppercase tracking-[0.2em]">{stat.label}</p>
+                    {isLocked && <span className="px-1.5 py-0.5 bg-white/10 text-white/40 text-[7px] font-black uppercase rounded tracking-widest border border-white/10">{stat.id === 'sessions' ? 'VIP' : 'PREMIUM'}</span>}
+                  </div>
+                </div>
+                {!isLocked && (
+                  <div className="mt-4 opacity-0 group-hover/card:opacity-100 transition-opacity">
+                    <ChevronRight size={16} className="text-white/40" />
+                  </div>
+                )}
+              </motion.div>
+            );
+          })}
         </div>
       </div>
 

@@ -4,86 +4,101 @@ import {
     signOut,
     onAuthStateChanged,
     updateProfile,
-    sendEmailVerification
+    sendEmailVerification,
+    GoogleAuthProvider,
+    signInWithPopup
 } from 'firebase/auth';
-import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, setDoc, getDoc, updateDoc, increment, serverTimestamp, onSnapshot } from 'firebase/firestore';
 import { auth, db } from './firebase';
 
-class FirebaseAuthService {
-    constructor() {
-        this.authListeners = [];
-        // Initialiser l'écouteur Firebase Auth
-        if (auth) {
-            onAuthStateChanged(auth, async (user) => {
-                if (user) {
-                    // Récupérer les données supplémentaires depuis Firestore
-                    const userDoc = await this.getUserDocument(user.uid);
-                    const fullUser = { ...user, ...userDoc };
-                    this.notifyAuthListeners(fullUser);
-                } else {
-                    this.notifyAuthListeners(null);
-                }
-            });
-        }
-    }
-
-    // S'abonner aux changements d'état
-    onAuthStateChanged(callback) {
-        this.listeners.push(callback);
-        // Retourner le désabonnement
-        return () => {
-            this.listeners = this.listeners.filter(l => l !== callback);
-        };
-    }
-
-    // notifyAuthListeners
-    notifyAuthListeners(user) {
-        this.authListeners.forEach(cb => cb(user));
-    }
-
-    // Je réutilise la méthode d'abonnement existante "onAuthStateChanged" qui était utilisée dans AuthContext
-    // Mais attention, AuthContext attend une méthode qui retourne une fonction unsubscribe
-    // Donc je dois adapter ma logique.
-
-    // Correction de la structure pour matcher ce que AuthContext attend
-}
-
-// Recommençons avec une structure plus propre qui correspond à ce que AuthContext attend de authService
+// Service d'authentification utilisant directement Firebase Native
 const firebaseAuthService = {
     listeners: [],
     currentAuthState: undefined, // undefined = pas encore connu, null = déconnecté, object = connecté
     isInitialized: false, // Flag pour savoir si le premier chargement Firestore est terminé
+    userDocUnsubscribe: null, // Pour nettoyer l'écouteur précédent
 
+    lastUid: null,
     init() {
         if (!auth) return;
         onAuthStateChanged(auth, async (firebaseUser) => {
+            // Éviter de ré-initialiser si l'utilisateur n'a pas changé (UID identique)
+            if (firebaseUser && firebaseUser.uid === this.lastUid) {
+                return;
+            }
+            this.lastUid = firebaseUser ? firebaseUser.uid : null;
+
             console.log("🔥 Auth change detected:", firebaseUser ? firebaseUser.email : "no user");
-            let user = null;
+            
+            // Nettoyer l'écouteur précédent s'il existe
+            if (this.userDocUnsubscribe) {
+                this.userDocUnsubscribe();
+                this.userDocUnsubscribe = null;
+            }
+
             if (firebaseUser) {
-                try {
-                    // Récupérer le profil complet de Firestore
-                    const userDoc = await this.getUserDocument(firebaseUser.uid);
-                    console.log("📋 Firestore doc fetched:", userDoc);
-                    user = {
+                // Établir une écoute en temps réel sur le document utilisateur
+                const userDocRef = doc(db, 'users', firebaseUser.uid);
+                this.userDocUnsubscribe = onSnapshot(userDocRef, async (snapshot) => {
+                    let userDoc = snapshot.exists() ? snapshot.data() : {};
+                    console.log("📋 Firestore doc updated (Real-time):", userDoc);
+
+                    // PATCH automatique des crédits :
+                    // 1. Si pas de crédits du tout
+                    // 2. Si le plan a changé depuis la dernière initialisation des crédits
+                    const currentPlan = (userDoc.subscription?.plan || userDoc.subscription?.type || 'basic').toLowerCase();
+                    const planCredits = { 'basic': 50, 'premium': 1000, 'vip': 999999 };
+                    const expectedCredits = planCredits[currentPlan] || 50;
+
+                    const needsPatch = snapshot.exists() && userDoc.role !== 'admin' && (
+                        !userDoc.credits || // pas de crédits du tout
+                        userDoc.creditsInitializedForPlan !== currentPlan // plan changé sans recharge
+                    );
+
+                    if (needsPatch) {
+                        console.log(`🛠 Auto-patch crédits pour ${firebaseUser.email} (plan: ${currentPlan}, crédits: ${expectedCredits})`);
+                        await this.updateUserDocument(firebaseUser.uid, {
+                            credits: { messaging: expectedCredits },
+                            creditsInitializedForPlan: currentPlan
+                        });
+                        return;
+                    }
+
+                    const user = {
                         id: firebaseUser.uid,
                         email: firebaseUser.email,
                         displayName: firebaseUser.displayName,
+                        role: userDoc.role || 'client', // Sécurité: toujours un rôle
                         ...userDoc
                     };
-                } catch (e) {
-                    console.error("❌ Erreur lors de la récupération du profil:", e);
-                    user = {
+
+                    console.log(`👤 Final user for listeners: ${user.email} (Role: ${user.role})`);
+                    this.currentAuthState = user;
+                    this.isInitialized = true;
+                    this.listeners.forEach(cb => cb(user));
+                }, (error) => {
+                    if (error.code === 'unavailable' || error.code === 'offline') {
+                        console.warn("⚠️ Firestore est en mode hors-ligne. Utilisation des données locales.");
+                    } else {
+                        console.error("❌ Erreur écoute profil Firestore:", error);
+                    }
+                    
+                    // Fallback si l'écoute échoue ou est hors-ligne sans cache
+                    const fallbackUser = {
                         id: firebaseUser.uid,
                         email: firebaseUser.email,
                         displayName: firebaseUser.displayName,
                         role: 'client'
                     };
-                }
+                    this.currentAuthState = fallbackUser;
+                    this.isInitialized = true; // On considère l'init OK même en mode dégradé
+                    this.listeners.forEach(cb => cb(fallbackUser));
+                });
+            } else {
+                this.currentAuthState = null;
+                this.isInitialized = true;
+                this.listeners.forEach(cb => cb(null));
             }
-            console.log("👤 Final user for listeners:", user ? `${user.email} (Role: ${user.role})` : "null");
-            this.currentAuthState = user;
-            this.isInitialized = true; // Marquer comme initialisé après le premier chargement
-            this.listeners.forEach(cb => cb(user));
         });
     },
 
@@ -116,6 +131,44 @@ const firebaseAuthService = {
             };
 
             return { success: true, user: fullUser };
+        } catch (error) {
+            throw this.mapError(error);
+        }
+    },
+
+    async signInWithGoogle() {
+        try {
+            if (!auth) throw new Error("Service Auth non disponible");
+            const provider = new GoogleAuthProvider();
+            const result = await signInWithPopup(auth, provider);
+            const user = result.user;
+
+            // Vérifier si l'utilisateur existe déjà dans Firestore
+            const userDoc = await this.getUserDocument(user.uid);
+            
+            let isNewUser = false;
+            if (Object.keys(userDoc).length === 0) {
+                isNewUser = true;
+                // Nouvel utilisateur Google - Créer le document
+                await this.createUserDocument(user.uid, {
+                    email: user.email,
+                    displayName: user.displayName,
+                    authProvider: 'google'
+                });
+            }
+
+            const updatedUserDoc = await this.getUserDocument(user.uid);
+
+            return { 
+                success: true, 
+                isNewUser,
+                user: {
+                    id: user.uid,
+                    email: user.email,
+                    displayName: user.displayName,
+                    ...updatedUserDoc
+                } 
+            };
         } catch (error) {
             throw this.mapError(error);
         }
@@ -163,8 +216,8 @@ const firebaseAuthService = {
             const snapshot = await getDoc(docRef);
             return snapshot.exists() ? snapshot.data() : {};
         } catch (e) {
-            // Ne pas logger d'erreur si c'est juste que le document n'existe pas encore (normal au premier login)
-            if (e.code !== 'permission-denied') {
+            // Ne pas logger d'erreur si c'est juste que le document n'existe pas encore ou qu'on est hors-ligne
+            if (e.code !== 'permission-denied' && e.code !== 'unavailable') {
                 console.error("Erreur lecture profil Firestore", e);
             }
             return {};
@@ -228,11 +281,16 @@ const firebaseAuthService = {
                 requestedAt: serverTimestamp(),
                 expiresAt: null
             },
+            credits: {
+                messaging: 50
+            },
             profile: {
                 bio: '',
                 location: '',
-                phone: '',
-                avatar: null
+                phone: userData.phone || '',
+                avatar: null,
+                lookingFor: userData.lookingFor || '',
+                discoverySource: userData.discoverySource || ''
             },
             preferences: {
                 notifications: true,
@@ -254,6 +312,36 @@ const firebaseAuthService = {
 
         // Initialiser les sous-collections (optionnel, Firestore les crée à la volée, mais pour garder la structure...)
         // On peut le faire plus tard ou au besoin.
+    },
+
+    async updateUserDocument(uid, data) {
+        try {
+            if (!db) return;
+            const docRef = doc(db, 'users', uid);
+            await updateDoc(docRef, {
+                ...data,
+                updatedAt: serverTimestamp()
+            });
+            return { success: true };
+        } catch (error) {
+            console.error("Erreur mise à jour utilisateur:", error);
+            return { success: false, error };
+        }
+    },
+
+    async decrementMessagingCredits(uid) {
+        try {
+            if (!db) return;
+            const docRef = doc(db, 'users', uid);
+            await updateDoc(docRef, {
+                'credits.messaging': increment(-1),
+                updatedAt: serverTimestamp()
+            });
+            return { success: true };
+        } catch (error) {
+            console.error("Erreur décrémentation crédits:", error);
+            return { success: false, error };
+        }
     },
 
     getCurrentUser() {

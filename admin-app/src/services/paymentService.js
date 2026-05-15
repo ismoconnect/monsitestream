@@ -374,23 +374,30 @@ class PaymentService {
   }
 
   // Écouter tous les paiements pour l'admin
-  listenToAllPayments(callback) {
+  listenToAllPayments(callback, onError = null) {
     // Écoute simplifiée sans orderBy pour éviter l'erreur d'index
-    return onSnapshot(collection(db, 'payments'), (querySnapshot) => {
-      const payments = querySnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
+    return onSnapshot(
+      collection(db, 'payments'), 
+      (querySnapshot) => {
+        const payments = querySnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }));
 
-      // Tri côté client par date de création (plus récent en premier)
-      const sortedPayments = payments.sort((a, b) => {
-        const dateA = a.createdAt?.toDate ? a.createdAt.toDate() : new Date(a.createdAt);
-        const dateB = b.createdAt?.toDate ? b.createdAt.toDate() : new Date(b.createdAt);
-        return dateB - dateA;
-      });
+        // Tri côté client par date de création (plus récent en premier)
+        const sortedPayments = payments.sort((a, b) => {
+          const dateA = a.createdAt?.toDate ? a.createdAt.toDate() : new Date(a.createdAt);
+          const dateB = b.createdAt?.toDate ? b.createdAt.toDate() : new Date(b.createdAt);
+          return dateB - dateA;
+        });
 
-      callback(sortedPayments);
-    });
+        callback(sortedPayments);
+      },
+      (error) => {
+        console.error('Erreur listenToAllPayments:', error);
+        if (onError) onError(error);
+      }
+    );
   }
 
   // Marquer un paiement comme expiré
@@ -413,19 +420,30 @@ class PaymentService {
       expirationDate.setDate(expirationDate.getDate() + 30);
 
       // 3. Mettre à jour l'utilisateur
+      const planId = (plan?.id || 'premium').toLowerCase();
+      const planCredits = {
+        'basic': 50,
+        'premium': 1000,
+        'vip': 999999
+      };
+
       const userRef = doc(db, 'users', userId);
       const userUpdate = {
         'subscription': {
-          plan: plan?.id || 'premium',
-          type: plan?.id || 'premium',
-          planName: plan?.name || 'Premium',
+          plan: planId,
+          type: planId,
+          planName: plan?.name || (planId === 'vip' ? 'VIP Elite' : 'Premium'),
           status: 'active',
           startDate: serverTimestamp(),
           endDate: expirationDate,
           amount: amount,
           lastPaymentId: paymentId
         },
-        'role': plan?.id === 'vip' ? 'vip' : 'premium', // Optionnel : changer le rôle si nécessaire
+        'credits': {
+          messaging: planCredits[planId] || 50
+        },
+        'creditsInitializedForPlan': planId,
+        'role': planId === 'vip' ? 'vip' : 'premium', // Optionnel : changer le rôle si nécessaire
         'updatedAt': serverTimestamp()
       };
 

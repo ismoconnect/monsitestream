@@ -25,13 +25,27 @@ import {
   Shield,
   Crown,
   Diamond,
+  Gem,
   Edit,
-  Save
+  Save,
+  ArrowRight,
+  ExternalLink,
+  ChevronRight,
+  Sparkles,
+  Zap,
+  Info,
+  Coins,
+  BatteryCharging,
+  History,
+  TrendingUp,
+  ShieldCheck,
+  ArrowUpRight
 } from 'lucide-react';
 import AdminSidebar from '../components/admin/AdminSidebar';
 import { paymentService, PAYMENT_STATUS } from '../services/paymentService';
 import { adminService } from '../services/adminService';
 import { useAuth } from '../contexts/AuthContext';
+import { adminChatService } from '../services/adminChatService';
 
 const AdminUserPayments = () => {
   const { userEmail } = useParams();
@@ -45,22 +59,8 @@ const AdminUserPayments = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [userData, setUserData] = useState(null);
   const [userLoading, setUserLoading] = useState(true);
-  const [showInstructionsForm, setShowInstructionsForm] = useState(false);
-  const [instructionsData, setInstructionsData] = useState({
-    iban: '',
-    bic: '',
-    beneficiary: ''
-  });
 
-  // États pour l'édition avancée
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [editFormData, setEditFormData] = useState({
-    amount: '',
-    referenceCode: '',
-    status: '',
-    planName: ''
-  });
-
+  // Hook 22: First useEffect
   useEffect(() => {
     if (authLoading) return;
     if (!currentUser || currentUser.role !== 'admin') {
@@ -68,140 +68,77 @@ const AdminUserPayments = () => {
     }
   }, [currentUser, authLoading, navigate]);
 
-  // Charger les paiements de l'utilisateur spécifique en temps réel
+  // Hook 23: Second useEffect
   useEffect(() => {
-    if (authLoading || !currentUser || currentUser.role !== 'admin') return;
+    if (authLoading || !currentUser || currentUser.role !== 'admin' || !userEmail) return;
 
     let unsubscribe;
 
     const setupListener = async () => {
       try {
         setLoading(true);
-        // On récupère d'abord tous les paiements pour trouver l'userId correspondant à l'email
-        // (C'est nécessaire car on n'a que l'email dans l'URL)
         const allPayments = await paymentService.getAllPayments();
-        const userPayment = allPayments.find(p => p.userEmail === decodeURIComponent(userEmail));
+        const userPayment = (allPayments || []).find(p => p.userEmail === decodeURIComponent(userEmail));
 
         if (userPayment?.userId) {
           unsubscribe = paymentService.listenToUserPayments(userPayment.userId, (userPayments) => {
-            setPayments(userPayments);
+            setPayments(userPayments || []);
             setLoading(false);
           });
 
-          // Récupérer les données de l'utilisateur
-          const userDoc = await adminService.getAllUsers(); // On cherche dans tous, car on n'a pas getOneUser exporté
-          const user = userDoc.find(u => u.id === userPayment.userId);
-          setUserData(user);
+          const users = await adminService.getAllUsers();
+          const user = (users || []).find(u => u.id === userPayment.userId);
+          setUserData(user || null);
           setUserLoading(false);
         } else {
           setLoading(false);
           setUserLoading(false);
         }
       } catch (error) {
-        console.error('Erreur lors du chargement des paiements:', error);
+        console.error('Erreur:', error);
         setLoading(false);
+        setUserLoading(false);
       }
     };
 
     setupListener();
-
-    return () => {
-      if (unsubscribe) unsubscribe();
-    };
+    return () => { if (unsubscribe) unsubscribe(); };
   }, [userEmail, authLoading, currentUser]);
 
   const handleApprovePayment = async (paymentId) => {
     setActionLoading(true);
     try {
-      await paymentService.approvePayment(paymentId, 'Paiement approuvé par l\'admin');
+      const payment = (payments || []).find(p => p.id === paymentId);
+      await paymentService.approvePayment(paymentId, 'Approuvé via interface admin');
+      
+      if (payment) {
+        const msg = `🌟 Félicitations ! Ton abonnement ${payment.plan?.name || 'Elite'} est maintenant ACTIF ! Tu as désormais accès à tous mes contenus exclusifs. 😍💎`;
+        await adminChatService.sendAutomatedMessage(payment.userId, payment.userName || userData?.displayName, msg);
+      }
       setShowModal(false);
     } catch (error) {
-      console.error('Erreur lors de l\'approbation:', error);
-      alert('Erreur lors de l\'approbation du paiement');
+      console.error('Erreur:', error);
+      alert('Erreur lors de l\'approbation');
     } finally {
       setActionLoading(false);
     }
   };
 
   const handleRejectPayment = async (paymentId) => {
-    const reason = prompt('Raison du rejet (optionnel):');
+    const reason = prompt('Raison du rejet (ex: Code invalide) :');
+    if (reason === null) return;
     setActionLoading(true);
     try {
-      await paymentService.rejectPayment(paymentId, reason || 'Paiement rejeté par l\'admin');
+      const payment = (payments || []).find(p => p.id === paymentId);
+      await paymentService.rejectPayment(paymentId, reason || 'Paiement rejeté');
+      
+      if (payment) {
+        const msg = `❌ Ton paiement pour le plan ${payment.plan?.name || 'Elite'} n'a pas pu être validé. ${reason ? `Raison : ${reason}` : "Vérifie tes informations et réessaie."}`;
+        await adminChatService.sendAutomatedMessage(payment.userId, payment.userName || userData?.displayName, msg);
+      }
       setShowModal(false);
     } catch (error) {
-      console.error('Erreur lors du rejet:', error);
-      alert('Erreur lors du rejet du paiement');
-    } finally {
-      setActionLoading(false);
-    }
-  };
-
-  const handleSendInstructions = async (e) => {
-    e.preventDefault();
-    setActionLoading(true);
-    try {
-      if (!selectedPayment) return;
-
-      const type = selectedPayment.type; // 'bank_transfer'
-
-      await paymentService.sendPaymentInstructions(selectedPayment.id, type, instructionsData);
-
-      setShowModal(false);
-      setShowInstructionsForm(false);
-      setInstructionsData({ iban: '', bic: '', beneficiary: '' });
-      alert('Instructions envoyées avec succès');
-    } catch (error) {
-      console.error('Erreur lors de l\'envoi des instructions:', error);
-      alert('Erreur lors de l\'envoi des instructions');
-    } finally {
-      setActionLoading(false);
-    }
-  };
-
-  const openInstructionsForm = () => {
-    setShowInstructionsForm(true);
-    // Pré-remplir avec des valeurs par défaut si nécessaire
-    if (selectedPayment.type === 'bank_transfer') {
-      setInstructionsData(prev => ({
-        ...prev,
-        beneficiary: 'Ismo Connect TV',
-        // Vous pouvez ajouter des valeurs par défaut ici si vous voulez
-      }));
-    }
-  };
-
-  const handleEditPayment = (payment) => {
-    setSelectedPayment(payment);
-    setEditFormData({
-      amount: payment.amount || 0,
-      referenceCode: payment.referenceCode || '',
-      status: payment.status || PAYMENT_STATUS.PENDING,
-      planName: payment.plan?.name || 'Basic'
-    });
-    setShowEditModal(true);
-  };
-
-  const handleSaveEdit = async (e) => {
-    e.preventDefault();
-    setActionLoading(true);
-    try {
-      if (!selectedPayment) return;
-
-      const updates = {
-        amount: parseFloat(editFormData.amount),
-        referenceCode: editFormData.referenceCode,
-        status: editFormData.status,
-        'plan.name': editFormData.planName
-      };
-
-      await paymentService.updatePaymentDetails(selectedPayment.id, updates);
-
-      setShowEditModal(false);
-      alert('Paiement modifié avec succès');
-    } catch (error) {
-      console.error('Erreur lors de la modification:', error);
-      alert('Erreur lors de la modification du paiement');
+      console.error('Erreur:', error);
     } finally {
       setActionLoading(false);
     }
@@ -209,732 +146,388 @@ const AdminUserPayments = () => {
 
   const handleUpdatePlan = async (newPlan) => {
     if (!userData || !currentUser) return;
-    if (!window.confirm(`Passer cet utilisateur au plan ${newPlan.toUpperCase()} ?`)) return;
+    if (!window.confirm(`Confirmer le passage manuel au plan ${newPlan.toUpperCase()} ?`)) return;
 
     setActionLoading(true);
     try {
       await adminService.changeUserPlan(userData.id, currentUser.uid, newPlan);
-      // Mettre à jour l'état local
-      setUserData(prev => ({
+      setUserData(prev => prev ? ({
         ...prev,
-        subscription: {
-          ...prev.subscription,
-          plan: newPlan
-        }
-      }));
+        subscription: { ...prev.subscription, plan: newPlan, status: 'active' }
+      }) : null);
     } catch (error) {
-      console.error('Erreur lors du changement de plan:', error);
-      alert('Erreur lors du changement de plan');
+      console.error('Erreur:', error);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleRefillCredits = async () => {
+    if (!userData) return;
+    const plan = userData?.subscription?.plan || userData?.subscription?.type || 'basic';
+    const credits = plan === 'vip' ? 999999 : plan === 'premium' ? 1000 : 50;
+    if (!window.confirm(`Recharger les crédits de cet utilisateur ? (${credits} crédits pour le plan ${plan.toUpperCase()})`)) return;
+
+    setActionLoading(true);
+    try {
+      await adminService.refillUserCredits(userData.id, plan);
+      alert(`✅ Crédits rechargés avec succès ! (${credits} crédits)`);
+    } catch (error) {
+      console.error('Erreur recharge crédits:', error);
+      alert('Erreur lors de la recharge des crédits');
     } finally {
       setActionLoading(false);
     }
   };
 
   const handleDeletePayment = async (paymentId) => {
-    if (!window.confirm('Êtes-vous sûr de vouloir supprimer définitivement ce paiement ?')) return;
-
+    if (!window.confirm('Supprimer définitivement cet enregistrement ?')) return;
     setActionLoading(true);
     try {
       await paymentService.deletePayment(paymentId);
       setShowModal(false);
     } catch (error) {
-      console.error('Erreur lors de la suppression:', error);
-      alert('Erreur lors de la suppression du paiement');
+      console.error('Erreur:', error);
     } finally {
       setActionLoading(false);
     }
-  };
-
-  const copyToClipboard = async (text) => {
-    try {
-      await navigator.clipboard.writeText(text);
-    } catch (error) {
-      console.error('Erreur lors de la copie:', error);
-    }
-  };
-
-  const getStatusInfo = (status) => {
-    return paymentService.getStatusDisplay(status);
-  };
-
-  const getPaymentMethodIcon = (type) => {
-    const icons = {
-      bank_transfer: Banknote,
-      gift_card: Gift,
-      coupon: Ticket
-    };
-    return icons[type] || CreditCard;
   };
 
   const formatDate = (timestamp) => {
     if (!timestamp) return 'N/A';
     const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
     return date.toLocaleDateString('fr-FR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+      day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit'
     });
   };
 
+  const getStatusConfig = (status) => {
+    switch (status) {
+      case PAYMENT_STATUS.COMPLETED: return { label: 'Terminé', dot: 'bg-emerald-400', classes: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20' };
+      case PAYMENT_STATUS.REJECTED: return { label: 'Rejeté', dot: 'bg-rose-400', classes: 'text-rose-400 bg-rose-500/10 border-rose-500/20' };
+      case PAYMENT_STATUS.VALIDATING: return { label: 'En Validation', dot: 'bg-amber-400', classes: 'text-amber-400 bg-amber-500/10 border-amber-500/20' };
+      case PAYMENT_STATUS.PENDING: return { label: 'En Attente', dot: 'bg-blue-400', classes: 'text-blue-400 bg-blue-500/10 border-blue-500/20' };
+      default: return { label: 'Inconnu', dot: 'bg-gray-400', classes: 'text-gray-400 bg-gray-500/10 border-gray-500/20' };
+    }
+  };
+
+  const safePayments = payments || [];
+
+  const userStats = {
+    total: safePayments.length,
+    amount: safePayments.reduce((sum, p) => sum + (p.amount || 0), 0),
+    validating: safePayments.filter(p => p?.status === PAYMENT_STATUS.VALIDATING).length,
+    completed: safePayments.filter(p => p?.status === PAYMENT_STATUS.COMPLETED).length
+  };
+
+
+  const currentPlan = userData?.subscription?.plan || userData?.subscription?.type || 'basic';
+
   const PaymentCard = ({ payment }) => {
-    const statusInfo = getStatusInfo(payment.status);
-    const PaymentMethodIcon = getPaymentMethodIcon(payment.type);
+    const statusConf = getStatusConfig(payment.status);
+    const isGiftCard = payment.type === 'gift_card';
 
     return (
       <motion.div
-        whileHover={{ y: -2 }}
-        className="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-all cursor-pointer"
-        onClick={() => {
-          setSelectedPayment(payment);
-          setShowModal(true);
-        }}
+        layout
+        whileHover={{ y: -4 }}
+        className="bg-white/5 backdrop-blur-md rounded-[2.5rem] p-6 border border-white/10 shadow-xl hover:bg-white/10 transition-all cursor-pointer group"
+        onClick={() => { setSelectedPayment(payment); setShowModal(true); }}
       >
-        {/* Header */}
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center space-x-3">
-            <div className={`w-10 h-10 rounded-full flex items-center justify-center ${statusInfo.color === 'green' ? 'bg-green-100' :
-              statusInfo.color === 'yellow' ? 'bg-yellow-100' :
-                statusInfo.color === 'blue' ? 'bg-blue-100' :
-                  statusInfo.color === 'orange' ? 'bg-orange-100' :
-                    statusInfo.color === 'red' ? 'bg-red-100' : 'bg-gray-100'
-              }`}>
-              <span className="text-lg">{statusInfo.icon}</span>
+        <div className="flex items-start justify-between mb-6">
+          <div className="flex items-center gap-4">
+            <div className={`w-14 h-14 rounded-2xl flex items-center justify-center text-xl shadow-lg ${statusConf.classes} !bg-opacity-20`}>
+              {payment.status === PAYMENT_STATUS.COMPLETED ? <CheckCircle className="w-7 h-7" /> : 
+               payment.status === PAYMENT_STATUS.REJECTED ? <XCircle className="w-7 h-7" /> : 
+               <Clock className="w-7 h-7" />}
             </div>
             <div>
-              <h3 className="font-semibold text-gray-800">
-                {payment.plan?.name} - {payment.amount}€
-              </h3>
-              <p className="text-sm text-gray-600">{payment.referenceCode}</p>
+               <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">{formatDate(payment.createdAt)}</p>
+               <h4 className="text-lg font-black text-white uppercase tracking-tight">{payment.plan?.name || 'Abonnement'}</h4>
             </div>
           </div>
-          <div className="flex items-center space-x-2">
-            <PaymentMethodIcon className="h-4 w-4 text-gray-600" />
-            <span className={`px-2 py-1 rounded-full text-xs font-medium ${statusInfo.color === 'green' ? 'bg-green-100 text-green-700' :
-              statusInfo.color === 'yellow' ? 'bg-yellow-100 text-yellow-700' :
-                statusInfo.color === 'blue' ? 'bg-blue-100 text-blue-700' :
-                  statusInfo.color === 'orange' ? 'bg-orange-100 text-orange-700' :
-                    statusInfo.color === 'red' ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-700'
-              }`}>
-              {statusInfo.text}
-            </span>
+          <div className="text-right">
+             <p className="text-2xl font-black text-white tracking-tighter">{payment.amount}€</p>
+             <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[8px] font-black uppercase tracking-wider border ${statusConf.classes}`}>
+               <span className={`w-1.5 h-1.5 rounded-full ${statusConf.dot}`} />
+               {statusConf.label}
+             </span>
           </div>
         </div>
 
-        {/* Details */}
-        <div className="space-y-2 text-sm text-gray-600">
-          <div className="flex justify-between">
-            <span>Date de création:</span>
-            <span>{formatDate(payment.createdAt)}</span>
-          </div>
-          {payment.paymentDetails?.method && (
-            <div className="flex justify-between">
-              <span>Méthode:</span>
-              <span>{payment.paymentDetails.method}</span>
+        {isGiftCard && payment.paymentDetails?.cardCode && (
+          <div className="bg-white/5 rounded-2xl p-4 border border-white/5 mb-6 flex items-center justify-between group-hover:bg-white/10 transition-colors">
+            <div className="min-w-0 flex-1">
+              <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">Code {payment.paymentDetails.cardType}</p>
+              <p className="font-mono text-sm font-black text-indigo-400 tracking-[0.2em] truncate">{payment.paymentDetails.cardCode}</p>
             </div>
-          )}
-        </div>
+            <button 
+              onClick={(e) => { e.stopPropagation(); navigator.clipboard.writeText(payment.paymentDetails.cardCode); }}
+              className="p-3 bg-white/5 text-indigo-400 rounded-xl hover:bg-indigo-600 hover:text-white transition-all shrink-0 ml-4"
+            >
+              <Copy size={16} />
+            </button>
+          </div>
+        )}
 
-        {/* Actions Rapides */}
-        <div className="mt-4 flex gap-2">
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              handleEditPayment(payment);
-            }}
-            className="flex-1 px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm font-medium flex items-center justify-center gap-2 transition-colors"
-          >
-            <Edit className="w-4 h-4" />
-            Éditer
-          </button>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              handleDeletePayment(payment.id);
-            }}
-            className="px-3 py-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg text-sm transition-colors"
-          >
-            <Trash2 className="w-4 h-4" />
-          </button>
+        <div className="flex items-center justify-between pt-4 border-t border-white/5">
+           <div className="flex items-center gap-3">
+              <div className="w-2 h-2 rounded-full bg-slate-700"></div>
+              <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">{payment.referenceCode}</p>
+           </div>
+           <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-indigo-600 transition-colors">
+             <ChevronRight size={16} className="text-slate-500 group-hover:text-white" />
+           </div>
         </div>
       </motion.div>
     );
   };
 
-  // Calculer les statistiques de l'utilisateur
-  const userStats = {
-    totalPayments: payments.length,
-    totalAmount: payments.reduce((sum, p) => sum + (p.amount || 0), 0),
-    pending: payments.filter(p => p.status === PAYMENT_STATUS.PENDING).length,
-    waitingPayment: payments.filter(p => p.status === PAYMENT_STATUS.WAITING_PAYMENT).length,
-    validating: payments.filter(p => p.status === PAYMENT_STATUS.VALIDATING).length,
-    completed: payments.filter(p => p.status === PAYMENT_STATUS.COMPLETED).length,
-    rejected: payments.filter(p => p.status === PAYMENT_STATUS.REJECTED).length,
-    expired: payments.filter(p => p.status === PAYMENT_STATUS.EXPIRED).length
-  };
-
-  if (authLoading) {
-    return (
-      <div className="h-screen w-full bg-[#0f172a] flex flex-col items-center justify-center">
-        <div className="w-12 h-12 border-4 border-pink-500/30 border-t-pink-500 rounded-full animate-spin mb-4"></div>
-        <p className="text-gray-400 animate-pulse font-medium">Vérification des accès...</p>
-      </div>
-    );
-  }
-
   return (
-    <div className="h-screen bg-gray-100 flex overflow-hidden">
-      {/* Sidebar */}
-      <AdminSidebar
-        isMobileMenuOpen={isMobileMenuOpen}
-        setIsMobileMenuOpen={setIsMobileMenuOpen}
-      />
+    <div className="flex h-screen bg-[#0f172a] text-slate-200 overflow-hidden font-sans">
+      <AdminSidebar isMobileMenuOpen={isMobileMenuOpen} setIsMobileMenuOpen={setIsMobileMenuOpen} />
 
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col min-w-0">
-        {/* Header */}
-        <header className="bg-white shadow-sm border-b border-gray-200">
-          <div className="px-4 lg:px-6 py-4">
-            <div className="flex items-center space-x-4">
-              {/* Mobile Menu Button */}
-              <button
-                onClick={() => setIsMobileMenuOpen(true)}
-                className="lg:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors"
-              >
-                <Menu className="w-6 h-6 text-gray-600" />
-              </button>
+      <div className="flex-1 flex flex-col min-w-0 overflow-y-auto relative">
+        {/* Background Gradients */}
+        <div className="absolute top-0 left-0 w-full h-full pointer-events-none overflow-hidden">
+          <div className="absolute -top-[10%] -left-[10%] w-[50%] h-[50%] bg-indigo-500/10 rounded-full blur-[120px]"></div>
+          <div className="absolute bottom-[10%] -right-[10%] w-[40%] h-[40%] bg-purple-500/10 rounded-full blur-[120px]"></div>
+        </div>
 
-              {/* Back Button */}
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => navigate('/payments')}
-                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-              >
-                <ArrowLeft className="h-5 w-5 text-gray-600" />
-              </motion.button>
-
-              <div className="flex-1">
-                <h1 className="text-xl lg:text-2xl font-bold text-gray-800">
-                  Paiements de {decodeURIComponent(userEmail)}
-                </h1>
-                <p className="text-sm text-gray-600">
-                  Gérez tous les paiements de cet utilisateur
-                </p>
+        <header className="sticky top-0 z-30 bg-slate-900/60 backdrop-blur-xl border-b border-white/10 p-6 lg:px-10 flex items-center justify-between">
+          <div className="flex items-center gap-6">
+            <button 
+              onClick={() => navigate('/payments')} 
+              className="w-12 h-12 flex items-center justify-center bg-white/5 hover:bg-white/10 rounded-2xl transition-all border border-white/5 group"
+            >
+              <ArrowLeft className="h-6 w-6 text-slate-400 group-hover:text-white group-hover:-translate-x-1 transition-all" />
+            </button>
+            <div>
+              <div className="flex items-center gap-2 mb-1">
+                 <History className="w-4 h-4 text-indigo-400" />
+                 <span className="text-[10px] font-black text-indigo-400 uppercase tracking-[0.2em]">Dossier Financier</span>
               </div>
+              <h1 className="text-2xl font-black text-white tracking-tighter uppercase">{decodeURIComponent(userEmail)}</h1>
             </div>
+          </div>
+          
+          <div className="hidden md:flex items-center gap-8">
+             <div className="text-right">
+                <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Total Transactionnel</p>
+                <div className="flex items-center gap-2 justify-end">
+                  <TrendingUp className="w-4 h-4 text-emerald-400" />
+                  <p className="text-3xl font-black text-white tracking-tighter">{userStats.amount}€</p>
+                </div>
+             </div>
+             <div className="w-px h-12 bg-white/10"></div>
+             <div className="bg-indigo-500/10 px-6 py-3 rounded-2xl border border-indigo-500/20">
+                <p className="text-[10px] font-black text-indigo-400 uppercase tracking-widest">{userStats.total} Transactions</p>
+             </div>
           </div>
         </header>
 
-        {/* Content */}
-        <main className="flex-1 overflow-y-auto p-4 lg:p-6">
-          {/* User Stats */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
-            <div className="flex items-center space-x-4 mb-4">
-              <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
-                <User className="h-8 w-8 text-white" />
-              </div>
-              <div>
-                <h2 className="text-xl font-bold text-gray-800">{decodeURIComponent(userEmail)}</h2>
-                <p className="text-gray-600">
-                  {userStats.totalPayments} paiement{userStats.totalPayments > 1 ? 's' : ''} •
-                  Total: {userStats.totalAmount}€
-                </p>
-              </div>
-            </div>
-
-            {/* Status Summary */}
-            <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
-              <div className="bg-yellow-50 rounded-lg p-3 text-center">
-                <div className="text-2xl font-bold text-yellow-700">{userStats.pending}</div>
-                <div className="text-xs text-yellow-600">En attente</div>
-              </div>
-              <div className="bg-blue-50 rounded-lg p-3 text-center">
-                <div className="text-2xl font-bold text-blue-700">{userStats.waitingPayment}</div>
-                <div className="text-xs text-blue-600">Attente paiement</div>
-              </div>
-              <div className="bg-orange-50 rounded-lg p-3 text-center">
-                <div className="text-2xl font-bold text-orange-700">{userStats.validating}</div>
-                <div className="text-xs text-orange-600">En validation</div>
-              </div>
-              <div className="bg-green-50 rounded-lg p-3 text-center">
-                <div className="text-2xl font-bold text-green-700">{userStats.completed}</div>
-                <div className="text-xs text-green-600">Terminés</div>
-              </div>
-              <div className="bg-red-50 rounded-lg p-3 text-center">
-                <div className="text-2xl font-bold text-red-700">{userStats.rejected}</div>
-                <div className="text-xs text-red-600">Rejetés</div>
-              </div>
-              <div className="bg-gray-50 rounded-lg p-3 text-center">
-                <div className="text-2xl font-bold text-gray-700">{userStats.expired}</div>
-                <div className="text-xs text-gray-600">Expirés</div>
-              </div>
-            </div>
-          </div>
-
-          {/* Plan Management Section */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
-            <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
-              <Crown className="w-5 h-5 text-indigo-600" />
-              Gestion du Plan de l'Utilisateur
-            </h3>
-
-            <div className="flex flex-col md:flex-row items-center gap-6">
-              <div className="flex-1">
-                <p className="text-sm text-gray-600 mb-4">
-                  Modifiez manuellement le forfait de l'utilisateur. Cela changera ses accès immédiatement.
-                </p>
-                <div className="flex flex-wrap gap-3">
-                  {[
-                    { id: 'basic', label: 'Basic', color: 'bg-blue-500', icon: Shield },
-                    { id: 'premium', label: 'Premium', color: 'bg-pink-500', icon: Crown },
-                    { id: 'vip', label: 'VIP Elite', color: 'bg-purple-600', icon: Diamond }
-                  ].map((plan) => (
-                    <button
-                      key={plan.id}
-                      onClick={() => handleUpdatePlan(plan.id)}
-                      disabled={actionLoading || userLoading || (userData?.subscription?.plan || userData?.subscription?.type) === plan.id}
-                      className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-bold text-xs uppercase tracking-wider transition-all min-w-[140px] ${(userData?.subscription?.plan || userData?.subscription?.type) === plan.id
-                        ? 'bg-gray-100 text-gray-400 border border-gray-200 cursor-not-allowed'
-                        : `${plan.color} text-white hover:opacity-90 shadow-md active:scale-95`
-                        }`}
-                    >
-                      <plan.icon className="w-4 h-4" />
-                      {plan.label}
-                    </button>
-                  ))}
+        <main className="p-6 lg:p-10 space-y-10 relative z-10">
+          
+          {/* User Status Card */}
+          <section className="bg-white/5 backdrop-blur-md rounded-[3.5rem] p-8 border border-white/10 shadow-2xl flex flex-col lg:flex-row items-center gap-12 relative overflow-hidden group">
+             <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-600/5 rounded-full blur-3xl -mr-32 -mt-32 transition-all group-hover:bg-indigo-600/10"></div>
+             
+             <div className="relative">
+                <div className="w-32 h-32 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-[2.5rem] flex items-center justify-center shadow-2xl shadow-indigo-500/40 group-hover:rotate-6 transition-transform duration-500">
+                   <User size={56} className="text-white" />
                 </div>
-              </div>
+                <div className="absolute -bottom-2 -right-2 w-12 h-12 bg-emerald-500 border-4 border-[#1a2133] rounded-2xl flex items-center justify-center shadow-lg">
+                   <ShieldCheck size={24} className="text-white" />
+                </div>
+             </div>
 
-              <div className="w-full md:w-64 bg-gray-50 rounded-xl p-4 border border-gray-100">
-                <div className="text-xs text-gray-500 uppercase font-black mb-2 tracking-widest">Plan Actuel</div>
-                <div className="flex items-center gap-3">
-                  {((plan) => {
-                    const p = userData?.subscription?.plan || userData?.subscription?.type || (userData?.subscription?.planName?.toLowerCase().includes('vip') ? 'vip' : userData?.subscription?.planName?.toLowerCase().includes('premium') ? 'premium' : 'basic');
-                    if (p === 'vip') return (
-                      <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-                        <Diamond className="w-6 h-6 text-purple-600" />
+             <div className="flex-1 text-center lg:text-left">
+                <div className="flex flex-wrap justify-center lg:justify-start gap-4 mb-8">
+                   <div className="bg-white/5 px-6 py-4 rounded-2xl border border-white/5 min-w-[180px]">
+                      <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-2">Abonnement Actuel</p>
+                      <div className="flex items-center gap-2">
+                        <span className="text-lg font-black text-white uppercase tracking-tight">
+                           {currentPlan}
+                        </span>
+                        <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
                       </div>
-                    );
-                    if (p === 'premium') return (
-                      <div className="w-10 h-10 bg-pink-100 rounded-lg flex items-center justify-center">
-                        <Crown className="w-6 h-6 text-pink-600" />
-                      </div>
-                    );
-                    return (
-                      <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                        <Shield className="w-6 h-6 text-blue-600" />
-                      </div>
-                    );
-                  })()}
-                  <div>
-                    <div className="font-bold text-gray-800 uppercase">
-                      {userData?.subscription?.planName || userData?.subscription?.plan || userData?.subscription?.type || 'Inconnu'}
-                    </div>
-                    <div className="text-[10px] text-gray-500 font-bold uppercase">
-                      {userData?.subscription?.status === 'active' ? 'Compte Actif' : 'Statut: ' + (userData?.subscription?.status || 'N/A')}
-                    </div>
+                   </div>
+                   <div className="bg-white/5 px-6 py-4 rounded-2xl border border-white/5 min-w-[180px]">
+                      <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-2">Membre depuis</p>
+                      <p className="text-lg font-black text-white tracking-tight">{formatDate(userData?.createdAt).split(' à')[0]}</p>
+                   </div>
+                </div>
+
+                <div className="space-y-6">
+                   <div className="flex items-center gap-3 mb-2">
+                     <Zap size={16} className="text-amber-400" />
+                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Actions d'Administration</p>
+                   </div>
+                   
+                   <div className="flex flex-wrap gap-3">
+                      {[
+                        { id: 'basic', label: 'Basic', color: 'bg-white/5 text-slate-400 hover:text-white', activeColor: 'bg-slate-700 text-white', icon: Shield },
+                        { id: 'premium', label: 'Premium', color: 'bg-pink-500/10 text-pink-400 hover:bg-pink-500 hover:text-white', activeColor: 'bg-pink-500 text-white', icon: Crown },
+                        { id: 'vip', label: 'Elite VIP', color: 'bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500 hover:text-white', activeColor: 'bg-indigo-500 text-white', icon: Gem }
+                      ].map((plan) => (
+                        <button
+                          key={plan.id}
+                          onClick={() => handleUpdatePlan(plan.id)}
+                          disabled={actionLoading || userLoading}
+                          className={`flex items-center gap-3 px-8 py-5 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all border border-white/5 shadow-sm group/btn ${
+                            currentPlan === plan.id ? plan.activeColor : plan.color
+                          }`}
+                        >
+                          <plan.icon size={18} className={currentPlan === plan.id ? 'animate-bounce' : ''} />
+                          {plan.label}
+                        </button>
+                      ))}
+                   </div>
+
+                   <div className="flex flex-col md:flex-row items-center gap-4 pt-4 border-t border-white/5">
+                     <button
+                       onClick={handleRefillCredits}
+                       disabled={actionLoading || userLoading}
+                       className="w-full md:w-auto flex items-center justify-center gap-3 px-10 py-5 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500 hover:text-white border border-emerald-500/20 shadow-lg shadow-emerald-500/10 disabled:opacity-50 group/refill"
+                     >
+                       <BatteryCharging size={20} className="group-hover/refill:animate-pulse" />
+                       Recharger les crédits
+                     </button>
+                     <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Dernier rechargement: automatique à l'activation</p>
+                   </div>
+                </div>
+             </div>
+          </section>
+
+          {/* Payments Timeline */}
+          <section className="space-y-8">
+             <div className="flex items-center justify-between pb-4 border-b border-white/10">
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center">
+                    <History size={18} className="text-slate-400" />
                   </div>
+                  <h3 className="text-xl font-black text-white uppercase tracking-tight">Flux des Transactions</h3>
                 </div>
-              </div>
-            </div>
-          </div>
+                <div className="flex gap-3">
+                   <div className="bg-amber-500/10 text-amber-500 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border border-amber-500/20 flex items-center gap-2">
+                      <Clock size={12} />
+                      {userStats.validating} En attente
+                   </div>
+                   <div className="bg-emerald-500/10 text-emerald-500 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border border-emerald-500/20 flex items-center gap-2">
+                      <CheckCircle size={12} />
+                      {userStats.completed} Validés
+                   </div>
+                </div>
+             </div>
 
-          {/* Loading */}
-          {loading && (
-            <div className="flex items-center justify-center py-12">
-              <RefreshCw className="h-8 w-8 animate-spin text-blue-600" />
-            </div>
-          )}
-
-          {/* Payments List */}
-          {!loading && (
-            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
-              <AnimatePresence>
-                {payments.map((payment) => (
-                  <PaymentCard key={payment.id} payment={payment} />
-                ))}
-              </AnimatePresence>
-            </div>
-          )}
-
-          {/* Empty State */}
-          {!loading && payments.length === 0 && (
-            <div className="text-center py-12">
-              <CreditCard className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-gray-600 mb-2">Aucun paiement trouvé</h3>
-              <p className="text-gray-500">
-                Cet utilisateur n'a aucune demande de paiement pour le moment.
-              </p>
-            </div>
-          )}
+             {loading ? (
+                <div className="py-32 flex flex-col items-center">
+                   <RefreshCw className="w-12 h-12 text-indigo-500 animate-spin mb-6" />
+                   <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em]">Synchronisation avec la blockchain...</p>
+                </div>
+             ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                   <AnimatePresence mode="popLayout">
+                      {payments.map(p => <PaymentCard key={p.id} payment={p} />)}
+                   </AnimatePresence>
+                </div>
+             )}
+          </section>
         </main>
       </div>
 
-      {/* Modal de détails */}
+      {/* Modal Détails Premium */}
       <AnimatePresence>
         {showModal && selectedPayment && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50"
+            className="fixed inset-0 bg-slate-950/80 backdrop-blur-xl z-[100] flex items-center justify-center p-4 lg:p-10"
             onClick={(e) => e.target === e.currentTarget && setShowModal(false)}
           >
             <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto"
+              initial={{ scale: 0.9, opacity: 0, y: 30 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 30 }}
+              className="bg-[#1a2133] w-full max-w-2xl rounded-[3.5rem] overflow-hidden shadow-3xl border border-white/10"
             >
-              {/* Modal Header */}
-              <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h2 className="text-xl font-bold">Détails du Paiement</h2>
-                    <p className="text-blue-100">Code: {selectedPayment.referenceCode}</p>
-                  </div>
-                  <button
-                    onClick={() => setShowModal(false)}
-                    className="p-2 hover:bg-white/20 rounded-lg transition-colors"
-                  >
-                    <X className="h-5 w-5" />
-                  </button>
-                </div>
+              <div className="p-8 lg:p-12 border-b border-white/5 flex items-center justify-between bg-white/5">
+                 <div className="flex items-center gap-5">
+                    <div className={`w-16 h-16 rounded-2xl flex items-center justify-center text-3xl shadow-xl ${getStatusConfig(selectedPayment.status).classes} !bg-opacity-20`}>
+                       {selectedPayment.status === PAYMENT_STATUS.COMPLETED ? <CheckCircle className="w-8 h-8" /> : 
+                        selectedPayment.status === PAYMENT_STATUS.REJECTED ? <XCircle className="w-8 h-8" /> : 
+                        <Clock className="w-8 h-8" />}
+                    </div>
+                    <div>
+                       <h3 className="text-2xl font-black uppercase tracking-tight text-white">Validation de Transaction</h3>
+                       <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Réf : {selectedPayment.referenceCode}</p>
+                    </div>
+                 </div>
+                 <button onClick={() => setShowModal(false)} className="w-12 h-12 flex items-center justify-center text-slate-500 hover:text-white hover:bg-white/10 rounded-2xl transition-all">
+                   <X size={24} />
+                 </button>
               </div>
 
-              {/* Modal Content */}
-              <div className="p-6">
-                {/* Payment Info */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                  <div>
-                    <h3 className="font-semibold text-gray-800 mb-3">Informations Client</h3>
-                    <div className="space-y-2 text-sm">
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Email:</span>
-                        <span className="font-medium">{selectedPayment.userEmail}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">ID Utilisateur:</span>
-                        <span className="font-mono text-xs">{selectedPayment.userId}</span>
-                      </div>
+              <div className="p-8 lg:p-12 space-y-10">
+                 <div className="grid grid-cols-2 gap-8">
+                    <div className="bg-white/5 p-8 rounded-[2.5rem] border border-white/5">
+                       <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-3">Montant Reçu</p>
+                       <p className="text-4xl font-black text-white tracking-tighter">{selectedPayment.amount}€</p>
                     </div>
-                  </div>
-
-                  <div>
-                    <h3 className="font-semibold text-gray-800 mb-3">Détails du Paiement</h3>
-                    <div className="space-y-2 text-sm">
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Plan:</span>
-                        <span className="font-medium">{selectedPayment.plan?.name}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Montant:</span>
-                        <span className="font-medium">{selectedPayment.amount}€</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Méthode:</span>
-                        <span className="font-medium">{selectedPayment.paymentDetails?.method}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Créé le:</span>
-                        <span className="font-medium">{formatDate(selectedPayment.createdAt)}</span>
-                      </div>
+                    <div className="bg-white/5 p-8 rounded-[2.5rem] border border-white/5">
+                       <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-3">Service Demandé</p>
+                       <p className="text-xl font-black text-indigo-400 uppercase tracking-tight truncate">{selectedPayment.plan?.name}</p>
                     </div>
-                  </div>
-                </div>
+                 </div>
 
-                {/* Payment Details */}
-                {selectedPayment.paymentDetails && (
-                  <div className="mb-6">
-                    <h3 className="font-semibold text-gray-800 mb-3">Détails Spécifiques</h3>
-                    <div className="bg-gray-50 rounded-lg p-4 text-sm">
-                      {selectedPayment.type === 'gift_card' && (
-                        <div className="space-y-2">
-                          <div className="flex justify-between">
-                            <span>Type de carte:</span>
-                            <span className="font-medium">{selectedPayment.paymentDetails.cardType}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span>Code de la carte:</span>
-                            <div className="flex items-center space-x-2">
-                              <span className="font-mono">{selectedPayment.paymentDetails.cardCode}</span>
-                              <button
-                                onClick={() => copyToClipboard(selectedPayment.paymentDetails.cardCode)}
-                                className="p-1 hover:bg-gray-200 rounded"
-                              >
-                                <Copy className="h-3 w-3" />
-                              </button>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-                      {selectedPayment.type === 'coupon' && (
-                        <div className="flex justify-between">
-                          <span>Code coupon:</span>
-                          <span className="font-mono">{selectedPayment.paymentDetails.couponCode}</span>
-                        </div>
-                      )}
-                      {selectedPayment.paymentDetails.description && (
-                        <div>
-                          <span className="text-gray-600">Description:</span>
-                          <p className="mt-1">{selectedPayment.paymentDetails.description}</p>
-                        </div>
-                      )}
+                 {selectedPayment.type === 'gift_card' && (
+                    <div className="bg-indigo-600/10 p-10 rounded-[3rem] border border-indigo-500/20 relative overflow-hidden group">
+                       <Sparkles className="absolute top-6 right-6 text-indigo-500/20 group-hover:rotate-12 transition-transform" size={60} />
+                       <div className="relative z-10 text-center">
+                          <p className="text-[10px] font-black text-indigo-400 uppercase tracking-[0.4em] mb-4">Code {selectedPayment.paymentDetails?.cardType}</p>
+                          <p className="text-4xl font-black text-white tracking-[0.4em] mb-8 select-all bg-indigo-500/10 py-4 rounded-2xl border border-indigo-500/10">{selectedPayment.paymentDetails?.cardCode}</p>
+                          <button 
+                            onClick={() => { navigator.clipboard.writeText(selectedPayment.paymentDetails?.cardCode); }}
+                            className="px-10 py-4 bg-indigo-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-xl shadow-indigo-600/30 hover:bg-indigo-500 transition-all active:scale-95 flex items-center gap-3 mx-auto"
+                          >
+                             <Copy size={16} />
+                             Copier le code
+                          </button>
+                       </div>
                     </div>
-                  </div>
-                )}
+                 )}
 
-                {/* Instruction Form */}
-                {showInstructionsForm ? (
-                  <form onSubmit={handleSendInstructions} className="mb-6 bg-blue-50 p-4 rounded-xl border border-blue-100">
-                    <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
-                      <Mail className="w-5 h-5 text-blue-600" />
-                      Envoyer les instructions de paiement
-                    </h3>
-
-                    {selectedPayment.type === 'bank_transfer' && (
-                      <div className="space-y-3">
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">Bénéficiaire</label>
-                          <input
-                            type="text"
-                            value={instructionsData.beneficiary}
-                            onChange={(e) => setInstructionsData({ ...instructionsData, beneficiary: e.target.value })}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                            placeholder="Nom du bénéficiaire"
-                            required
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">IBAN</label>
-                          <input
-                            type="text"
-                            value={instructionsData.iban}
-                            onChange={(e) => setInstructionsData({ ...instructionsData, iban: e.target.value })}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 font-mono"
-                            placeholder="FR76 ...."
-                            required
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">BIC/SWIFT</label>
-                          <input
-                            type="text"
-                            value={instructionsData.bic}
-                            onChange={(e) => setInstructionsData({ ...instructionsData, bic: e.target.value })}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 font-mono"
-                            placeholder="AGB...."
-                            required
-                          />
-                        </div>
-                      </div>
-                    )}
-
-
-                    <div className="flex gap-3 mt-4">
-                      <button
-                        type="button"
-                        onClick={() => setShowInstructionsForm(false)}
-                        className="flex-1 px-4 py-2 bg-white text-gray-700 rounded-lg border border-gray-300 hover:bg-gray-50 font-medium"
-                      >
-                        Annuler
-                      </button>
-                      <button
-                        type="submit"
-                        disabled={actionLoading}
-                        className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium flex items-center justify-center gap-2"
-                      >
-                        {actionLoading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Mail className="w-4 h-4" />}
-                        Envoyer
-                      </button>
+                 <div className="flex flex-col gap-6">
+                    <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] text-center">Décision Administrative</p>
+                    <div className="grid grid-cols-2 gap-4">
+                       <button
+                         onClick={() => handleApprovePayment(selectedPayment.id)}
+                         disabled={actionLoading}
+                         className="group py-6 bg-emerald-600 hover:bg-emerald-500 text-white rounded-3xl font-black text-xs uppercase tracking-widest flex items-center justify-center gap-3 shadow-xl shadow-emerald-600/20 transition-all disabled:opacity-50"
+                       >
+                         {actionLoading ? <RefreshCw className="animate-spin" /> : <CheckCircle size={24} className="group-hover:scale-110 transition-transform" />}
+                         Approuver
+                       </button>
+                       <button
+                         onClick={() => handleRejectPayment(selectedPayment.id)}
+                         disabled={actionLoading}
+                         className="group py-6 bg-rose-600 hover:bg-rose-500 text-white rounded-3xl font-black text-xs uppercase tracking-widest flex items-center justify-center gap-3 shadow-xl shadow-rose-600/20 transition-all disabled:opacity-50"
+                       >
+                         {actionLoading ? <RefreshCw className="animate-spin" /> : <XCircle size={24} className="group-hover:scale-110 transition-transform" />}
+                         Rejeter
+                       </button>
                     </div>
-                  </form>
-                ) : null}
-
-                {/* Admin Note */}
-                {selectedPayment.adminNote && !showInstructionsForm && (
-                  <div className="mb-6">
-                    <h3 className="font-semibold text-gray-800 mb-2">Note Admin</h3>
-                    <p className="text-sm text-gray-600 bg-gray-50 rounded-lg p-3">
-                      {selectedPayment.adminNote}
-                    </p>
-                  </div>
-                )}
-
-                {/* Actions */}
-                <div className="flex space-x-3">
-                  {selectedPayment.status === PAYMENT_STATUS.PENDING && !showInstructionsForm && (
-                    <>
-                      <motion.button
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        onClick={openInstructionsForm}
-                        disabled={actionLoading}
-                        className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-all font-medium"
-                      >
-                        Envoyer Instructions
-                      </motion.button>
-                      <motion.button
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        onClick={() => handleRejectPayment(selectedPayment.id)}
-                        disabled={actionLoading}
-                        className="flex-1 bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 disabled:opacity-50 transition-all font-medium"
-                      >
-                        Rejeter
-                      </motion.button>
-                    </>
-                  )}
-
-                  {(selectedPayment.status === PAYMENT_STATUS.WAITING_PAYMENT ||
-                    selectedPayment.status === PAYMENT_STATUS.VALIDATING) && (
-                      <>
-                        <motion.button
-                          whileHover={{ scale: 1.02 }}
-                          whileTap={{ scale: 0.98 }}
-                          onClick={() => handleApprovePayment(selectedPayment.id)}
-                          disabled={actionLoading}
-                          className="flex-1 bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 disabled:opacity-50 transition-all font-medium"
-                        >
-                          Approuver
-                        </motion.button>
-                        <motion.button
-                          whileHover={{ scale: 1.02 }}
-                          whileTap={{ scale: 0.98 }}
-                          onClick={() => handleRejectPayment(selectedPayment.id)}
-                          disabled={actionLoading}
-                          className="flex-1 bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 disabled:opacity-50 transition-all font-medium"
-                        >
-                          Rejeter
-                        </motion.button>
-                      </>
-                    )}
-
-                  {/* Delete Button (Always available for Admin) */}
-                  <motion.button
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={() => handleDeletePayment(selectedPayment.id)}
-                    disabled={actionLoading}
-                    className="flex-1 bg-gray-200 text-gray-700 py-2 px-4 rounded-lg hover:bg-red-50 hover:text-red-600 disabled:opacity-50 transition-all font-medium flex items-center justify-center gap-2 border border-gray-300"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                    Supprimer
-                  </motion.button>
-
-                  {actionLoading && (
-                    <div className="flex items-center justify-center py-2">
-                      <RefreshCw className="h-4 w-4 animate-spin text-blue-600" />
-                    </div>
-                  )}
-                </div>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Modal d'Édition Avancée */}
-      <AnimatePresence>
-        {showEditModal && selectedPayment && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-[60]"
-            onClick={(e) => e.target === e.currentTarget && setShowEditModal(false)}
-          >
-            <motion.div
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-white rounded-xl shadow-2xl w-full max-w-lg overflow-hidden"
-            >
-              <div className="bg-gray-800 text-white p-4 flex justify-between items-center">
-                <h3 className="text-lg font-bold flex items-center gap-2">
-                  <Edit className="w-5 h-5" />
-                  Modifier le Paiement
-                </h3>
-                <button onClick={() => setShowEditModal(false)} className="text-gray-400 hover:text-white">
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-
-              <form onSubmit={handleSaveEdit} className="p-6 space-y-4">
-                {/* Reference */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Référence</label>
-                  <input
-                    type="text"
-                    value={editFormData.referenceCode}
-                    onChange={(e) => setEditFormData({ ...editFormData, referenceCode: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 font-mono"
-                  />
-                </div>
-
-                {/* Montant & Plan */}
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Montant (€)</label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      value={editFormData.amount}
-                      onChange={(e) => setEditFormData({ ...editFormData, amount: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Nom du Plan</label>
-                    <select
-                      value={editFormData.planName}
-                      onChange={(e) => setEditFormData({ ...editFormData, planName: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    <button
+                       onClick={() => handleDeletePayment(selectedPayment.id)}
+                       disabled={actionLoading}
+                       className="py-4 text-slate-600 hover:text-rose-500 font-bold text-[10px] uppercase tracking-widest transition-all flex items-center justify-center gap-2"
                     >
-                      <option value="Basic">Basic</option>
-                      <option value="Premium">Premium</option>
-                      <option value="VIP Elite">VIP Elite</option>
-                    </select>
-                  </div>
-                </div>
-
-                {/* Statut */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Statut</label>
-                  <select
-                    value={editFormData.status}
-                    onChange={(e) => setEditFormData({ ...editFormData, status: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value={PAYMENT_STATUS.PENDING}>En attente</option>
-                    <option value={PAYMENT_STATUS.WAITING_PAYMENT}>Attente paiement</option>
-                    <option value={PAYMENT_STATUS.VALIDATING}>En validation</option>
-                    <option value={PAYMENT_STATUS.COMPLETED}>Terminé (Payé)</option>
-                    <option value={PAYMENT_STATUS.REJECTED}>Rejeté</option>
-                    <option value={PAYMENT_STATUS.EXPIRED}>Expiré</option>
-                  </select>
-                </div>
-
-                <div className="pt-4 flex gap-3">
-                  <button
-                    type="button"
-                    onClick={() => setShowEditModal(false)}
-                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 font-medium"
-                  >
-                    Annuler
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={actionLoading}
-                    className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium flex justify-center items-center gap-2"
-                  >
-                    {actionLoading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                    Enregistrer
-                  </button>
-                </div>
-              </form>
+                       <Trash2 size={14} />
+                       Supprimer définitivement cet enregistrement
+                    </button>
+                 </div>
+              </div>
             </motion.div>
           </motion.div>
         )}
@@ -944,3 +537,4 @@ const AdminUserPayments = () => {
 };
 
 export default AdminUserPayments;
+

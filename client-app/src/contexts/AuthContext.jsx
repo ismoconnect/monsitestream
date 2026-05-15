@@ -66,6 +66,22 @@ export const AuthProvider = ({ children }) => {
     return unsubscribe;
   }, []);
 
+  const signInWithGoogle = async () => {
+    setLoading(true);
+    try {
+      if (authServiceToUse.signInWithGoogle) {
+        const result = await authServiceToUse.signInWithGoogle();
+        setLoading(false);
+        return result;
+      } else {
+        throw new Error("Authentification Google non disponible pour ce service");
+      }
+    } catch (error) {
+      setLoading(false);
+      throw error;
+    }
+  };
+
   const signIn = async (email, password) => {
     setLoading(true);
     try {
@@ -127,10 +143,11 @@ export const AuthProvider = ({ children }) => {
   };
 
   const updateProfile = async (profileData) => {
-    if (AUTH_MODE === 'firestore' && currentUser) {
-      return await authServiceToUse.updateUserProfile(currentUser.id, profileData);
+    const userId = currentUser?.id || currentUser?.uid;
+    if (userId) {
+      return await authServiceToUse.updateUserDocument(userId, profileData);
     }
-    throw new Error('updateProfile only available in firestore mode');
+    throw new Error('User not authenticated');
   };
 
   const addServiceDocument = async (serviceType, data) => {
@@ -147,9 +164,9 @@ export const AuthProvider = ({ children }) => {
     return [];
   };
 
-  const incrementServiceCounter = async (serviceType) => {
-    if (AUTH_MODE === 'firestore' && currentUser) {
-      return await authServiceToUse.incrementServiceCounter(currentUser.id, serviceType);
+  const decrementMessagingCredits = async () => {
+    if (currentUser) {
+      return await authServiceToUse.decrementMessagingCredits(currentUser.id || currentUser.uid);
     }
   };
 
@@ -164,6 +181,7 @@ export const AuthProvider = ({ children }) => {
     currentUser,
     loading,
     signIn,
+    signInWithGoogle,
     signUp,
     signOut,
     hasActiveSubscription,
@@ -172,7 +190,7 @@ export const AuthProvider = ({ children }) => {
     updateProfile,
     addServiceDocument,
     getUserServiceDocuments,
-    incrementServiceCounter,
+    decrementMessagingCredits,
     purchaseSubscription,
     isAuthenticated: !!currentUser,
     authMode: AUTH_MODE

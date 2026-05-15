@@ -13,10 +13,10 @@ import {
 
 // Configuration Cloudinary
 const CLOUDINARY_CONFIG = {
-    cloudName: 'dxvbuhadg',
-    uploadPreset: 'amcb_kyc_documents',
-    folder: 'logos', // ou 'gallery' si vous préférez séparer
-    apiKey: '221933451899525'
+    cloudName: import.meta.env.VITE_CLOUDINARY_CLOUD_NAME,
+    uploadPreset: import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET,
+    folder: 'logos',
+    apiKey: import.meta.env.VITE_CLOUDINARY_API_KEY
 };
 
 class GalleryService {
@@ -52,18 +52,16 @@ class GalleryService {
             formData.append('file', file);
             formData.append('upload_preset', CLOUDINARY_CONFIG.uploadPreset);
             formData.append('folder', CLOUDINARY_CONFIG.folder);
+            formData.append('resource_type', 'auto');
 
             // Ajout de tags si nécessaire
             if (metadata.category) {
                 formData.append('tags', metadata.category);
             }
 
-            // Détermination du type de ressource (image ou video)
-            const resourceType = file.type.startsWith('video') ? 'video' : 'image';
-
-            // Appel API Cloudinary
+            // Appel API Cloudinary (utilisation de /auto/upload pour accepter images et vidéos)
             const response = await fetch(
-                `https://api.cloudinary.com/v1_1/${CLOUDINARY_CONFIG.cloudName}/${resourceType}/upload`,
+                `https://api.cloudinary.com/v1_1/${CLOUDINARY_CONFIG.cloudName}/auto/upload`,
                 {
                     method: 'POST',
                     body: formData
@@ -82,10 +80,10 @@ class GalleryService {
                 title: metadata.title,
                 description: metadata.description || '',
                 category: metadata.category, // 'public', 'premium', 'private'
-                type: resourceType,
+                type: data.resource_type,
                 url: data.secure_url, // URL sécurisée de Cloudinary
                 publicId: data.public_id, // ID public Cloudinary (utile pour suppression future si backend)
-                thumbnailUrl: resourceType === 'video' ?
+                thumbnailUrl: data.resource_type === 'video' ?
                     data.secure_url.replace(/\.[^/.]+$/, ".jpg") : // Génère une vignette p/ vidéo
                     data.secure_url,
                 tags: metadata.tags || [],

@@ -10,29 +10,19 @@ import {
   AlertCircle,
   Plus,
   Edit,
-  Trash2,
   Sparkles,
   Star,
   Heart,
   Zap,
-  Bell,
-  User,
   Phone,
-  Mail,
   MessageCircle,
   Download,
-  Share2,
-  Filter,
-  Search,
   ChevronRight,
   CalendarDays,
-  Timer,
-  MapPinIcon,
   CreditCard,
-  Info,
   CheckCircle2,
   X,
-  MoreVertical
+  Crown
 } from 'lucide-react';
 
 const ClientAppointmentsSectionSimple = ({ currentUser }) => {
@@ -52,13 +42,7 @@ const ClientAppointmentsSectionSimple = ({ currentUser }) => {
       address: '123 Avenue des Champs-Élysées, Paris',
       price: 150,
       status: 'confirmed',
-      notes: 'Anniversaire de rencontre - Préférence pour la table près de la fenêtre',
-      client: {
-        name: 'Pierre Dubois',
-        phone: '+33 6 12 34 56 78',
-        email: 'pierre.dubois@email.com',
-        avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face'
-      },
+      notes: 'Anniversaire de rencontre — Préférence pour la table près de la fenêtre',
       specialRequests: ['Fleurs roses', 'Champagne', 'Musique douce'],
       paymentStatus: 'paid',
       createdAt: '2024-01-15T10:30:00Z'
@@ -74,14 +58,8 @@ const ClientAppointmentsSectionSimple = ({ currentUser }) => {
       address: '45 Rue de Rivoli, Paris',
       price: 200,
       status: 'pending',
-      notes: 'Préférences spéciales - Ambiance intime souhaitée',
-      client: {
-        name: 'Marc Laurent',
-        phone: '+33 6 98 76 54 32',
-        email: 'marc.laurent@email.com',
-        avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face'
-      },
-      specialRequests: ['Candles', 'Dinner privé', 'Massage'],
+      notes: 'Ambiance intime souhaitée — Préférences spéciales',
+      specialRequests: ['Bougies', 'Dîner privé', 'Massage'],
       paymentStatus: 'pending',
       createdAt: '2024-01-22T14:15:00Z'
     },
@@ -92,17 +70,11 @@ const ClientAppointmentsSectionSimple = ({ currentUser }) => {
       date: '2024-02-01',
       time: '18:00',
       duration: '48 heures',
-      location: 'Hôtel de Luxe',
-      address: 'Hôtel Ritz, Place Vendôme, Paris',
+      location: 'Hôtel Ritz',
+      address: 'Place Vendôme, Paris',
       price: 500,
       status: 'cancelled',
-      notes: 'Annulé par le client - Remboursement effectué',
-      client: {
-        name: 'Jean Moreau',
-        phone: '+33 6 55 44 33 22',
-        email: 'jean.moreau@email.com',
-        avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop&crop=face'
-      },
+      notes: 'Annulé par le client — Remboursement effectué',
       specialRequests: ['Suite présidentielle', 'Spa privé', 'Dîner gastronomique'],
       paymentStatus: 'refunded',
       createdAt: '2024-01-28T09:45:00Z'
@@ -118,13 +90,7 @@ const ClientAppointmentsSectionSimple = ({ currentUser }) => {
       address: '172 Boulevard Saint-Germain, Paris',
       price: 80,
       status: 'completed',
-      notes: 'Rendez-vous professionnel - Très satisfait',
-      client: {
-        name: 'Thomas Martin',
-        phone: '+33 6 11 22 33 44',
-        email: 'thomas.martin@email.com',
-        avatar: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=100&h=100&fit=crop&crop=face'
-      },
+      notes: 'Rendez-vous professionnel — Très satisfait',
       specialRequests: ['Table calme', 'WiFi disponible'],
       paymentStatus: 'paid',
       createdAt: '2024-01-16T16:20:00Z'
@@ -140,577 +106,379 @@ const ClientAppointmentsSectionSimple = ({ currentUser }) => {
       address: '78 Rue de la Paix, Paris',
       price: 120,
       status: 'confirmed',
-      notes: 'Séance photo professionnelle - Thème élégance',
-      client: {
-        name: 'Sophie Bernard',
-        phone: '+33 6 77 88 99 00',
-        email: 'sophie.bernard@email.com',
-        avatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=100&h=100&fit=crop&crop=face'
-      },
+      notes: 'Séance photo professionnelle — Thème élégance',
       specialRequests: ['Éclairage professionnel', 'Costumes fournis', 'Retouches incluses'],
       paymentStatus: 'paid',
       createdAt: '2024-01-25T11:10:00Z'
     }
   ];
 
-  const filteredAppointments = appointments.filter(appointment => {
-    if (filter === 'all') return true;
-    return appointment.status === filter;
-  });
+  const filteredAppointments = appointments.filter(a =>
+    filter === 'all' ? true : a.status === filter
+  );
 
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'confirmed': return 'text-green-600 bg-green-100 border-green-200';
-      case 'pending': return 'text-yellow-600 bg-yellow-100 border-yellow-200';
-      case 'cancelled': return 'text-red-600 bg-red-100 border-red-200';
-      case 'completed': return 'text-blue-600 bg-blue-100 border-blue-200';
-      default: return 'text-gray-600 bg-gray-100 border-gray-200';
-    }
+  const statusConfig = {
+    confirmed: { label: 'Confirmé', classes: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20', dot: 'bg-emerald-400' },
+    pending:   { label: 'En attente', classes: 'text-amber-400 bg-amber-500/10 border-amber-500/20', dot: 'bg-amber-400' },
+    cancelled: { label: 'Annulé', classes: 'text-red-400 bg-red-500/10 border-red-500/20', dot: 'bg-red-400' },
+    completed: { label: 'Terminé', classes: 'text-indigo-300 bg-indigo-500/10 border-indigo-500/20', dot: 'bg-indigo-400' },
   };
 
-  const getStatusIcon = (status) => {
-    switch (status) {
-      case 'confirmed': return <CheckCircle className="w-4 h-4" />;
-      case 'pending': return <AlertCircle className="w-4 h-4" />;
-      case 'cancelled': return <XCircle className="w-4 h-4" />;
-      case 'completed': return <CheckCircle2 className="w-4 h-4" />;
-      default: return <Clock className="w-4 h-4" />;
-    }
+  const serviceConfig = {
+    vip:      { label: 'VIP Elite', gradient: 'from-amber-400 to-orange-500', icon: <Crown className="w-3 h-3" /> },
+    luxury:   { label: 'Luxury',    gradient: 'from-purple-500 to-pink-500',  icon: <Sparkles className="w-3 h-3" /> },
+    premium:  { label: 'Premium',   gradient: 'from-indigo-500 to-purple-600', icon: <Heart className="w-3 h-3" /> },
+    standard: { label: 'Standard',  gradient: 'from-slate-500 to-slate-600',   icon: <Calendar className="w-3 h-3" /> },
   };
 
-  const getServiceTypeColor = (type) => {
-    switch (type) {
-      case 'vip': return 'from-yellow-400 to-orange-500';
-      case 'luxury': return 'from-purple-500 to-pink-500';
-      case 'premium': return 'from-pink-500 to-purple-500';
-      case 'standard': return 'from-blue-500 to-cyan-500';
-      default: return 'from-gray-400 to-gray-500';
-    }
+  const paymentConfig = {
+    paid:    { label: 'Payé', classes: 'text-emerald-400 bg-emerald-500/10' },
+    pending: { label: 'En attente', classes: 'text-amber-400 bg-amber-500/10' },
+    refunded:{ label: 'Remboursé', classes: 'text-red-400 bg-red-500/10' },
   };
 
-  const getServiceTypeIcon = (type) => {
-    switch (type) {
-      case 'vip': return <Star className="w-4 h-4" />;
-      case 'luxury': return <Sparkles className="w-4 h-4" />;
-      case 'premium': return <Heart className="w-4 h-4" />;
-      case 'standard': return <Calendar className="w-4 h-4" />;
-      default: return <Calendar className="w-4 h-4" />;
-    }
-  };
+  const stats = [
+    { label: 'Total RDV', value: appointments.length, icon: <CalendarDays className="w-5 h-5" />, color: 'from-indigo-500 to-purple-600' },
+    { label: 'Confirmés', value: appointments.filter(a => a.status === 'confirmed').length, icon: <CheckCircle2 className="w-5 h-5" />, color: 'from-emerald-500 to-teal-500' },
+    { label: 'En attente', value: appointments.filter(a => a.status === 'pending').length, icon: <AlertCircle className="w-5 h-5" />, color: 'from-amber-500 to-orange-500' },
+    { label: 'Chiffre d\'affaires', value: appointments.filter(a => a.paymentStatus === 'paid').reduce((s, a) => s + a.price, 0) + '€', icon: <Euro className="w-5 h-5" />, color: 'from-pink-500 to-rose-500' },
+  ];
 
-  const getPaymentStatusColor = (status) => {
-    switch (status) {
-      case 'paid': return 'text-green-600 bg-green-100';
-      case 'pending': return 'text-yellow-600 bg-yellow-100';
-      case 'refunded': return 'text-red-600 bg-red-100';
-      default: return 'text-gray-600 bg-gray-100';
-    }
-  };
-
-  const openAppointmentModal = (appointment) => {
-    setSelectedAppointment(appointment);
-    setShowModal(true);
-  };
-
-  const closeModal = () => {
-    setShowModal(false);
-    setSelectedAppointment(null);
-  };
+  const openModal = (appt) => { setSelectedAppointment(appt); setShowModal(true); };
+  const closeModal = () => { setShowModal(false); setSelectedAppointment(null); };
 
   return (
-    <div className="w-full max-w-full overflow-x-hidden min-w-0">
-      {/* Header Élégant */}
+    <div className="w-full max-w-full overflow-x-hidden min-w-0 space-y-6 pb-8">
+
+      {/* ── HERO HEADER ── */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-gradient-to-r from-pink-500 to-purple-600 rounded-[1.5rem] md:rounded-[2.5rem] p-6 md:p-12 shadow-[0_20px_50px_rgba(236,72,153,0.3)] relative overflow-hidden text-white mb-8"
+        className="relative rounded-2xl overflow-hidden bg-gradient-to-r from-[#1e1b4b] via-[#4338ca] to-[#701a75] p-8 shadow-2xl"
       >
-        <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-[60px] -mr-32 -mt-32" />
+        {/* Decorative blobs */}
+        <div className="absolute top-0 right-0 w-72 h-72 bg-white/5 rounded-full blur-[80px] -mr-24 -mt-24 pointer-events-none" />
+        <div className="absolute bottom-0 left-0 w-48 h-48 bg-purple-500/10 rounded-full blur-[60px] pointer-events-none" />
+
         <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
-          <div className="flex items-center space-x-4 md:space-x-6">
-            <div className="relative">
-              <div className="absolute inset-0 bg-white/20 rounded-full blur-lg opacity-30"></div>
-              <div className="relative bg-white/20 backdrop-blur-md p-3 sm:p-4 rounded-full border border-white/20">
-                <CalendarDays className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
-              </div>
-            </div>
-            <div>
-              <h2 className="text-2xl sm:text-3xl md:text-5xl font-black tracking-tight text-white uppercase">
-                Mes Rendez-vous
-              </h2>
-              <p className="text-white/80 text-[10px] md:text-sm font-bold uppercase tracking-widest mt-1">
-                Gestion de vos sessions privées
-              </p>
-            </div>
+          <div>
+            <p className="text-[10px] font-black uppercase tracking-[0.4em] text-indigo-300/70 mb-2">Espace privé</p>
+            <h1 className="text-3xl sm:text-4xl font-black text-white uppercase tracking-tight leading-none">
+              Mes Rendez-vous
+            </h1>
+            <p className="text-indigo-200/60 text-xs font-bold uppercase tracking-widest mt-2">
+              Gestion de vos sessions avec Liliana
+            </p>
           </div>
 
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="bg-white text-pink-500 px-8 py-4 rounded-2xl font-black text-xs md:text-sm tracking-widest shadow-lg transition-all w-fit hover:bg-pink-50"
-          >
-            <Plus className="w-5 h-5" />
-            RÉSERVER
-          </motion.button>
+          {currentUser?.subscription?.plan === 'basic' ? (
+            <motion.div
+              whileHover={{ scale: 1.02 }}
+              className="flex flex-col items-end gap-2"
+            >
+              <button
+                disabled
+                className="flex items-center gap-2 bg-slate-100 text-slate-400 px-6 py-3 rounded-xl font-black text-xs tracking-widest uppercase cursor-not-allowed border border-slate-200"
+              >
+                <Lock className="w-4 h-4" />
+                Plan Premium Requis
+              </button>
+              <p className="text-[9px] font-bold text-amber-500 uppercase tracking-tight">
+                Le plan standard ne permet pas de réserver
+              </p>
+            </motion.div>
+          ) : (
+            <motion.button
+              whileHover={{ scale: 1.04, y: -2 }}
+              whileTap={{ scale: 0.96 }}
+              className="flex items-center gap-2 bg-white text-[#4338ca] px-6 py-3 rounded-xl font-black text-xs tracking-widest uppercase shadow-xl hover:bg-indigo-50 transition-colors w-fit flex-shrink-0"
+            >
+              <Plus className="w-4 h-4" />
+              Réserver
+            </motion.button>
+          )}
         </div>
       </motion.div>
 
-      {/* Filtres Élégants */}
+      {/* ── STATS ── */}
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1 }}
-        className="mb-8"
+        transition={{ delay: 0.08 }}
+        className="grid grid-cols-2 lg:grid-cols-4 gap-3"
       >
-        <div className="flex flex-wrap gap-2 sm:gap-3 overflow-x-hidden">
-          {[
-            { key: 'all', label: 'Tous', icon: <Zap className="w-4 h-4" />, count: appointments.length },
-            { key: 'confirmed', label: 'Confirmés', icon: <CheckCircle className="w-4 h-4" />, count: appointments.filter(a => a.status === 'confirmed').length },
-            { key: 'pending', label: 'En attente', icon: <AlertCircle className="w-4 h-4" />, count: appointments.filter(a => a.status === 'pending').length },
-            { key: 'completed', label: 'Terminés', icon: <CheckCircle2 className="w-4 h-4" />, count: appointments.filter(a => a.status === 'completed').length },
-            { key: 'cancelled', label: 'Annulés', icon: <XCircle className="w-4 h-4" />, count: appointments.filter(a => a.status === 'cancelled').length }
-          ].map(({ key, label, icon, count }) => (
-            <motion.button
-              key={key}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={() => setFilter(key)}
-              className={`relative px-3 sm:px-6 py-2 sm:py-3 font-medium transition-all duration-300 rounded-xl text-xs sm:text-sm ${filter === key
-                  ? 'bg-gradient-to-r from-pink-500 to-purple-600 text-white shadow-lg shadow-pink-500/25'
-                  : 'bg-white/80 text-gray-600 hover:bg-white hover:text-gray-800 hover:shadow-md border border-gray-200/50'
-                }`}
-            >
-              <div className="flex items-center justify-center gap-2">
-                {icon}
-                <span className="truncate">{label}</span>
-                <span className={`text-xs px-2 py-0.5 rounded-full ${filter === key
-                    ? 'bg-white/20 text-white'
-                    : 'bg-gray-100 text-gray-500'
-                  }`}>
-                  {count}
-                </span>
-              </div>
-              {filter === key && (
-                <motion.div
-                  layoutId="activeTab"
-                  className="absolute inset-0 bg-gradient-to-r from-pink-500 to-purple-600 rounded-xl -z-10"
-                  transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-                />
-              )}
-            </motion.button>
-          ))}
-        </div>
+        {stats.map((stat, i) => (
+          <motion.div
+            key={i}
+            whileHover={{ y: -3 }}
+            className="bg-white rounded-2xl border border-gray-100/80 p-5 shadow-sm flex items-center gap-4"
+          >
+            <div className={`w-11 h-11 rounded-xl bg-gradient-to-br ${stat.color} flex items-center justify-center text-white shadow-lg flex-shrink-0`}>
+              {stat.icon}
+            </div>
+            <div>
+              <p className="text-xl font-black text-gray-900">{stat.value}</p>
+              <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">{stat.label}</p>
+            </div>
+          </motion.div>
+        ))}
       </motion.div>
 
-      {/* Liste des Rendez-vous Élégante */}
+      {/* ── FILTRES ── */}
       <motion.div
-        layout
-        className="space-y-6"
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.12 }}
+        className="flex flex-wrap gap-2"
       >
-        <AnimatePresence>
-          {filteredAppointments.map((appointment, index) => (
-            <motion.div
-              key={appointment.id}
-              layout
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{
-                delay: index * 0.05,
-                type: "spring",
-                stiffness: 100,
-                damping: 15
-              }}
-              className="bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-200/50 p-4 sm:p-6 hover:shadow-xl hover:bg-white transition-all duration-300 cursor-pointer group"
-              onClick={() => openAppointmentModal(appointment)}
-            >
-              <div className="flex items-start space-x-4 sm:space-x-6">
-                {/* Avatar Client */}
-                <div className="relative">
-                  <img
-                    src={appointment.client.avatar}
-                    alt={appointment.client.name}
-                    className="w-12 h-12 sm:w-16 sm:h-16 rounded-lg sm:rounded-xl object-cover flex-shrink-0 shadow-lg group-hover:shadow-xl transition-shadow duration-300"
-                  />
-                  <div className={`absolute -top-1 -right-1 w-5 h-5 sm:w-6 sm:h-6 rounded-full border-2 border-white flex items-center justify-center ${appointment.status === 'confirmed' ? 'bg-green-500' :
-                      appointment.status === 'pending' ? 'bg-yellow-500' :
-                        appointment.status === 'completed' ? 'bg-blue-500' :
-                          'bg-red-500'
-                    }`}>
-                    {getStatusIcon(appointment.status)}
-                  </div>
-                </div>
-
-                {/* Informations principales */}
-                <div className="flex-1 min-w-0">
-                  <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-3 mb-3">
-                    <h3 className="font-semibold text-gray-800 truncate text-base sm:text-lg min-w-0">{appointment.service}</h3>
-
-                    <div className="flex flex-wrap gap-2">
-                      {/* Badge type de service */}
-                      <span className={`bg-gradient-to-r ${getServiceTypeColor(appointment.serviceType)} text-white text-xs px-2 sm:px-3 py-1 sm:py-1.5 rounded-full flex items-center gap-1 shadow-lg flex-shrink-0`}>
-                        {getServiceTypeIcon(appointment.serviceType)}
-                        <span className="capitalize hidden sm:inline">{appointment.serviceType}</span>
-                        <span className="capitalize sm:hidden">{appointment.serviceType.charAt(0).toUpperCase()}</span>
-                      </span>
-
-                      {/* Badge statut */}
-                      <span className={`px-2 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs font-medium flex items-center gap-1 border ${getStatusColor(appointment.status)} flex-shrink-0`}>
-                        {getStatusIcon(appointment.status)}
-                        <span className="capitalize hidden sm:inline">
-                          {appointment.status === 'confirmed' ? 'Confirmé' :
-                            appointment.status === 'pending' ? 'En attente' :
-                              appointment.status === 'completed' ? 'Terminé' : 'Annulé'}
-                        </span>
-                        <span className="capitalize sm:hidden">
-                          {appointment.status === 'confirmed' ? 'OK' :
-                            appointment.status === 'pending' ? '?' :
-                              appointment.status === 'completed' ? '✓' : '✗'}
-                        </span>
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Informations client */}
-                  <div className="flex flex-col space-y-2 mb-3 sm:mb-4">
-                    <div className="flex items-center space-x-2 min-w-0">
-                      <User className="w-3 h-3 sm:w-4 sm:h-4 text-gray-500 flex-shrink-0" />
-                      <span className="text-xs sm:text-sm font-medium text-gray-700 truncate">{appointment.client.name}</span>
-                    </div>
-                    <div className="flex items-center space-x-2 min-w-0">
-                      <Phone className="w-3 h-3 sm:w-4 sm:h-4 text-gray-500 flex-shrink-0" />
-                      <span className="text-xs sm:text-sm text-gray-600 truncate">{appointment.client.phone}</span>
-                    </div>
-                  </div>
-
-                  {/* Détails du rendez-vous */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 text-xs sm:text-sm text-gray-600 mb-3 sm:mb-4">
-                    <div className="flex items-center space-x-2">
-                      <Calendar className="w-3 h-3 sm:w-4 sm:h-4 text-pink-500 flex-shrink-0" />
-                      <span className="font-medium truncate">{new Date(appointment.date).toLocaleDateString('fr-FR', {
-                        day: 'numeric',
-                        month: 'short'
-                      })}</span>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Clock className="w-3 h-3 sm:w-4 sm:h-4 text-purple-500 flex-shrink-0" />
-                      <span className="truncate">{appointment.time} <span className="text-gray-400 hidden sm:inline">({appointment.duration})</span></span>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <MapPin className="w-3 h-3 sm:w-4 sm:h-4 text-blue-500 flex-shrink-0" />
-                      <span className="truncate">{appointment.location}</span>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Euro className="w-3 h-3 sm:w-4 sm:h-4 text-green-500 flex-shrink-0" />
-                      <span className="font-semibold text-gray-800 text-sm sm:text-lg">{appointment.price}€</span>
-                    </div>
-                  </div>
-
-                  {/* Notes */}
-                  {appointment.notes && (
-                    <div className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg sm:rounded-xl p-3 sm:p-4 mb-3 sm:mb-4">
-                      <p className="text-xs sm:text-sm text-gray-600">
-                        <strong className="text-gray-800">Notes :</strong> {appointment.notes}
-                      </p>
-                    </div>
-                  )}
-
-                  {/* Demandes spéciales */}
-                  {appointment.specialRequests && appointment.specialRequests.length > 0 && (
-                    <div className="flex flex-wrap gap-1 sm:gap-2 mb-3 sm:mb-4">
-                      {appointment.specialRequests.slice(0, 2).map((request, reqIndex) => (
-                        <span key={reqIndex} className="bg-gradient-to-r from-pink-100 to-purple-100 text-pink-700 px-2 py-1 rounded-full text-xs font-medium truncate max-w-[100px] sm:max-w-none">
-                          ✨ <span className="hidden sm:inline">{request}</span>
-                          <span className="sm:hidden">{request.length > 6 ? request.substring(0, 6) + '...' : request}</span>
-                        </span>
-                      ))}
-                      {appointment.specialRequests.length > 2 && (
-                        <span className="bg-gray-100 text-gray-600 px-2 py-1 rounded-full text-xs font-medium">
-                          +{appointment.specialRequests.length - 2}
-                        </span>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Statut de paiement */}
-                  <div className="flex flex-col space-y-2">
-                    <div className="flex items-center space-x-2">
-                      <CreditCard className="w-3 h-3 sm:w-4 sm:h-4 text-gray-500 flex-shrink-0" />
-                      <span className={`text-xs px-2 py-1 rounded-full font-medium ${getPaymentStatusColor(appointment.paymentStatus)}`}>
-                        {appointment.paymentStatus === 'paid' ? 'Payé' :
-                          appointment.paymentStatus === 'pending' ? 'En attente' : 'Remboursé'}
-                      </span>
-                    </div>
-                    <span className="text-xs text-gray-500 truncate">
-                      Créé le {new Date(appointment.createdAt).toLocaleDateString('fr-FR')}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Actions */}
-                <div className="flex flex-row space-x-1 sm:space-x-2">
-                  {appointment.status === 'pending' && (
-                    <>
-                      <motion.button
-                        whileHover={{ scale: 1.1 }}
-                        whileTap={{ scale: 0.9 }}
-                        className="p-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-all duration-300 shadow-lg shadow-green-500/30 flex-shrink-0"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4" />
-                      </motion.button>
-                      <motion.button
-                        whileHover={{ scale: 1.1 }}
-                        whileTap={{ scale: 0.9 }}
-                        className="p-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-all duration-300 shadow-lg shadow-red-500/30 flex-shrink-0"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <XCircle className="w-3 h-3 sm:w-4 sm:h-4" />
-                      </motion.button>
-                    </>
-                  )}
-
-                  <motion.button
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.9 }}
-                    className="p-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-all duration-300 shadow-lg shadow-blue-500/30 flex-shrink-0"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <Edit className="w-3 h-3 sm:w-4 sm:h-4" />
-                  </motion.button>
-
-                  <motion.button
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.9 }}
-                    className="p-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-all duration-300 shadow-lg shadow-gray-500/30 flex-shrink-0"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <MoreVertical className="w-3 h-3 sm:w-4 sm:h-4" />
-                  </motion.button>
-                </div>
-              </div>
-            </motion.div>
-          ))}
-        </AnimatePresence>
+        {[
+          { key: 'all',       label: 'Tous',       count: appointments.length },
+          { key: 'confirmed', label: 'Confirmés',   count: appointments.filter(a => a.status === 'confirmed').length },
+          { key: 'pending',   label: 'En attente',  count: appointments.filter(a => a.status === 'pending').length },
+          { key: 'completed', label: 'Terminés',    count: appointments.filter(a => a.status === 'completed').length },
+          { key: 'cancelled', label: 'Annulés',     count: appointments.filter(a => a.status === 'cancelled').length },
+        ].map(({ key, label, count }) => (
+          <motion.button
+            key={key}
+            whileTap={{ scale: 0.96 }}
+            onClick={() => setFilter(key)}
+            className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all duration-200 flex items-center gap-2 border ${
+              filter === key
+                ? 'bg-gradient-to-r from-[#4338ca] to-[#7c3aed] text-white border-transparent shadow-lg shadow-indigo-200'
+                : 'bg-white text-gray-500 border-gray-200 hover:border-indigo-200 hover:text-indigo-600'
+            }`}
+          >
+            {label}
+            <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-black ${
+              filter === key ? 'bg-white/20' : 'bg-gray-100 text-gray-400'
+            }`}>{count}</span>
+          </motion.button>
+        ))}
       </motion.div>
 
-      {/* État vide élégant */}
+      {/* ── LISTE DES RDV ── */}
+      <div className="space-y-3">
+        <AnimatePresence>
+          {filteredAppointments.map((appt, index) => {
+            const sc = serviceConfig[appt.serviceType] || serviceConfig.standard;
+            const stc = statusConfig[appt.status] || statusConfig.pending;
+            const pc = paymentConfig[appt.paymentStatus] || paymentConfig.pending;
+
+            return (
+              <motion.div
+                key={appt.id}
+                layout
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -12 }}
+                transition={{ delay: index * 0.04 }}
+                whileHover={{ y: -2, boxShadow: '0 12px 40px rgba(0,0,0,0.08)' }}
+                onClick={() => openModal(appt)}
+                className="bg-white rounded-2xl border border-gray-100 p-5 cursor-pointer group transition-all duration-200"
+              >
+                <div className="flex items-start gap-5">
+
+                  {/* Icône service */}
+                  <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${sc.gradient} flex items-center justify-center text-white shadow-lg flex-shrink-0`}>
+                    <CalendarDays className="w-6 h-6" />
+                  </div>
+
+                  {/* Contenu principal */}
+                  <div className="flex-1 min-w-0">
+                    {/* Ligne 1 — titre + badges */}
+                    <div className="flex flex-wrap items-center gap-2 mb-2">
+                      <h3 className="font-black text-gray-900 text-base uppercase tracking-tight">{appt.service}</h3>
+
+                      <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-gradient-to-r ${sc.gradient} text-white`}>
+                        {sc.icon} {sc.label}
+                      </span>
+
+                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider border ${stc.classes}`}>
+                        <span className={`w-1.5 h-1.5 rounded-full ${stc.dot}`} />
+                        {stc.label}
+                      </span>
+                    </div>
+
+                    {/* Ligne 2 — détails */}
+                    <div className="flex flex-wrap gap-x-5 gap-y-1.5 text-xs text-gray-500 font-semibold mb-3">
+                      <span className="flex items-center gap-1.5">
+                        <Calendar className="w-3.5 h-3.5 text-indigo-400" />
+                        {new Date(appt.date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })}
+                      </span>
+                      <span className="flex items-center gap-1.5">
+                        <Clock className="w-3.5 h-3.5 text-purple-400" />
+                        {appt.time} · {appt.duration}
+                      </span>
+                      <span className="flex items-center gap-1.5">
+                        <MapPin className="w-3.5 h-3.5 text-pink-400" />
+                        {appt.location}
+                      </span>
+                    </div>
+
+                    {/* Ligne 3 — tags demandes spéciales */}
+                    {appt.specialRequests?.length > 0 && (
+                      <div className="flex flex-wrap gap-1.5">
+                        {appt.specialRequests.slice(0, 3).map((r, i) => (
+                          <span key={i} className="px-2.5 py-1 bg-indigo-50 text-indigo-600 rounded-lg text-[10px] font-bold uppercase tracking-wider">
+                            ✦ {r}
+                          </span>
+                        ))}
+                        {appt.specialRequests.length > 3 && (
+                          <span className="px-2.5 py-1 bg-gray-50 text-gray-400 rounded-lg text-[10px] font-bold">
+                            +{appt.specialRequests.length - 3}
+                          </span>
+                        )}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Colonne droite — prix + statut paiement */}
+                  <div className="flex flex-col items-end gap-2 flex-shrink-0">
+                    <p className="text-2xl font-black text-gray-900">{appt.price}<span className="text-sm text-gray-400 font-bold">€</span></p>
+                    <span className={`text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-lg ${pc.classes}`}>
+                      {pc.label}
+                    </span>
+                    <ChevronRight className="w-4 h-4 text-gray-300 group-hover:text-indigo-400 transition-colors mt-1" />
+                  </div>
+                </div>
+              </motion.div>
+            );
+          })}
+        </AnimatePresence>
+      </div>
+
+      {/* ── ÉTAT VIDE ── */}
       {filteredAppointments.length === 0 && (
         <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
+          initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="text-center py-12 sm:py-16"
+          className="text-center py-20"
         >
-          <div className="bg-gradient-to-br from-pink-100 to-purple-100 rounded-2xl sm:rounded-3xl p-6 sm:p-12 max-w-md mx-auto">
-            <div className="relative mb-4 sm:mb-6">
-              <div className="absolute inset-0 bg-gradient-to-r from-pink-500 to-purple-600 rounded-full blur-lg opacity-20"></div>
-              <div className="relative bg-gradient-to-r from-pink-500 to-purple-600 p-4 sm:p-6 rounded-full w-16 h-16 sm:w-20 sm:h-20 mx-auto flex items-center justify-center">
-                <Calendar className="w-8 h-8 sm:w-10 sm:h-10 text-white" />
-              </div>
-            </div>
-            <h3 className="text-lg sm:text-xl font-semibold text-gray-800 mb-2 sm:mb-3">Aucun rendez-vous</h3>
-            <p className="text-sm sm:text-base text-gray-600 mb-4 sm:mb-6">
-              {filter === 'all'
-                ? "Vous n'avez aucun rendez-vous pour le moment."
-                : `Aucun rendez-vous ${filter === 'confirmed' ? 'confirmé' :
-                  filter === 'pending' ? 'en attente' :
-                    filter === 'completed' ? 'terminé' : 'annulé'} pour le moment.`
-              }
-            </p>
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="bg-gradient-to-r from-pink-500 to-purple-600 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg sm:rounded-xl font-medium hover:shadow-lg transition-shadow text-sm sm:text-base"
-            >
-              Créer un nouveau rendez-vous
-            </motion.button>
+          <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-indigo-100 to-purple-100 flex items-center justify-center mx-auto mb-6">
+            <Calendar className="w-10 h-10 text-indigo-400" />
           </div>
+          <h3 className="text-xl font-black text-gray-900 uppercase tracking-tight mb-2">Aucun rendez-vous</h3>
+          <p className="text-sm text-gray-400 font-medium mb-6">
+            {filter === 'all' ? "Vous n'avez aucun rendez-vous pour le moment." : `Aucun rendez-vous ${statusConfig[filter]?.label.toLowerCase()} pour le moment.`}
+          </p>
+          {currentUser?.subscription?.plan === 'basic' ? (
+            <button
+              disabled
+              className="inline-flex items-center gap-2 bg-slate-100 text-slate-400 px-6 py-3 rounded-xl font-black text-xs uppercase tracking-widest cursor-not-allowed border border-slate-200"
+            >
+              <Lock className="w-4 h-4" /> Passer au Premium pour réserver
+            </button>
+          ) : (
+            <motion.button
+              whileHover={{ scale: 1.04 }}
+              whileTap={{ scale: 0.96 }}
+              className="inline-flex items-center gap-2 bg-gradient-to-r from-[#4338ca] to-[#7c3aed] text-white px-6 py-3 rounded-xl font-black text-xs uppercase tracking-widest shadow-lg"
+            >
+              <Plus className="w-4 h-4" /> Réserver maintenant
+            </motion.button>
+          )}
         </motion.div>
       )}
 
-      {/* Modal de détail des rendez-vous */}
+      {/* ── MODAL DÉTAIL ── */}
       <AnimatePresence>
         {showModal && selectedAppointment && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/95 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4"
             onClick={closeModal}
           >
             <motion.div
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.8, opacity: 0 }}
-              transition={{ type: "spring", stiffness: 300, damping: 30 }}
-              className="max-w-4xl w-full mx-4 max-h-full relative bg-white rounded-3xl overflow-hidden shadow-2xl"
-              onClick={(e) => e.stopPropagation()}
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              transition={{ type: 'spring', stiffness: 300, damping: 28 }}
+              className="max-w-2xl w-full bg-white rounded-3xl overflow-hidden shadow-2xl"
+              onClick={e => e.stopPropagation()}
             >
-              {/* Header du modal */}
-              <div className="bg-gradient-to-r from-pink-500 to-purple-600 p-6 text-white">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-4">
-                    <img
-                      src={selectedAppointment.client.avatar}
-                      alt={selectedAppointment.client.name}
-                      className="w-16 h-16 rounded-xl object-cover border-2 border-white/20"
-                    />
-                    <div>
-                      <h2 className="text-2xl font-bold">{selectedAppointment.service}</h2>
-                      <p className="text-pink-100">avec {selectedAppointment.client.name}</p>
+              {/* Modal header */}
+              <div className="bg-gradient-to-r from-[#1e1b4b] via-[#4338ca] to-[#701a75] p-7 relative overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-b from-white/10 to-transparent pointer-events-none" />
+                <div className="relative z-10 flex items-start justify-between gap-4">
+                  <div>
+                    <p className="text-[10px] font-black uppercase tracking-[0.4em] text-indigo-300/70 mb-1">Détail du rendez-vous</p>
+                    <h2 className="text-2xl font-black text-white uppercase tracking-tight">{selectedAppointment.service}</h2>
+                    <div className="flex items-center gap-2 mt-2">
+                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black uppercase border ${statusConfig[selectedAppointment.status]?.classes}`}>
+                        <span className={`w-1.5 h-1.5 rounded-full ${statusConfig[selectedAppointment.status]?.dot}`} />
+                        {statusConfig[selectedAppointment.status]?.label}
+                      </span>
+                      <span className="text-indigo-200/60 text-xs font-semibold">{selectedAppointment.price}€</span>
                     </div>
                   </div>
                   <motion.button
-                    whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.9 }}
                     onClick={closeModal}
-                    className="bg-white/20 backdrop-blur-sm text-white p-3 rounded-full hover:bg-white/30 transition-all duration-300"
+                    className="bg-white/10 text-white p-2.5 rounded-xl hover:bg-white/20 transition-colors"
                   >
-                    <X className="w-6 h-6" />
+                    <X className="w-5 h-5" />
                   </motion.button>
                 </div>
               </div>
 
-              {/* Contenu du modal */}
-              <div className="p-4 sm:p-8 max-h-[70vh] overflow-y-auto">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-8">
-                  {/* Informations du rendez-vous */}
-                  <div className="space-y-6">
-                    <div>
-                      <h3 className="text-lg font-semibold text-gray-800 mb-4">Détails du rendez-vous</h3>
-                      <div className="space-y-4">
-                        <div className="flex items-center space-x-3">
-                          <Calendar className="w-5 h-5 text-pink-500" />
-                          <div>
-                            <p className="font-medium text-gray-800">
-                              {new Date(selectedAppointment.date).toLocaleDateString('fr-FR', {
-                                weekday: 'long',
-                                day: 'numeric',
-                                month: 'long',
-                                year: 'numeric'
-                              })}
-                            </p>
-                            <p className="text-sm text-gray-600">{selectedAppointment.time} - {selectedAppointment.duration}</p>
-                          </div>
-                        </div>
-
-                        <div className="flex items-center space-x-3">
-                          <MapPin className="w-5 h-5 text-blue-500" />
-                          <div>
-                            <p className="font-medium text-gray-800">{selectedAppointment.location}</p>
-                            <p className="text-sm text-gray-600">{selectedAppointment.address}</p>
-                          </div>
-                        </div>
-
-                        <div className="flex items-center space-x-3">
-                          <Euro className="w-5 h-5 text-green-500" />
-                          <div>
-                            <p className="font-medium text-gray-800 text-xl">{selectedAppointment.price}€</p>
-                            <p className="text-sm text-gray-600">
-                              Statut: <span className={`px-2 py-1 rounded-full text-xs font-medium ${getPaymentStatusColor(selectedAppointment.paymentStatus)}`}>
-                                {selectedAppointment.paymentStatus === 'paid' ? 'Payé' :
-                                  selectedAppointment.paymentStatus === 'pending' ? 'En attente' : 'Remboursé'}
-                              </span>
-                            </p>
-                          </div>
-                        </div>
-                      </div>
+              {/* Modal body */}
+              <div className="p-7 space-y-6 max-h-[65vh] overflow-y-auto">
+                {/* Info grid */}
+                <div className="grid grid-cols-2 gap-3">
+                  {[
+                    { icon: <Calendar className="w-4 h-4 text-indigo-500" />, label: 'Date', value: new Date(selectedAppointment.date).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }) },
+                    { icon: <Clock className="w-4 h-4 text-purple-500" />, label: 'Horaire', value: `${selectedAppointment.time} · ${selectedAppointment.duration}` },
+                    { icon: <MapPin className="w-4 h-4 text-pink-500" />, label: 'Lieu', value: selectedAppointment.location },
+                    { icon: <CreditCard className="w-4 h-4 text-emerald-500" />, label: 'Paiement', value: paymentConfig[selectedAppointment.paymentStatus]?.label },
+                  ].map((item, i) => (
+                    <div key={i} className="bg-gray-50 rounded-2xl p-4">
+                      <div className="flex items-center gap-2 mb-1">{item.icon}<span className="text-[10px] font-black uppercase tracking-widest text-gray-400">{item.label}</span></div>
+                      <p className="text-sm font-bold text-gray-800 leading-snug">{item.value}</p>
                     </div>
+                  ))}
+                </div>
 
-                    {/* Notes */}
-                    {selectedAppointment.notes && (
-                      <div>
-                        <h4 className="font-semibold text-gray-800 mb-2">Notes</h4>
-                        <div className="bg-gray-50 rounded-xl p-4">
-                          <p className="text-gray-700">{selectedAppointment.notes}</p>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Demandes spéciales */}
-                    {selectedAppointment.specialRequests && selectedAppointment.specialRequests.length > 0 && (
-                      <div>
-                        <h4 className="font-semibold text-gray-800 mb-2">Demandes spéciales</h4>
-                        <div className="flex flex-wrap gap-2">
-                          {selectedAppointment.specialRequests.map((request, index) => (
-                            <span key={index} className="bg-gradient-to-r from-pink-100 to-purple-100 text-pink-700 px-3 py-2 rounded-full text-sm font-medium">
-                              ✨ {request}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    )}
+                {/* Notes */}
+                {selectedAppointment.notes && (
+                  <div className="bg-indigo-50 rounded-2xl p-4 border border-indigo-100">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-indigo-400 mb-2">Notes</p>
+                    <p className="text-sm text-gray-700 font-medium leading-relaxed">{selectedAppointment.notes}</p>
                   </div>
+                )}
 
-                  {/* Informations client */}
-                  <div className="space-y-6">
-                    <div>
-                      <h3 className="text-lg font-semibold text-gray-800 mb-4">Informations client</h3>
-                      <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-6">
-                        <div className="flex items-center space-x-4 mb-4">
-                          <img
-                            src={selectedAppointment.client.avatar}
-                            alt={selectedAppointment.client.name}
-                            className="w-16 h-16 rounded-xl object-cover"
-                          />
-                          <div>
-                            <h4 className="font-semibold text-gray-800 text-lg">{selectedAppointment.client.name}</h4>
-                            <p className="text-gray-600">Client VIP</p>
-                          </div>
-                        </div>
-
-                        <div className="space-y-3">
-                          <div className="flex items-center space-x-3">
-                            <Phone className="w-4 h-4 text-gray-500" />
-                            <span className="text-gray-700">{selectedAppointment.client.phone}</span>
-                          </div>
-                          <div className="flex items-center space-x-3">
-                            <Mail className="w-4 h-4 text-gray-500" />
-                            <span className="text-gray-700">{selectedAppointment.client.email}</span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Actions */}
-                    <div>
-                      <h4 className="font-semibold text-gray-800 mb-4">Actions</h4>
-                      <div className="grid grid-cols-2 gap-2 sm:gap-3">
-                        <motion.button
-                          whileHover={{ scale: 1.02 }}
-                          whileTap={{ scale: 0.98 }}
-                          className="bg-blue-500 text-white p-2 sm:p-3 rounded-lg sm:rounded-xl flex items-center justify-center space-x-1 sm:space-x-2 hover:bg-blue-600 transition-colors"
-                        >
-                          <Phone className="w-4 h-4" />
-                          <span className="text-xs sm:text-sm">Appeler</span>
-                        </motion.button>
-                        <motion.button
-                          whileHover={{ scale: 1.02 }}
-                          whileTap={{ scale: 0.98 }}
-                          className="bg-green-500 text-white p-2 sm:p-3 rounded-lg sm:rounded-xl flex items-center justify-center space-x-1 sm:space-x-2 hover:bg-green-600 transition-colors"
-                        >
-                          <MessageCircle className="w-4 h-4" />
-                          <span className="text-xs sm:text-sm">Message</span>
-                        </motion.button>
-                        <motion.button
-                          whileHover={{ scale: 1.02 }}
-                          whileTap={{ scale: 0.98 }}
-                          className="bg-purple-500 text-white p-2 sm:p-3 rounded-lg sm:rounded-xl flex items-center justify-center space-x-1 sm:space-x-2 hover:bg-purple-600 transition-colors"
-                        >
-                          <Edit className="w-4 h-4" />
-                          <span className="text-xs sm:text-sm">Modifier</span>
-                        </motion.button>
-                        <motion.button
-                          whileHover={{ scale: 1.02 }}
-                          whileTap={{ scale: 0.98 }}
-                          className="bg-gray-500 text-white p-2 sm:p-3 rounded-lg sm:rounded-xl flex items-center justify-center space-x-1 sm:space-x-2 hover:bg-gray-600 transition-colors"
-                        >
-                          <Download className="w-4 h-4" />
-                          <span className="text-xs sm:text-sm">Exporter</span>
-                        </motion.button>
-                      </div>
+                {/* Demandes spéciales */}
+                {selectedAppointment.specialRequests?.length > 0 && (
+                  <div>
+                    <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-3">Demandes spéciales</p>
+                    <div className="flex flex-wrap gap-2">
+                      {selectedAppointment.specialRequests.map((r, i) => (
+                        <span key={i} className="px-3 py-1.5 bg-gradient-to-r from-indigo-50 to-purple-50 text-indigo-700 rounded-xl text-xs font-bold border border-indigo-100">
+                          ✦ {r}
+                        </span>
+                      ))}
                     </div>
                   </div>
+                )}
+
+                {/* Actions */}
+                <div className="grid grid-cols-2 gap-3 pt-2">
+                  {[
+                    { label: 'Appeler', icon: <Phone className="w-4 h-4" />, color: 'from-indigo-500 to-purple-600' },
+                    { label: 'Message', icon: <MessageCircle className="w-4 h-4" />, color: 'from-pink-500 to-rose-500' },
+                    { label: 'Modifier', icon: <Edit className="w-4 h-4" />, color: 'from-slate-600 to-slate-700' },
+                    { label: 'Exporter', icon: <Download className="w-4 h-4" />, color: 'from-emerald-500 to-teal-600' },
+                  ].map((btn, i) => (
+                    <motion.button
+                      key={i}
+                      whileHover={{ scale: 1.02, y: -1 }}
+                      whileTap={{ scale: 0.97 }}
+                      className={`flex items-center justify-center gap-2 bg-gradient-to-r ${btn.color} text-white py-3 rounded-2xl font-black text-xs uppercase tracking-widest shadow-lg`}
+                    >
+                      {btn.icon} {btn.label}
+                    </motion.button>
+                  ))}
                 </div>
               </div>
             </motion.div>

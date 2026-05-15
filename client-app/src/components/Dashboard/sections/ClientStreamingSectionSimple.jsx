@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Video,
@@ -13,6 +13,7 @@ import {
   Mic,
   MicOff,
   Camera,
+  CameraOff,
   Eye,
   Euro,
   Sparkles,
@@ -22,508 +23,393 @@ import {
   Plus,
   X,
   CheckCircle,
-  AlertCircle
+  AlertCircle,
+  MessageCircle,
+  Gift,
+  Share2,
+  Maximize,
+  Settings,
+  MoreVertical,
+  Wifi,
+  Volume2,
+  VolumeX,
+  Send
 } from 'lucide-react';
+import { streamingService } from '../../../services/streamingService';
+import { db } from '../../../services/firebase';
+import { doc, onSnapshot } from 'firebase/firestore';
 
 const ClientStreamingSectionSimple = ({ currentUser }) => {
   const [isInStream, setIsInStream] = useState(false);
   const [currentStream, setCurrentStream] = useState(null);
+  const [activeStreams, setActiveStreams] = useState([]);
   const [selectedFilter, setSelectedFilter] = useState('all');
-  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showHearts, setShowHearts] = useState([]);
+  const [chatMessages, setChatMessages] = useState([
+    { id: 1, user: 'System', text: 'Bienvenue dans la session live !', type: 'system' },
+  ]);
+  const [newMsg, setNewMsg] = useState('');
+  const [isMuted, setIsMuted] = useState(true);
+  const [loading, setLoading] = useState(true);
+  
+  const videoRef = useRef(null);
 
   const isPremium = currentUser?.subscription?.status === 'active' &&
     (currentUser?.subscription?.type === 'premium' || currentUser?.subscription?.type === 'vip');
 
-  const upcomingSessions = [
-    {
-      id: 1,
-      title: 'Session Privée - Soirée Relaxante',
-      scheduledFor: '2024-01-20T20:00:00',
-      duration: 60,
-      type: 'private',
-      maxViewers: 1,
-      price: 50,
-      description: 'Moment de détente et de conversation privée',
-      category: 'relaxation',
-      thumbnail: '/api/placeholder/300/200',
-      tags: ['relaxation', 'conversation', 'privé']
-    },
-    {
-      id: 2,
-      title: 'Streaming Group - Soirée Jeux',
-      scheduledFor: '2024-01-22T19:00:00',
-      duration: 90,
-      type: 'group',
-      maxViewers: 10,
-      price: 25,
-      description: 'Jeux interactifs et moments de partage',
-      category: 'games',
-      thumbnail: '/api/placeholder/300/200',
-      tags: ['jeux', 'interactif', 'groupe']
-    },
-    {
-      id: 3,
-      title: 'Session VIP - Danse Sensuelle',
-      scheduledFor: '2024-01-25T21:00:00',
-      duration: 45,
-      type: 'vip',
-      maxViewers: 5,
-      price: 75,
-      description: 'Performance artistique exclusive',
-      category: 'performance',
-      thumbnail: '/api/placeholder/300/200',
-      tags: ['vip', 'danse', 'exclusif']
-    }
-  ];
+  // Fetch real active streams from Firestore
+  useEffect(() => {
+    const fetchStreams = async () => {
+      try {
+        const streams = await streamingService.getActiveStreams();
+        setActiveStreams(streams);
+      } catch (err) {
+        console.error("Error fetching streams:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const pastSessions = [
-    {
-      id: 4,
-      title: 'Session Privée - Conversation',
-      date: '2024-01-15T20:00:00',
-      duration: 45,
-      type: 'private',
-      viewers: 1,
-      rating: 5,
-      feedback: 'Moment parfait, très agréable',
-      thumbnail: '/api/placeholder/300/200',
-      category: 'conversation'
-    },
-    {
-      id: 5,
-      title: 'Streaming Group - Danse',
-      date: '2024-01-12T19:30:00',
-      duration: 60,
-      type: 'group',
-      viewers: 8,
-      rating: 4,
-      feedback: 'Super ambiance, à refaire !',
-      thumbnail: '/api/placeholder/300/200',
-      category: 'performance'
-    },
-    {
-      id: 6,
-      title: 'Session VIP - Relaxation',
-      date: '2024-01-10T20:30:00',
-      duration: 90,
-      type: 'vip',
-      viewers: 3,
-      rating: 5,
-      feedback: 'Expérience inoubliable, merci !',
-      thumbnail: '/api/placeholder/300/200',
-      category: 'relaxation'
-    }
-  ];
+    fetchStreams();
+    // Refresh every 30s
+    const interval = setInterval(fetchStreams, 30000);
+    return () => clearInterval(interval);
+  }, []);
 
-  const filters = [
-    { id: 'all', label: 'Toutes', icon: Video },
-    { id: 'private', label: 'Privées', icon: Lock },
-    { id: 'group', label: 'Groupes', icon: Users },
-    { id: 'vip', label: 'VIP', icon: Crown }
-  ];
-
-  const filteredSessions = upcomingSessions.filter(session => {
-    if (selectedFilter === 'all') return true;
-    return session.type === selectedFilter;
-  });
-
-  const handleJoinStream = (session) => {
+  const handleJoinStream = async (session) => {
     setCurrentStream(session);
     setIsInStream(true);
+    
+    // WebRTC Join
+    try {
+      // Si une URL média est présente, on privilégie le mode Sync Player (Alternative stable)
+      if (session.mediaUrl) {
+        console.log("Using Sync Player mode...");
+        if (videoRef.current) videoRef.current.srcObject = null;
+        return; 
+      }
+
+      // Sinon, on tente le WebRTC classique
+      await streamingService.joinStream(session.id, (remoteStream) => {
+        if (videoRef.current) {
+          videoRef.current.srcObject = remoteStream;
+          videoRef.current.play().catch(err => console.warn("Autoplay interaction required", err));
+        }
+      });
+      // Écouter les changements en temps réel (Pause/Play/Sync)
+      onSnapshot(doc(db, 'streams', session.id), (snapshot) => {
+        if (snapshot.exists()) {
+          const data = snapshot.data();
+          setCurrentStream(prev => ({ ...prev, ...data }));
+        }
+      });
+    } catch (err) {
+      console.error("Failed to join stream:", err);
+    }
   };
 
-  const handleLeaveStream = () => {
-    setIsInStream(false);
-    setCurrentStream(null);
+  const handleSendHeart = () => {
+    const id = Date.now();
+    setShowHearts(prev => [...prev, id]);
+    setTimeout(() => {
+      setShowHearts(prev => prev.filter(h => h !== id));
+    }, 2000);
+  };
+
+  const handleSendMessage = (e) => {
+    e.preventDefault();
+    if (!newMsg.trim()) return;
+    setChatMessages([...chatMessages, { id: Date.now(), user: 'Moi', text: newMsg, type: 'user' }]);
+    setNewMsg('');
   };
 
   if (!isPremium) {
     return (
-      <div className="bg-gradient-to-br from-gray-50 to-pink-50 p-4 sm:p-6">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="max-w-2xl mx-auto"
-        >
-          <div className="text-center py-16 sm:py-20">
-            <div className="relative mb-8">
-              <div className="absolute inset-0 bg-gradient-to-r from-pink-500 to-purple-600 rounded-full blur-2xl opacity-20"></div>
-              <div className="relative bg-gradient-to-r from-pink-500 to-purple-600 p-6 sm:p-8 rounded-full mx-auto w-24 h-24 sm:w-32 sm:h-32 flex items-center justify-center">
-                <Lock className="w-12 h-12 sm:w-16 sm:h-16 text-white" />
-              </div>
-            </div>
-
-            <h3 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-pink-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent mb-4">
-              Contenu Premium Exclusif
-            </h3>
-            <p className="text-gray-600 text-base sm:text-lg mb-8 max-w-md mx-auto">
-              Les sessions de streaming interactives sont réservées aux abonnés Premium.
-              Découvrez un univers de divertissement personnalisé.
-            </p>
-
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white px-8 py-4 rounded-xl flex items-center gap-3 mx-auto transition-all duration-300 shadow-lg shadow-pink-500/25 font-medium text-lg"
-            >
-              <Crown className="w-6 h-6" />
-              Passer Premium
-            </motion.button>
-
-            <div className="mt-12 grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-lg mx-auto">
-              <div className="text-center">
-                <div className="bg-gradient-to-r from-pink-100 to-purple-100 p-4 rounded-xl mb-3">
-                  <Video className="w-8 h-8 text-pink-600 mx-auto" />
-                </div>
-                <h4 className="font-semibold text-gray-800 mb-1">Sessions Privées</h4>
-                <p className="text-sm text-gray-600">Moment intime et personnalisé</p>
-              </div>
-              <div className="text-center">
-                <div className="bg-gradient-to-r from-purple-100 to-indigo-100 p-4 rounded-xl mb-3">
-                  <Users className="w-8 h-8 text-purple-600 mx-auto" />
-                </div>
-                <h4 className="font-semibold text-gray-800 mb-1">Groupes VIP</h4>
-                <p className="text-sm text-gray-600">Ambiance conviviale et exclusive</p>
-              </div>
-              <div className="text-center">
-                <div className="bg-gradient-to-r from-indigo-100 to-pink-100 p-4 rounded-xl mb-3">
-                  <Zap className="w-8 h-8 text-indigo-600 mx-auto" />
-                </div>
-                <h4 className="font-semibold text-gray-800 mb-1">Contenu Live</h4>
-                <p className="text-sm text-gray-600">Interactions en temps réel</p>
-              </div>
-            </div>
+      <div className="flex flex-col items-center justify-center py-20 px-6 text-center">
+        <div className="w-24 h-24 bg-slate-100 rounded-[30px] flex items-center justify-center mb-8 relative">
+          <Lock size={40} className="text-slate-400" />
+          <div className="absolute -top-2 -right-2 w-10 h-10 bg-indigo-600 rounded-2xl flex items-center justify-center border-4 border-white">
+            <Crown size={20} className="text-white" />
           </div>
-        </motion.div>
+        </div>
+        <h2 className="text-3xl font-black text-slate-900 uppercase tracking-tight mb-4">Accès Restreint</h2>
+        <p className="text-slate-500 font-medium max-w-md mb-8">
+          Le streaming interactif est une exclusivité **Premium**. Améliorez votre compte pour accéder aux sessions privées et aux salons VIP.
+        </p>
+        <button className="bg-indigo-600 text-white px-10 py-4 rounded-2xl font-black text-[11px] uppercase tracking-[0.2em] hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-600/20">
+          Devenir Premium
+        </button>
       </div>
     );
   }
 
+  // Sync Pause/Play from Admin
+  useEffect(() => {
+    if (!videoRef.current || !currentStream) return;
+    
+    if (currentStream.isMediaPlaying === false) {
+      videoRef.current.pause();
+    } else {
+      videoRef.current.play().catch(() => {});
+    }
+  }, [currentStream?.isMediaPlaying]);
+
   return (
-    <div className="bg-gradient-to-br from-gray-50 to-pink-50 p-4 sm:p-6">
-      <div className="max-w-7xl mx-auto space-y-8">
-        {/* Header Élégant */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-8"
-        >
-          <div className="flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0 min-w-0">
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center mb-3">
-                <div className="relative">
-                  <div className="absolute inset-0 bg-gradient-to-r from-pink-500 to-purple-600 rounded-full blur-lg opacity-30"></div>
-                  <div className="relative bg-gradient-to-r from-pink-500 to-purple-600 p-2 sm:p-3 rounded-full">
-                    <Video className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-                  </div>
+    <div className="w-full max-w-7xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-700">
+      
+      {!isInStream ? (
+        <>
+          {/* 📽️ Stream Lobby Header */}
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
+            <div>
+              <div className="flex items-center gap-3 mb-2">
+                <div className="bg-indigo-600 p-2 rounded-xl">
+                  <Video size={20} className="text-white" />
                 </div>
-                <div className="ml-3 sm:ml-4">
-                  <h2 className="text-xl sm:text-2xl md:text-3xl font-bold bg-gradient-to-r from-pink-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent">
-                    Sessions Live
-                  </h2>
-                  <p className="text-xs sm:text-sm md:text-base text-gray-600 mt-1">
-                    Rejoignez les sessions interactives en temps réel
-                  </p>
-                </div>
+                <h2 className="text-3xl font-black text-slate-900 uppercase tracking-tight">Live Stream</h2>
               </div>
-
-              {/* Stats Élégantes */}
-              <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-4 md:space-x-6 mt-3 sm:mt-4">
-                <div className="flex items-center space-x-2">
-                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                  <span className="text-xs sm:text-sm text-gray-600">
-                    {upcomingSessions.length} sessions disponibles
-                  </span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Users className="w-3 h-3 sm:w-4 sm:h-4 text-blue-500" />
-                  <span className="text-xs sm:text-sm text-gray-600">
-                    {upcomingSessions.reduce((sum, s) => sum + s.maxViewers, 0)} places total
-                  </span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Euro className="w-3 h-3 sm:w-4 sm:h-4 text-pink-500" />
-                  <span className="text-xs sm:text-sm text-gray-600">
-                    {upcomingSessions.reduce((sum, s) => sum + s.price, 0)}€ total
-                  </span>
-                </div>
-              </div>
+              <p className="text-slate-500 font-medium">Découvrez les sessions en direct et à venir.</p>
             </div>
-
-            <div className="flex items-center space-x-2 sm:space-x-3 flex-shrink-0 mt-4 md:mt-0">
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => setShowCreateModal(true)}
-                className="bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg sm:rounded-xl flex items-center gap-1 sm:gap-2 font-medium shadow-lg shadow-pink-500/25 transition-all duration-300 text-sm sm:text-base"
-              >
-                <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
-                <span className="hidden sm:inline">Nouvelle Session</span>
-                <span className="sm:hidden">Nouveau</span>
-              </motion.button>
-            </div>
-          </div>
-        </motion.div>
-
-        {/* Filtres Élégants */}
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="mb-8"
-        >
-          <div className="flex flex-wrap gap-2 sm:gap-3">
-            {filters.map((filter) => {
-              const Icon = filter.icon;
-              return (
-                <motion.button
-                  key={filter.id}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => setSelectedFilter(filter.id)}
-                  className={`flex items-center gap-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg sm:rounded-xl font-medium transition-all duration-200 ${selectedFilter === filter.id
-                    ? 'bg-gradient-to-r from-pink-500 to-purple-600 text-white shadow-lg shadow-pink-500/25'
-                    : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-200'
-                    }`}
+            
+            <div className="flex gap-2">
+              {['all', 'live'].map((f) => (
+                <button
+                  key={f}
+                  onClick={() => setSelectedFilter(f)}
+                  className={`px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${
+                    selectedFilter === f ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
+                  }`}
                 >
-                  <Icon className="w-4 h-4 sm:w-5 sm:h-5" />
-                  <span className="text-sm sm:text-base">{filter.label}</span>
-                </motion.button>
-              );
-            })}
+                  {f === 'all' ? 'Tous' : 'En Direct'}
+                </button>
+              ))}
+            </div>
           </div>
-        </motion.div>
 
-        {/* Current Stream */}
-        <AnimatePresence>
-          {isInStream && currentStream && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-gradient-to-r from-pink-500 to-purple-600 rounded-xl p-4 sm:p-6 text-white shadow-lg shadow-pink-500/25 mb-8"
-            >
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
-                <div className="flex items-center space-x-3">
-                  <div className="w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
-                  <h3 className="text-lg sm:text-xl font-semibold">{currentStream.title}</h3>
-                </div>
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={handleLeaveStream}
-                  className="bg-white/20 hover:bg-white/30 px-4 py-2 rounded-lg transition-colors flex items-center gap-2"
+          {/* 📱 Stream Cards Grid */}
+          {loading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {[1, 2, 3].map(i => <div key={i} className="h-64 bg-slate-100 animate-pulse rounded-[35px]"></div>)}
+            </div>
+          ) : activeStreams.length === 0 ? (
+            <div className="text-center py-20 bg-slate-50 rounded-[40px] border-2 border-dashed border-slate-200">
+              <Eye size={40} className="mx-auto text-slate-300 mb-4" />
+              <h3 className="text-lg font-black text-slate-400 uppercase tracking-widest">Aucun live pour le moment</h3>
+              <p className="text-xs text-slate-400 mt-2">Revenez plus tard pour les prochaines sessions.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {activeStreams.map((session) => (
+                <motion.div
+                  key={session.id}
+                  whileHover={{ y: -5 }}
+                  className="bg-white rounded-[35px] overflow-hidden border border-slate-100 shadow-xl shadow-slate-200/20 flex flex-col group"
                 >
-                  <X className="w-4 h-4" />
-                  <span className="text-sm sm:text-base">Quitter</span>
-                </motion.button>
-              </div>
-              <div className="flex flex-col sm:flex-row sm:items-center gap-4 text-sm">
-                <div className="flex items-center gap-2">
-                  <Users className="w-4 h-4" />
-                  <span>1/{currentStream.maxViewers} participants</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Clock className="w-4 h-4" />
-                  <span>45:30 / {currentStream.duration}min</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Eye className="w-4 h-4" />
-                  <span>En direct</span>
-                </div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* Sessions à Venir */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="mb-8"
-        >
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="text-xl sm:text-2xl font-bold text-gray-800 flex items-center gap-3">
-              <div className="bg-gradient-to-r from-pink-100 to-purple-100 p-2 rounded-lg">
-                <Calendar className="w-5 h-5 text-pink-600" />
-              </div>
-              Sessions à Venir
-            </h3>
-            <div className="text-sm text-gray-500">
-              {filteredSessions.length} session{filteredSessions.length > 1 ? 's' : ''}
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
-            {filteredSessions.map((session, index) => (
-              <motion.div
-                key={session.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.1 * index }}
-                className="bg-white rounded-xl p-4 sm:p-6 border border-gray-200 hover:border-pink-200 transition-all duration-300 hover:shadow-lg hover:shadow-pink-500/10 group"
-              >
-                {/* Thumbnail et Type */}
-                <div className="relative mb-4">
-                  <div className="aspect-video bg-gradient-to-br from-pink-100 to-purple-100 rounded-lg flex items-center justify-center">
-                    <Video className="w-12 h-12 text-pink-400" />
-                  </div>
-                  <div className="absolute top-3 right-3">
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${session.type === 'private'
-                      ? 'bg-purple-100 text-purple-600'
-                      : session.type === 'vip'
-                        ? 'bg-gradient-to-r from-yellow-100 to-orange-100 text-orange-600'
-                        : 'bg-blue-100 text-blue-600'
-                      }`}>
-                      {session.type === 'private' ? 'Privé' : session.type === 'vip' ? 'VIP' : 'Groupe'}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Contenu */}
-                <div className="space-y-3">
-                  <div>
-                    <h4 className="font-semibold text-gray-800 mb-1 text-sm sm:text-base line-clamp-2">{session.title}</h4>
-                    <p className="text-xs sm:text-sm text-gray-600 line-clamp-2">{session.description}</p>
-                  </div>
-
-                  {/* Détails */}
-                  <div className="space-y-2 text-xs sm:text-sm text-gray-600">
-                    <div className="flex items-center gap-2">
-                      <Calendar className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
-                      <span className="truncate">
-                        {new Date(session.scheduledFor).toLocaleDateString('fr-FR')} à {new Date(session.scheduledFor).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
-                      </span>
+                  <div className="relative aspect-video overflow-hidden bg-slate-900">
+                    <div className="absolute inset-0 bg-gradient-to-t from-slate-900/80 via-transparent to-transparent"></div>
+                    
+                    <div className="absolute top-4 left-4 bg-rose-600 text-white px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest flex items-center gap-1.5 animate-pulse">
+                      <div className="w-1.5 h-1.5 bg-white rounded-full"></div>
+                      En Direct
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Clock className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
-                      <span>{session.duration} minutes</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Users className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
-                      <span>Max {session.maxViewers} participant{session.maxViewers > 1 ? 's' : ''}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Euro className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
-                      <span className="font-semibold text-pink-600">{session.price}€</span>
-                    </div>
-                  </div>
 
-                  {/* Tags */}
-                  <div className="flex flex-wrap gap-1">
-                    {session.tags.slice(0, 2).map((tag, tagIndex) => (
-                      <span key={tagIndex} className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full">
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
-
-                  {/* Bouton */}
-                  <motion.button
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={() => handleJoinStream(session)}
-                    className="w-full bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white py-2.5 sm:py-3 rounded-lg flex items-center justify-center gap-2 transition-all duration-300 shadow-lg shadow-pink-500/25 font-medium text-sm sm:text-base"
-                  >
-                    <Play className="w-4 h-4" />
-                    Rejoindre
-                  </motion.button>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </motion.div>
-
-        {/* Sessions Passées */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          className="mb-8"
-        >
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="text-xl sm:text-2xl font-bold text-gray-800 flex items-center gap-3">
-              <div className="bg-gradient-to-r from-gray-100 to-blue-100 p-2 rounded-lg">
-                <TrendingUp className="w-5 h-5 text-gray-600" />
-              </div>
-              Historique des Sessions
-            </h3>
-            <div className="text-sm text-gray-500">
-              {pastSessions.length} session{pastSessions.length > 1 ? 's' : ''} terminée{pastSessions.length > 1 ? 's' : ''}
-            </div>
-          </div>
-
-          <div className="space-y-4">
-            {pastSessions.map((session, index) => (
-              <motion.div
-                key={session.id}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.1 * index }}
-                className="bg-white rounded-xl p-4 sm:p-6 border border-gray-200 hover:border-gray-300 transition-all duration-300 hover:shadow-md"
-              >
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-start gap-4">
-                      {/* Thumbnail */}
-                      <div className="flex-shrink-0">
-                        <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg flex items-center justify-center">
-                          <Video className="w-8 h-8 sm:w-10 sm:h-10 text-gray-400" />
-                        </div>
-                      </div>
-
-                      {/* Contenu */}
-                      <div className="flex-1 min-w-0">
-                        <h4 className="font-semibold text-gray-800 mb-1 text-sm sm:text-base truncate">{session.title}</h4>
-                        <p className="text-xs sm:text-sm text-gray-600 mb-2 line-clamp-1">{session.feedback}</p>
-
-                        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-xs sm:text-sm text-gray-600">
-                          <div className="flex items-center gap-1">
-                            <Calendar className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
-                            <span>{new Date(session.date).toLocaleDateString('fr-FR')}</span>
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <Clock className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
-                            <span>{session.duration} min</span>
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <Users className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
-                            <span>{session.viewers} participant{session.viewers > 1 ? 's' : ''}</span>
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <Star className="w-3 h-3 sm:w-4 sm:h-4 text-yellow-500 flex-shrink-0" />
-                            <span className="font-medium">{session.rating}/5</span>
-                          </div>
-                        </div>
+                    <div className="absolute bottom-4 left-4 right-4 flex justify-between items-end">
+                      <div>
+                        <span className="bg-white/20 backdrop-blur-md text-white px-2 py-0.5 rounded-lg text-[8px] font-black uppercase tracking-widest border border-white/20">
+                          {session.type || 'LIVE'}
+                        </span>
+                        <h3 className="text-white font-bold mt-1 line-clamp-1">{session.title}</h3>
                       </div>
                     </div>
                   </div>
 
-                  {/* Actions */}
-                  <div className="flex items-center gap-2 flex-shrink-0">
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${session.type === 'private'
-                      ? 'bg-purple-100 text-purple-600'
-                      : session.type === 'vip'
-                        ? 'bg-gradient-to-r from-yellow-100 to-orange-100 text-orange-600'
-                        : 'bg-blue-100 text-blue-600'
-                      }`}>
-                      {session.type === 'private' ? 'Privé' : session.type === 'vip' ? 'VIP' : 'Groupe'}
-                    </span>
-                    <motion.button
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      className="text-pink-500 hover:text-pink-600 text-sm font-medium px-3 py-1.5 rounded-lg hover:bg-pink-50 transition-colors"
+                  <div className="p-6 space-y-4 flex-1 flex flex-col">
+                    <div className="flex items-center justify-between text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                      <div className="flex items-center gap-2">
+                        <Clock size={14} />
+                        <span>Lancé il y a peu</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Users size={14} />
+                        <span>Illimité</span>
+                      </div>
+                    </div>
+                    
+                    <button
+                      onClick={() => handleJoinStream(session)}
+                      className="w-full bg-slate-900 text-white py-4 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] hover:bg-slate-800 transition-all flex items-center justify-center gap-2"
                     >
-                      Détails
-                    </motion.button>
+                      <Play size={14} fill="currentColor" />
+                      Rejoindre le Live
+                    </button>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          )}
+        </>
+      ) : (
+        /* 🎬 FULL INDEPENDENT LIVE INTERFACE */
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="h-[calc(100vh-140px)] flex flex-col lg:flex-row gap-6 bg-slate-950 rounded-[40px] overflow-hidden p-4 lg:p-6 shadow-2xl relative"
+        >
+          {/* Main Player Area */}
+          <div className="flex-1 relative bg-black rounded-[30px] overflow-hidden group shadow-inner">
+            
+            {/* REAL VIDEO ELEMENT */}
+            <video 
+              ref={videoRef} 
+              autoPlay 
+              loop
+              muted={isMuted}
+              playsInline 
+              src={currentStream?.mediaUrl}
+              className="w-full h-full object-cover"
+              onLoadedMetadata={(e) => {
+                if (currentStream?.mediaStartTime) {
+                  const duration = e.target.duration;
+                  const totalOffset = (Date.now() - currentStream.mediaStartTime) / 1000;
+                  // Si boucle, on calcule la position relative dans la durée
+                  const syncOffset = totalOffset % duration;
+                  if (syncOffset > 0) e.target.currentTime = syncOffset;
+                }
+              }}
+            />
+            
+            {!currentStream?.mediaUrl && (
+              <div className="absolute inset-0 flex items-center justify-center text-white/20 pointer-events-none">
+                <div className="text-center">
+                  <Wifi size={60} className="mx-auto mb-4 animate-pulse" />
+                  <p className="text-[10px] font-black uppercase tracking-[0.3em]">Flux WebRTC sécurisé</p>
+                </div>
+              </div>
+            )}
+
+            {/* Custom Overlay Controls */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+              {/* Top Controls */}
+              <div className="absolute top-6 left-6 right-6 flex justify-between items-start">
+                <div className="flex items-center gap-3">
+                  <div className="bg-rose-600 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest text-white flex items-center gap-2">
+                    <div className="w-1.5 h-1.5 bg-white rounded-full animate-pulse"></div>
+                    Live
+                  </div>
+                  <div className="bg-black/40 backdrop-blur-md px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest text-white border border-white/10">
+                    {currentStream.title}
                   </div>
                 </div>
-              </motion.div>
-            ))}
+                <button 
+                  onClick={() => setIsInStream(false)}
+                  className="w-10 h-10 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center text-white transition-all"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+
+              {/* Bottom Controls */}
+              <div className="absolute bottom-6 left-6 right-6 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <button 
+                    onClick={() => setIsMuted(!isMuted)}
+                    className="w-12 h-12 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center text-white transition-all"
+                  >
+                    {isMuted ? <VolumeX size={20} /> : <Volume2 size={20} />}
+                  </button>
+                  <button 
+                    className="w-12 h-12 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center text-white transition-all"
+                  >
+                    <Settings size={20} />
+                  </button>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <button 
+                    onClick={handleSendHeart}
+                    className="w-14 h-14 bg-pink-500 hover:bg-pink-400 rounded-2xl flex items-center justify-center text-white shadow-xl shadow-pink-500/20 transition-all active:scale-90"
+                  >
+                    <Heart size={24} fill="currentColor" />
+                  </button>
+                  <button className="w-12 h-12 bg-indigo-600 hover:bg-indigo-500 rounded-2xl flex items-center justify-center text-white transition-all">
+                    <Gift size={20} />
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Rising Hearts Animation */}
+            <div className="absolute bottom-24 right-10 pointer-events-none">
+              <AnimatePresence>
+                {showHearts.map((h) => (
+                  <motion.div
+                    key={h}
+                    initial={{ y: 0, opacity: 1, scale: 0.5, x: 0 }}
+                    animate={{ y: -200, opacity: 0, scale: 1.5, x: (Math.random() - 0.5) * 50 }}
+                    exit={{ opacity: 0 }}
+                    className="absolute text-pink-500"
+                  >
+                    <Heart size={32} fill="currentColor" />
+                  </motion.div>
+                ))}
+              </AnimatePresence>
+            </div>
+          </div>
+
+          {/* Independent Custom Chat Panel */}
+          <div className="w-full lg:w-96 bg-white/5 backdrop-blur-xl border border-white/10 rounded-[30px] flex flex-col overflow-hidden">
+            <div className="p-6 border-b border-white/10 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <MessageCircle size={18} className="text-indigo-400" />
+                <h4 className="text-xs font-black uppercase tracking-widest text-white">Chat Privé</h4>
+              </div>
+              <div className="flex items-center gap-1.5 text-[9px] font-black text-indigo-300 uppercase">
+                <Eye size={12} />
+                <span>Interactif</span>
+              </div>
+            </div>
+
+            {/* Chat Messages */}
+            <div className="flex-1 overflow-y-auto p-6 space-y-4 scrollbar-hide">
+              {chatMessages.map((msg) => (
+                <motion.div 
+                  initial={{ opacity: 0, x: 10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  key={msg.id} 
+                  className={`flex flex-col ${msg.user === 'Moi' ? 'items-end' : 'items-start'}`}
+                >
+                  <span className="text-[8px] font-black text-white/30 uppercase tracking-widest mb-1">{msg.user}</span>
+                  <div className={`px-4 py-2 rounded-2xl text-[11px] font-medium max-w-[80%] ${
+                    msg.type === 'system' ? 'bg-indigo-500/20 text-indigo-200 italic' :
+                    msg.user === 'Moi' ? 'bg-indigo-600 text-white' : 'bg-white/10 text-white'
+                  }`}>
+                    {msg.text}
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+
+            {/* Chat Input */}
+            <form onSubmit={handleSendMessage} className="p-4 bg-white/5 border-t border-white/10">
+              <div className="relative">
+                <input 
+                  type="text" 
+                  value={newMsg}
+                  onChange={(e) => setNewMsg(e.target.value)}
+                  placeholder="Écrire un message..."
+                  className="w-full bg-white/10 border border-white/10 rounded-2xl px-5 py-3 text-[11px] text-white focus:outline-none focus:border-indigo-500/50 transition-all placeholder:text-white/20"
+                />
+                <button 
+                  type="submit"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-indigo-600 rounded-xl flex items-center justify-center text-white hover:bg-indigo-500 transition-all"
+                >
+                  <Send size={14} />
+                </button>
+              </div>
+            </form>
           </div>
         </motion.div>
-      </div>
+      )}
     </div>
   );
 };

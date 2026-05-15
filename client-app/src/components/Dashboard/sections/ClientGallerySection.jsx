@@ -92,12 +92,16 @@ const ClientGallerySection = ({ currentUser }) => {
 
   const filteredItems = galleryItems
     .filter(item => {
+      // Les médias "Privé" sont réservés à l'admin et au studio, ils ne s'affichent jamais en galerie client
+      if (item.category === 'private') return false;
+      
       if (selectedCategory === 'all') return true;
       return item.category === selectedCategory;
     })
     .sort((a, b) => {
       if (selectedCategory !== 'all') return 0;
-      const priority = { 'vip': 1, 'premium': 2, 'public': 3 };
+      // Ordre demandé : PUBLIC -> PREMIUM -> VIP
+      const priority = { 'public': 1, 'premium': 2, 'vip': 3 };
       const aPrio = priority[a.category?.toLowerCase()] || 4;
       const bPrio = priority[b.category?.toLowerCase()] || 4;
       return aPrio - bPrio;

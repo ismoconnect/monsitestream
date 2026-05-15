@@ -68,7 +68,7 @@ const Notification = ({
         animate={{ opacity: 1, y: 0, scale: 1 }}
         exit={{ opacity: 0, y: -50, scale: 0.95 }}
         transition={{ duration: 0.3, ease: 'easeOut' }}
-        className={`fixed top-4 right-4 z-50 max-w-sm w-full ${getBgColor()} border rounded-lg shadow-lg p-4`}
+        className={`fixed top-4 right-4 z-[9999] max-w-sm w-full ${getBgColor()} border rounded-lg shadow-lg p-4`}
       >
         <div className="flex items-start space-x-3">
           {getIcon()}

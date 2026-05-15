@@ -10,7 +10,9 @@ import {
   serverTimestamp,
   addDoc,
   collectionGroup,
-  limit
+  limit,
+  deleteDoc,
+  onSnapshot
 } from 'firebase/firestore';
 import { db } from './firebase';
 
@@ -18,11 +20,11 @@ class AdminService {
   // --- GESTION DES RENDEZ-VOUS (NOUVEAU) ---
 
   // Récupérer tous les RDV de tous les utilisateurs (Collection Group)
-  async getAllAppointments(limitCount = 50) {
+  async getAllAppointments(limitCount = 100) {
     try {
+      // Suppression de orderBy pour éviter l'erreur d'index composite manquant dans Firestore
       const q = query(
         collectionGroup(db, 'appointments'),
-        orderBy('date', 'desc'),
         limit(limitCount)
       );
 
@@ -41,11 +43,55 @@ class AdminService {
         }
       });
 
-      return appointments;
+      // Tri côté client par date
+      return appointments.sort((a, b) => {
+        const dateA = a.date?.toDate ? a.date.toDate() : new Date(a.date || 0);
+        const dateB = b.date?.toDate ? b.date.toDate() : new Date(b.date || 0);
+        return dateB - dateA;
+      });
     } catch (error) {
       console.error('Erreur lors de la récupération globale des RDV:', error);
       // Fallback si l'index n'existe pas encore ou erreur de permission
       return [];
+    }
+  }
+
+  // Écouter tous les RDV de tous les utilisateurs en temps réel (Collection Group)
+  listenToAllAppointments(limitCount = 100, callback) {
+    try {
+      const q = query(
+        collectionGroup(db, 'appointments'),
+        limit(limitCount)
+      );
+
+      return onSnapshot(q, (querySnapshot) => {
+        const appointments = [];
+        querySnapshot.forEach((doc) => {
+          if (doc.id !== '_init' && doc.id !== 'init') {
+            appointments.push({
+              id: doc.id,
+              ...doc.data(),
+              userId: doc.ref.parent.parent.id
+            });
+          }
+        });
+
+        // Tri côté client par date
+        appointments.sort((a, b) => {
+          const dateA = a.date?.toDate ? a.date.toDate() : new Date(a.date || 0);
+          const dateB = b.date?.toDate ? b.date.toDate() : new Date(b.date || 0);
+          return dateB - dateA;
+        });
+
+        callback(appointments);
+      }, (error) => {
+        console.error("Erreur lors de l'écoute globale des RDV:", error);
+        callback([]);
+      });
+    } catch (error) {
+      console.error("Erreur lors de l'initialisation de l'écoute des RDV:", error);
+      callback([]);
+      return () => {}; // retourne une fonction vide pour se désabonner
     }
   }
 
@@ -98,6 +144,18 @@ class AdminService {
     }
   }
 
+  // Supprimer définitivement un RDV
+  async deleteAppointment(userId, appointmentId) {
+    try {
+      const rdvRef = doc(db, 'users', userId, 'appointments', appointmentId);
+      await deleteDoc(rdvRef);
+      return true;
+    } catch (error) {
+      console.error('Erreur suppression RDV:', error);
+      throw error;
+    }
+  }
+
   // --- FIN GESTION RDV ---
   // Obtenir toutes les demandes d'abonnement en attente (requête simplifiée)
   async getPendingSubscriptions() {
@@ -135,6 +193,9 @@ class AdminService {
         id: doc.id,
         ...doc.data()
       }));
+
+      // Exclure les comptes administrateurs — ils ont leur propre page de gestion
+      users = users.filter(u => u.role !== 'admin');
 
       // Appliquer les filtres côté client
       if (filters.status) {
@@ -346,6 +407,12 @@ class AdminService {
       const currentSubscription = currentData.subscription || {};
 
       // Mise à jour de l'objet complet pour éviter les erreurs sur champs manquants
+      const planCredits = {
+        'basic': 50,
+        'premium': 1000,
+        'vip': 999999
+      };
+
       await updateDoc(userRef, {
         'subscription': {
           ...currentSubscription,
@@ -354,9 +421,13 @@ class AdminService {
           planName: planNames[newPlan] || newPlan,
           planChangedAt: new Date(),
           planChangedBy: adminId || 'admin',
-          status: currentSubscription.status || 'active'
+          status: 'active' // Activer le compte lors d'un changement manuel de plan
         },
-        'role': newPlan === 'vip' ? 'vip' : 'client',
+        'credits': {
+          messaging: planCredits[newPlan] || 50
+        },
+        'creditsInitializedForPlan': newPlan,
+        'role': newPlan === 'vip' ? 'vip' : (newPlan === 'premium' ? 'premium' : 'client'),
         'updatedAt': serverTimestamp()
       });
 
@@ -378,12 +449,40 @@ class AdminService {
     }
   }
 
+  // Recharger les crédits de messagerie selon le plan
+  async refillUserCredits(userId, plan) {
+    if (!userId) throw new Error('ID utilisateur manquant');
+
+    const planCredits = {
+      'basic': 50,
+      'premium': 1000,
+      'vip': 999999
+    };
+
+    const creditCount = planCredits[plan?.toLowerCase()] || 50;
+
+    try {
+      const userRef = doc(db, 'users', userId);
+      await updateDoc(userRef, {
+        'credits.messaging': creditCount,
+        'updatedAt': serverTimestamp()
+      });
+      return { success: true, credits: creditCount };
+    } catch (error) {
+      console.error('Erreur recharge crédits:', error);
+      throw error;
+    }
+  }
+
   // Obtenir les statistiques d'administration (version simplifiée)
   async getAdminStats() {
     try {
       // Récupérer tous les utilisateurs sans filtre pour éviter les index
       const querySnapshot = await getDocs(collection(db, 'users'));
-      const users = querySnapshot.docs.map(doc => doc.data());
+      let users = querySnapshot.docs.map(doc => doc.data());
+
+      // Exclure les comptes administrateurs des statistiques
+      users = users.filter(u => u.role !== 'admin');
 
       const stats = {
         total: users.length,

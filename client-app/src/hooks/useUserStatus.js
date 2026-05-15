@@ -38,7 +38,7 @@ export const useUserStatus = () => {
     );
 
     return () => unsubscribe();
-  }, [currentUser?.id, authMode]);
+  }, [currentUser, authMode]);
 
   return { userStatus, loading };
 };

@@ -262,6 +262,45 @@ class SimpleChatService {
     }
   }
 
+  // Supprimer une conversation (et tous ses messages)
+  async deleteConversation(conversationId) {
+    try {
+      if (!conversationId) return;
+      console.log(`🗑️ Suppression de la conversation ${conversationId}...`);
+      
+      // 1. Supprimer tous les messages de la conversation
+      const messagesRef = collection(db, 'messages');
+      const q = query(messagesRef, where('conversationId', '==', conversationId));
+      const querySnapshot = await getDocs(q);
+      
+      const deletePromises = querySnapshot.docs.map(doc => deleteDoc(doc.ref));
+      await Promise.all(deletePromises);
+      console.log(`✅ ${querySnapshot.size} messages supprimés.`);
+      
+      // 2. Supprimer les indicateurs de frappe
+      const typingQuery = query(collection(db, 'typing'), where('conversationId', '==', conversationId));
+      const typingSnapshot = await getDocs(typingQuery);
+      const typingDeletePromises = typingSnapshot.docs.map(doc => deleteDoc(doc.ref));
+      await Promise.all(typingDeletePromises);
+
+      // 3. Supprimer le document de la conversation
+      await deleteDoc(doc(db, 'conversations', conversationId));
+      
+      // 4. Nettoyer le cache
+      this.conversationCache.forEach((value, key) => {
+        if (value === conversationId) {
+          this.conversationCache.delete(key);
+        }
+      });
+
+      console.log(`✅ Conversation ${conversationId} totalement supprimée.`);
+      return true;
+    } catch (error) {
+      console.error('Erreur lors de la suppression de la conversation:', error);
+      throw error;
+    }
+  }
+
   // === FONCTIONNALITÉS TYPING ===
 
   // Indiquer qu'on est en train de taper

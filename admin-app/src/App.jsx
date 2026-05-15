@@ -15,6 +15,12 @@ import AdminAppointments from './pages/AdminAppointments';
 import AdminGallery from './pages/AdminGallery';
 import AdminPayments from './pages/AdminPayments';
 import AdminUserPayments from './pages/AdminUserPayments';
+import AdminPlans from './pages/AdminPlans';
+import AdminGifts from './pages/AdminGifts';
+import AdminStreaming from './pages/AdminStreaming';
+import AdminUsers from './pages/AdminUsers';
+import AdminAnalytics from './pages/AdminAnalytics';
+import AdminManagement from './pages/AdminManagement';
 
 // Styles
 import './index.css';
@@ -36,11 +42,17 @@ const App = () => {
 
               {/* Dashboard Routes */}
               <Route path="/dashboard" element={<AdminDashboard />} />
+              <Route path="/users" element={<AdminUsers />} />
+              <Route path="/analytics" element={<AdminAnalytics />} />
+              <Route path="/admin-management" element={<AdminManagement />} />
               <Route path="/messages" element={<AdminMessages />} />
               <Route path="/appointments" element={<AdminAppointments />} />
               <Route path="/gallery" element={<AdminGallery />} />
               <Route path="/payments" element={<AdminPayments />} />
               <Route path="/payments/:userEmail" element={<AdminUserPayments />} />
+              <Route path="/plans" element={<AdminPlans />} />
+              <Route path="/gifts" element={<AdminGifts />} />
+              <Route path="/streaming" element={<AdminStreaming />} />
 
               {/* Setup Route */}
               <Route path="/init-admin" element={<InitializeAdmin />} />

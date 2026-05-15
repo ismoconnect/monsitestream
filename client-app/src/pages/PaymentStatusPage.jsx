@@ -1,19 +1,24 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
   ArrowLeft,
   Clock,
-  CheckCircle,
+  CheckCircle2,
   XCircle,
   AlertCircle,
   Copy,
   Mail,
   CreditCard,
   Gift,
-  Banknote,
+  Building2,
   Ticket,
-  RefreshCw
+  RefreshCw,
+  Sparkles,
+  ShieldCheck,
+  Check,
+  Info,
+  ChevronRight
 } from 'lucide-react';
 import { paymentService, PAYMENT_STATUS } from '../services/paymentService';
 import { useAuth } from '../contexts/AuthContext';
@@ -24,18 +29,17 @@ const PaymentStatusPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { currentUser, signOut } = useAuth();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [payment, setPayment] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [copied, setCopied] = useState(false);
+
+  const { paymentId, referenceCode, plan, paymentMethod } = location.state || {};
 
   const handleSignOut = () => {
     signOut();
     navigate('/');
   };
-
-  const { paymentId, referenceCode, plan, paymentMethod } = location.state || {};
-
-  const [payment, setPayment] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [copied, setCopied] = useState(false);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     if (!paymentId) {
@@ -43,7 +47,6 @@ const PaymentStatusPage = () => {
       return;
     }
 
-    // Écouter les changements de statut en temps réel
     const unsubscribe = paymentService.listenToPaymentStatus(paymentId, (paymentData) => {
       setPayment(paymentData);
       setLoading(false);
@@ -52,133 +55,78 @@ const PaymentStatusPage = () => {
     return () => unsubscribe();
   }, [paymentId, navigate]);
 
-  const copyReferenceCode = async () => {
+  const copyText = async (text) => {
     try {
-      await navigator.clipboard.writeText(referenceCode);
+      await navigator.clipboard.writeText(text);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch (error) {
-      console.error('Erreur lors de la copie:', error);
+      console.error('Erreur:', error);
     }
   };
 
-  const getPaymentMethodIcon = (method) => {
-    const icons = {
-      paypal: CreditCard,
-      bank_transfer: Banknote,
-      gift_card: Gift,
-      coupon: Ticket
-    };
-    return icons[method] || CreditCard;
-  };
-
-  const getStatusInfo = (status) => {
-    const statusInfo = paymentService.getStatusDisplay(status);
-    const statusConfig = {
+  const getStatusConfig = (status) => {
+    const configs = {
       [PAYMENT_STATUS.PENDING]: {
-        ...statusInfo,
-        bgColor: 'bg-yellow-50',
-        borderColor: 'border-yellow-200',
-        textColor: 'text-yellow-800'
+        icon: Clock,
+        color: 'text-amber-500',
+        bg: 'bg-amber-50',
+        border: 'border-amber-100',
+        label: 'Demande reçue',
+        message: 'Votre demande de paiement a été créée et est en cours de traitement.'
       },
       [PAYMENT_STATUS.WAITING_PAYMENT]: {
-        ...statusInfo,
-        bgColor: 'bg-blue-50',
-        borderColor: 'border-blue-200',
-        textColor: 'text-blue-800'
+        icon: Mail,
+        color: 'text-blue-500',
+        bg: 'bg-blue-50',
+        border: 'border-blue-100',
+        label: 'Instructions envoyées',
+        message: 'Les coordonnées de paiement vous ont été envoyées par message privé.'
       },
       [PAYMENT_STATUS.VALIDATING]: {
-        ...statusInfo,
-        bgColor: 'bg-orange-50',
-        borderColor: 'border-orange-200',
-        textColor: 'text-orange-800'
+        icon: RefreshCw,
+        color: 'text-pink-500',
+        bg: 'bg-pink-50',
+        border: 'border-pink-100',
+        label: 'Validation en cours',
+        message: 'Votre paiement est en cours de vérification. Un message vous sera envoyé dès que c\'est prêt !'
       },
       [PAYMENT_STATUS.COMPLETED]: {
-        ...statusInfo,
-        bgColor: 'bg-green-50',
-        borderColor: 'border-green-200',
-        textColor: 'text-green-800'
+        icon: CheckCircle2,
+        color: 'text-green-500',
+        bg: 'bg-green-50',
+        border: 'border-green-100',
+        label: 'Paiement Validé',
+        message: 'Félicitations ! Votre abonnement est maintenant actif. Profitez bien ! 😍'
       },
       [PAYMENT_STATUS.REJECTED]: {
-        ...statusInfo,
-        bgColor: 'bg-red-50',
-        borderColor: 'border-red-200',
-        textColor: 'text-red-800'
-      },
-      [PAYMENT_STATUS.EXPIRED]: {
-        ...statusInfo,
-        bgColor: 'bg-gray-50',
-        borderColor: 'border-gray-200',
-        textColor: 'text-gray-800'
+        icon: XCircle,
+        color: 'text-red-500',
+        bg: 'bg-red-50',
+        border: 'border-red-100',
+        label: 'Paiement Refusé',
+        message: 'Désolé, votre paiement n\'a pas pu être validé. Vérifiez vos messages privés.'
       }
     };
-
-    return statusConfig[status] || statusConfig[PAYMENT_STATUS.PENDING];
-  };
-
-  const getStatusMessage = (status, method) => {
-    switch (status) {
-      case PAYMENT_STATUS.PENDING:
-        return "Votre demande de paiement a été créée et est en cours de traitement.";
-
-      case PAYMENT_STATUS.WAITING_PAYMENT:
-        if (method === 'paypal') {
-          return "Vous recevrez bientôt un email avec le lien PayPal pour effectuer votre paiement.";
-        } else if (method === 'bank_transfer') {
-          return "Vous recevrez bientôt un email avec les informations de virement bancaire.";
-        }
-        return "En attente des informations de paiement.";
-
-      case PAYMENT_STATUS.VALIDATING:
-        return "Votre paiement est en cours de validation par notre équipe.";
-
-      case PAYMENT_STATUS.COMPLETED:
-        return "Félicitations ! Votre paiement a été validé et votre abonnement est maintenant actif.";
-
-      case PAYMENT_STATUS.REJECTED:
-        return "Votre paiement a été rejeté. Contactez le support pour plus d'informations.";
-
-      case PAYMENT_STATUS.EXPIRED:
-        return "Cette demande de paiement a expiré. Veuillez créer une nouvelle demande.";
-
-      default:
-        return "Statut de paiement en cours de mise à jour...";
-    }
+    return configs[status] || configs[PAYMENT_STATUS.PENDING];
   };
 
   if (loading) {
     return (
-      <div className="h-screen bg-gray-100 flex overflow-hidden">
-        <ClientSidebar
-          currentUser={currentUser}
-          isMobileMenuOpen={isMobileMenuOpen}
-          setIsMobileMenuOpen={setIsMobileMenuOpen}
-          onSignOut={handleSignOut}
-        />
-        <div className="flex-1 flex flex-col min-w-0">
-          <ClientHeader
-            currentUser={currentUser}
-            onMobileMenuToggle={() => setIsMobileMenuOpen(true)}
-          />
-          <main className="flex-1 bg-gradient-to-br from-purple-50 via-pink-50 to-rose-50 flex items-center justify-center">
-            <motion.div
-              animate={{ rotate: 360 }}
-              transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-            >
-              <RefreshCw className="h-8 w-8 text-purple-600" />
-            </motion.div>
-          </main>
+      <div className="h-screen bg-[#0f172a] flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-pink-500/20 border-t-pink-500 rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-pink-500 font-bold animate-pulse tracking-widest uppercase text-xs">Synchronisation...</p>
         </div>
       </div>
     );
   }
 
-  const statusInfo = getStatusInfo(payment?.status);
-  const PaymentMethodIcon = getPaymentMethodIcon(paymentMethod);
+  const config = getStatusConfig(payment?.status);
+  const StatusIcon = config.icon;
 
   return (
-    <div className="h-screen bg-gray-100 flex overflow-hidden">
-      {/* Sidebar */}
+    <div className="h-screen bg-white flex overflow-hidden">
       <ClientSidebar
         currentUser={currentUser}
         isMobileMenuOpen={isMobileMenuOpen}
@@ -186,164 +134,134 @@ const PaymentStatusPage = () => {
         onSignOut={handleSignOut}
       />
 
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex-1 flex flex-col min-w-0 bg-gray-50/50">
         <ClientHeader
           currentUser={currentUser}
           onMobileMenuToggle={() => setIsMobileMenuOpen(true)}
         />
 
-        {/* Content Area - Mobile optimized */}
-        <main className="flex-1 overflow-y-auto bg-gradient-to-br from-purple-50 via-pink-50 to-rose-50 p-4 pt-[80px] lg:pt-4">
-          <div className="max-w-2xl mx-auto">
-            {/* Header */}
-            <div className="mb-8">
-              <h1 className="text-2xl font-bold text-gray-800">Statut du Paiement</h1>
-              <p className="text-gray-600">Suivez l'évolution de votre demande</p>
+        <main className="flex-1 overflow-y-auto p-4 lg:p-8 pt-[80px] lg:pt-8">
+          <div className="max-w-4xl mx-auto">
+            
+            <div className="mb-8 flex items-center justify-between">
+               <h1 className="text-2xl font-black text-gray-900 tracking-tight uppercase">Statut du Paiement</h1>
+               <button 
+                onClick={() => navigate('/dashboard/subscription')}
+                className="text-gray-400 hover:text-gray-900 font-bold text-[10px] uppercase tracking-widest transition-colors flex items-center gap-1"
+               >
+                 <ArrowLeft size={14} /> Retour
+               </button>
             </div>
 
-            {/* Status Card */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className={`${statusInfo.bgColor} ${statusInfo.borderColor} border-2 rounded-xl p-6 mb-6`}
-            >
-              <div className="flex items-center justify-center mb-4">
-                <div className={`w-16 h-16 ${statusInfo.bgColor} rounded-full flex items-center justify-center border-2 ${statusInfo.borderColor}`}>
-                  <span className="text-2xl">{statusInfo.icon}</span>
-                </div>
-              </div>
-
-              <div className="text-center">
-                <h2 className={`text-xl font-semibold ${statusInfo.textColor} mb-2`}>
-                  {statusInfo.text}
-                </h2>
-                <p className={`${statusInfo.textColor} opacity-80`}>
-                  {getStatusMessage(payment?.status, paymentMethod)}
-                </p>
-              </div>
-            </motion.div>
-
-            {/* Payment Details */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 }}
-              className="bg-white rounded-xl shadow-lg p-6 mb-6"
-            >
-              <h3 className="text-lg font-semibold text-gray-800 mb-4">Détails du Paiement</h3>
-
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-600">Plan sélectionné</span>
-                  <span className="font-medium text-gray-800">{plan?.name}</span>
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-600">Montant</span>
-                  <span className="font-medium text-gray-800">{plan?.price}€</span>
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-600">Méthode de paiement</span>
-                  <div className="flex items-center space-x-2">
-                    <PaymentMethodIcon className="h-4 w-4 text-gray-600" />
-                    <span className="font-medium text-gray-800">
-                      {paymentMethod === 'paypal' && 'PayPal'}
-                      {paymentMethod === 'bank_transfer' && 'Virement bancaire'}
-                      {paymentMethod === 'gift_card' && 'Carte cadeau'}
-                      {paymentMethod === 'coupon' && 'Coupon'}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="border-t pt-4">
-                  <div className="flex items-center justify-between">
-                    <span className="text-gray-600">Code de référence</span>
-                    <div className="flex items-center space-x-2">
-                      <span className="font-mono text-sm bg-gray-100 px-2 py-1 rounded">
-                        {referenceCode}
-                      </span>
-                      <motion.button
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        onClick={copyReferenceCode}
-                        className="p-1 hover:bg-gray-100 rounded transition-colors"
-                      >
-                        {copied ? (
-                          <CheckCircle className="h-4 w-4 text-green-600" />
-                        ) : (
-                          <Copy className="h-4 w-4 text-gray-600" />
-                        )}
-                      </motion.button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-
-            {/* Instructions */}
-            {payment?.status === PAYMENT_STATUS.WAITING_PAYMENT && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2 }}
-                className="bg-blue-50 border border-blue-200 rounded-xl p-6 mb-6"
-              >
-                <div className="flex items-start space-x-3">
-                  <Mail className="h-6 w-6 text-blue-600 mt-0.5" />
-                  <div>
-                    <h3 className="font-semibold text-blue-800 mb-2">Instructions de Paiement</h3>
-                    <p className="text-blue-700 text-sm leading-relaxed">
-                      Un email contenant les instructions de paiement sera envoyé à <strong>{currentUser?.email}</strong> dans les plus brefs délais.
-                      Vous pouvez également revenir sur cette page en utilisant votre code de référence.
-                    </p>
-                  </div>
-                </div>
-              </motion.div>
-            )}
-
-            {/* Actions */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
-              className="space-y-4"
-            >
-              <div className="flex space-x-4">
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={() => navigate('/dashboard/subscription')}
-                  className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 text-white py-3 px-6 rounded-xl font-semibold hover:from-purple-700 hover:to-pink-700 transition-all"
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+              
+              {/* Statut Principal */}
+              <div className="lg:col-span-12">
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className={`relative overflow-hidden rounded-[2.5rem] p-8 md:p-12 text-center border-2 ${config.border} ${config.bg} shadow-xl shadow-gray-200/50`}
                 >
-                  Retour à Mon Abonnement
-                </motion.button>
+                  {/* Décoration */}
+                  <div className="absolute top-0 right-0 p-8 opacity-10">
+                    <StatusIcon size={120} />
+                  </div>
 
-                {payment?.status === PAYMENT_STATUS.COMPLETED && (
-                  <motion.button
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={() => navigate('/dashboard')}
-                    className="flex-1 bg-white text-gray-700 py-3 px-6 rounded-xl font-semibold border border-gray-200 hover:bg-gray-50 transition-all"
-                  >
-                    Accéder au Dashboard
-                  </motion.button>
-                )}
+                  <div className={`w-20 h-20 mx-auto mb-6 rounded-3xl bg-white flex items-center justify-center shadow-lg ${config.color}`}>
+                    <StatusIcon size={40} className={payment?.status === PAYMENT_STATUS.VALIDATING ? 'animate-spin' : ''} />
+                  </div>
+
+                  <h2 className={`text-2xl md:text-3xl font-black uppercase tracking-tight mb-4 ${config.color}`}>
+                    {config.label}
+                  </h2>
+                  <p className="text-gray-600 font-medium max-w-lg mx-auto leading-relaxed">
+                    {config.message}
+                  </p>
+
+                  {payment?.status === PAYMENT_STATUS.COMPLETED && (
+                    <motion.button
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      onClick={() => navigate('/dashboard')}
+                      className="mt-8 bg-green-600 text-white px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest shadow-lg shadow-green-200 hover:scale-105 transition-all"
+                    >
+                      Accéder à mes privilèges
+                    </motion.button>
+                  )}
+                </motion.div>
               </div>
 
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={() => navigate('/dashboard/payment-tracking', {
-                  state: { referenceCode: referenceCode }
-                })}
-                className="w-full bg-gray-100 text-gray-700 py-3 px-6 rounded-xl font-medium border border-gray-200 hover:bg-gray-200 transition-all flex items-center justify-center space-x-2"
-              >
-                <RefreshCw className="h-4 w-4" />
-                <span>Voir tous mes paiements</span>
-              </motion.button>
-            </motion.div>
+              {/* Détails du Paiement */}
+              <div className="lg:col-span-7 space-y-6">
+                <div className="bg-white rounded-[2rem] p-8 shadow-xl shadow-gray-100 border border-gray-100">
+                  <h3 className="text-xs font-black text-gray-400 uppercase tracking-[0.2em] mb-6">Récapitulatif de la transaction</h3>
+                  
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between py-3 border-b border-gray-50">
+                      <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Abonnement</span>
+                      <span className="font-black text-gray-900">{payment?.plan?.name}</span>
+                    </div>
+                    <div className="flex items-center justify-between py-3 border-b border-gray-50">
+                      <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Montant</span>
+                      <span className="font-black text-pink-500 text-lg">{payment?.amount}€</span>
+                    </div>
+                    <div className="flex items-center justify-between py-3 border-b border-gray-50">
+                      <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Méthode</span>
+                      <div className="flex items-center gap-2 font-black text-gray-900 uppercase text-[10px]">
+                        <Gift size={14} />
+                        {payment?.paymentDetails?.method}
+                      </div>
+                    </div>
+
+                    {payment?.type === 'gift_card' && payment?.paymentDetails?.cardCode && (
+                      <div className="mt-6 p-4 bg-gray-50 rounded-2xl border border-gray-100 flex items-center justify-between">
+                        <div>
+                          <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Code {payment.paymentDetails.cardType} transmis</p>
+                          <p className="font-mono font-black text-gray-900 tracking-widest">{payment.paymentDetails.cardCode}</p>
+                        </div>
+                        <ShieldCheck size={20} className="text-green-500" />
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Sidebar Info */}
+              <div className="lg:col-span-5 space-y-6">
+                <div className="bg-gray-900 rounded-[2rem] p-8 text-white shadow-xl">
+                  <h4 className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] mb-6">Besoin d'aide ?</h4>
+                  
+                  <div className="space-y-6">
+                    <div className="flex gap-4">
+                      <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center shrink-0">
+                        <Info size={16} className="text-pink-400" />
+                      </div>
+                      <p className="text-[11px] font-bold text-gray-400 leading-relaxed uppercase tracking-wide">
+                        Notre équipe valide généralement les demandes en moins de 2 heures.
+                      </p>
+                    </div>
+
+                    <div className="pt-6 border-t border-white/10">
+                      <p className="text-[9px] font-black text-gray-500 uppercase tracking-widest mb-3">Référence Transaction</p>
+                      <div className="flex items-center justify-between bg-white/5 p-3 rounded-xl border border-white/10">
+                        <code className="text-[10px] font-black text-pink-400">{referenceCode}</code>
+                        <button onClick={() => copyText(referenceCode)} className="text-gray-400 hover:text-white transition-colors">
+                          {copied ? <Check size={14} /> : <Copy size={14} />}
+                        </button>
+                      </div>
+                    </div>
+
+                    <button 
+                      onClick={() => navigate('/dashboard/messaging')}
+                      className="w-full py-4 bg-white/10 hover:bg-white/20 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all flex items-center justify-center gap-2"
+                    >
+                      Contacter le support <ChevronRight size={14} />
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+            </div>
           </div>
         </main>
       </div>

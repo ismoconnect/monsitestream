@@ -14,11 +14,6 @@ class GalleryService {
         try {
             let q = collection(db, 'gallery');
 
-            // On récupère tout et on filtre côté client si besoin, 
-            // ou on peut filtrer par catégorie ici si on veut optimiser.
-            // Pour l'instant, on trie par date de création inverse.
-            q = query(q, orderBy('createdAt', 'desc'));
-
             const snapshot = await getDocs(q);
 
             return snapshot.docs.map(doc => ({

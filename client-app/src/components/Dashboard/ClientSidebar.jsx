@@ -11,11 +11,11 @@ const ClientSidebar = ({ currentUser, onSignOut, isMobileMenuOpen, setIsMobileMe
     { id: 'overview', label: 'Accueil', icon: Home, path: '/dashboard/overview' },
     { id: 'gallery', label: 'Galerie Premium', icon: Image, path: '/dashboard/gallery' },
     { id: 'messages', label: 'Messages', icon: MessageSquare, path: '/dashboard/messages' },
-    { id: 'appointments', label: 'Rendez-vous', icon: Calendar, path: '/dashboard/appointments' },
+    { id: 'appointments', label: 'Rendez-vous', icon: Calendar, path: '/dashboard/appointments', premiumOnly: true },
     { id: 'streaming', label: 'Live Stream', icon: Video, vipOnly: true, path: '/dashboard/streaming' },
     { id: 'subscription', label: 'Abonnement', icon: CreditCard, path: '/dashboard/subscription' },
     { id: 'payment-tracking', label: 'Paiements', icon: Search, path: '/dashboard/payment-tracking' },
-    { id: 'billing', label: 'Factures', icon: Receipt, path: '/dashboard/billing' },
+    { id: 'billing', label: 'Reçus & Factures', icon: Receipt, path: '/dashboard/billing' },
     { id: 'profile', label: 'Profil', icon: User, path: '/dashboard/profile' }
   ];
 
@@ -55,18 +55,27 @@ const ClientSidebar = ({ currentUser, onSignOut, isMobileMenuOpen, setIsMobileMe
               )}
             </div>
             {isPremium && (
-              <div className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-gradient-to-br from-amber-300 via-amber-400 to-orange-500 rounded-full flex items-center justify-center border-2 border-slate-800 shadow-[0_0_10px_rgba(251,191,36,0.5)] animate-pulse">
+              <div className={`absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full flex items-center justify-center border-2 border-slate-800 shadow-lg animate-pulse ${isVIP ? 'bg-gradient-to-br from-amber-300 to-orange-500' : 'bg-gradient-to-br from-indigo-400 to-purple-600'}`}>
                 <Crown size={10} className="text-white fill-white" />
               </div>
             )}
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-xs font-bold text-white truncate tracking-tight">{currentUser?.displayName || 'Utilisateur'}</p>
-            <div className="flex items-center space-x-1.5">
-              <div className={`w-1.5 h-1.5 rounded-full ${isVIP ? 'bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.8)]' : isPremium ? 'bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.6)]' : 'bg-gray-400'}`} />
-              <p className={`text-[9px] font-black uppercase tracking-widest ${isPremium ? 'text-amber-400' : 'text-indigo-100'}`}>
-                {isVIP ? 'VIP ELITE' : isPremium ? 'PREMIUM MEMBER' : 'STANDARD'}
-              </p>
+            <p className="text-xs font-bold text-white truncate tracking-tight">{currentUser?.displayName || 'Mon Compte'}</p>
+            <div className="mt-1">
+              {isVIP ? (
+                <span className="px-2 py-0.5 bg-gradient-to-r from-amber-200 via-yellow-400 to-amber-500 text-white text-[7px] font-black uppercase tracking-widest rounded-full">
+                  VIP Elite
+                </span>
+              ) : isPremium ? (
+                <span className="px-2 py-0.5 bg-gradient-to-r from-indigo-400 via-purple-500 to-indigo-600 text-white text-[7px] font-black uppercase tracking-widest rounded-full">
+                  Premium Member
+                </span>
+              ) : (
+                <span className="px-2 py-0.5 bg-white/10 text-white/50 text-[7px] font-black uppercase tracking-widest rounded-full">
+                  Standard
+                </span>
+              )}
             </div>
           </div>
         </div>
@@ -80,14 +89,18 @@ const ClientSidebar = ({ currentUser, onSignOut, isMobileMenuOpen, setIsMobileMe
             {menuItems.slice(0, 4).map((item) => {
               const Icon = item.icon;
               const isActive = location.pathname === item.path || (location.pathname === '/dashboard' && item.id === 'overview');
+              const isLocked = item.premiumOnly && !isPremium;
               return (
                 <button
                   key={item.id}
-                  onClick={() => { navigate(item.path); if (setIsMobileMenuOpen) setIsMobileMenuOpen(false); }}
-                  className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors ${isActive ? 'bg-indigo-50 text-indigo-700' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}`}
+                  onClick={() => { if (!isLocked) { navigate(item.path); if (setIsMobileMenuOpen) setIsMobileMenuOpen(false); } }}
+                  className={`w-full flex items-center justify-between px-3 py-2 rounded-lg transition-all duration-200 ${isActive ? 'bg-indigo-50 text-indigo-700' : isLocked ? 'opacity-30 grayscale cursor-not-allowed' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900 hover:translate-x-1'}`}
                 >
-                  <Icon size={18} />
-                  <span className={`text-[13px] ${isActive ? 'font-bold' : 'font-medium'}`}>{item.label}</span>
+                  <div className="flex items-center space-x-3">
+                    <Icon size={18} />
+                    <span className={`text-[13px] ${isActive ? 'font-bold' : 'font-medium'}`}>{item.label}</span>
+                  </div>
+                  {isLocked && <Lock size={12} />}
                 </button>
               );
             })}

@@ -5,21 +5,27 @@ import {
   ArrowLeft,
   Search,
   Clock,
-  CheckCircle,
+  CheckCircle2,
   XCircle,
   AlertCircle,
   Copy,
   Mail,
   CreditCard,
   Gift,
-  Banknote,
+  Building2,
   Ticket,
   RefreshCw,
   Calendar,
   Euro,
   User,
   Eye,
-  EyeOff
+  EyeOff,
+  Sparkles,
+  ShieldCheck,
+  Check,
+  ChevronRight,
+  Wallet,
+  Zap
 } from 'lucide-react';
 import { paymentService, PAYMENT_STATUS } from '../services/paymentService';
 import { useAuth } from '../contexts/AuthContext';
@@ -36,8 +42,6 @@ const PaymentTrackingPage = () => {
     navigate('/');
   };
 
-  const [referenceCode, setReferenceCode] = useState('');
-  const [payment, setPayment] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [userPayments, setUserPayments] = useState([]);
@@ -52,12 +56,11 @@ const PaymentTrackingPage = () => {
     }
   }, [currentUser]);
 
-  // Charger automatiquement si un code de référence est passé dans l'URL
+  // Charger automatiquement si un code de référence est passé dans l'URL (pour compatibilité)
   useEffect(() => {
     const codeFromState = location.state?.referenceCode;
     if (codeFromState) {
-      setReferenceCode(codeFromState);
-      searchPayment(codeFromState);
+      // On pourrait scroller vers l'élément ou mettre en avant, mais on garde simple
     }
   }, [location.state]);
 
@@ -69,99 +72,31 @@ const PaymentTrackingPage = () => {
         setUserPayments(payments);
       }
     } catch (error) {
-      console.error('Erreur lors du chargement des paiements:', error);
+      console.error('Erreur:', error);
     }
   };
 
-  const searchPayment = async (code = referenceCode) => {
-    if (!code.trim()) {
-      setError('Veuillez entrer un code de référence');
-      return;
-    }
-
-    setLoading(true);
-    setError('');
-    setPayment(null);
-
+  const copyText = async (text) => {
     try {
-      const foundPayment = await paymentService.getPaymentByReference(code.trim().toUpperCase());
-
-      if (foundPayment) {
-        setPayment(foundPayment);
-        setShowUserPayments(false);
-      } else {
-        setError('Aucun paiement trouvé avec ce code de référence');
-      }
-    } catch (error) {
-      console.error('Erreur lors de la recherche:', error);
-      setError('Erreur lors de la recherche du paiement');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const copyReferenceCode = async (code) => {
-    try {
-      await navigator.clipboard.writeText(code);
-      setCopied(code);
+      await navigator.clipboard.writeText(text);
+      setCopied(text);
       setTimeout(() => setCopied(''), 2000);
     } catch (error) {
-      console.error('Erreur lors de la copie:', error);
+      console.error('Erreur:', error);
     }
   };
 
-  const getPaymentMethodIcon = (method) => {
-    const icons = {
-      paypal: CreditCard,
-      bank_transfer: Banknote,
-      gift_card: Gift,
-      coupon: Ticket
-    };
-    return icons[method] || CreditCard;
-  };
-
-  const getStatusInfo = (status) => {
+  const getStatusConfig = (status) => {
     const statusInfo = paymentService.getStatusDisplay(status);
-    const statusConfig = {
-      [PAYMENT_STATUS.PENDING]: {
-        ...statusInfo,
-        bgColor: 'bg-yellow-50',
-        borderColor: 'border-yellow-200',
-        textColor: 'text-yellow-800'
-      },
-      [PAYMENT_STATUS.WAITING_PAYMENT]: {
-        ...statusInfo,
-        bgColor: 'bg-blue-50',
-        borderColor: 'border-blue-200',
-        textColor: 'text-blue-800'
-      },
-      [PAYMENT_STATUS.VALIDATING]: {
-        ...statusInfo,
-        bgColor: 'bg-orange-50',
-        borderColor: 'border-orange-200',
-        textColor: 'text-orange-800'
-      },
-      [PAYMENT_STATUS.COMPLETED]: {
-        ...statusInfo,
-        bgColor: 'bg-green-50',
-        borderColor: 'border-green-200',
-        textColor: 'text-green-800'
-      },
-      [PAYMENT_STATUS.REJECTED]: {
-        ...statusInfo,
-        bgColor: 'bg-red-50',
-        borderColor: 'border-red-200',
-        textColor: 'text-red-800'
-      },
-      [PAYMENT_STATUS.EXPIRED]: {
-        ...statusInfo,
-        bgColor: 'bg-gray-50',
-        borderColor: 'border-gray-200',
-        textColor: 'text-gray-800'
-      }
+    const configs = {
+      [PAYMENT_STATUS.PENDING]: { icon: Clock, color: 'text-amber-500', bg: 'bg-amber-50', border: 'border-amber-100' },
+      [PAYMENT_STATUS.WAITING_PAYMENT]: { icon: Mail, color: 'text-blue-500', bg: 'bg-blue-50', border: 'border-blue-100' },
+      [PAYMENT_STATUS.VALIDATING]: { icon: RefreshCw, color: 'text-pink-500', bg: 'bg-pink-50', border: 'border-pink-100' },
+      [PAYMENT_STATUS.COMPLETED]: { icon: CheckCircle2, color: 'text-green-500', bg: 'bg-green-50', border: 'border-green-100' },
+      [PAYMENT_STATUS.REJECTED]: { icon: XCircle, color: 'text-red-500', bg: 'bg-red-50', border: 'border-red-100' },
+      [PAYMENT_STATUS.EXPIRED]: { icon: Clock, color: 'text-gray-400', bg: 'bg-gray-50', border: 'border-gray-100' }
     };
-
-    return statusConfig[status] || statusConfig[PAYMENT_STATUS.PENDING];
+    return { ...statusInfo, ...(configs[status] || configs[PAYMENT_STATUS.PENDING]) };
   };
 
   const formatDate = (timestamp) => {
@@ -170,125 +105,107 @@ const PaymentTrackingPage = () => {
     return date.toLocaleDateString('fr-FR', {
       day: '2-digit',
       month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+      year: 'numeric'
     });
   };
-
-  const PaymentCard = ({ payment, isDetailed = false }) => {
-    const statusInfo = getStatusInfo(payment.status);
-    const PaymentMethodIcon = getPaymentMethodIcon(payment.type);
+  const PaymentCard = ({ payment }) => {
+    const [showCode, setShowCode] = useState(false);
+    const config = getStatusConfig(payment.status);
+    const MethodIcon = payment.type === 'gift_card' ? Gift : Building2;
 
     return (
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className={`${statusInfo.bgColor} ${statusInfo.borderColor} border-2 rounded-xl p-4 sm:p-6`}
+        layout
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className={`bg-white rounded-[2rem] p-6 border transition-all duration-300 shadow-xl shadow-gray-100/50 ${config.border} hover:border-pink-200 group`}
       >
-        {/* Header */}
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center space-x-3">
-            <div className={`w-12 h-12 ${statusInfo.bgColor} rounded-full flex items-center justify-center border-2 ${statusInfo.borderColor}`}>
-              <span className="text-xl">{statusInfo.icon}</span>
-            </div>
-            <div>
-              <h3 className={`text-base sm:text-lg font-semibold ${statusInfo.textColor}`}>
-                {statusInfo.text}
-              </h3>
-              <p className="text-sm text-gray-600">
-                {payment.plan?.name} - {payment.amount}€
-              </p>
-            </div>
+        <div className="flex items-start justify-between mb-6">
+          <div className={`w-12 h-12 rounded-2xl ${config.bg} ${config.color} flex items-center justify-center shadow-sm`}>
+            <config.icon size={24} className={payment.status === PAYMENT_STATUS.VALIDATING ? 'animate-spin' : ''} />
           </div>
-
-          <div className="flex items-center space-x-2">
-            <PaymentMethodIcon className="h-5 w-5 text-gray-600" />
+          <div className="text-right">
+             <div className="flex items-center gap-1 justify-end font-black text-pink-500 text-lg">
+                {payment.amount}€
+             </div>
+             <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">{payment.plan?.name}</p>
           </div>
         </div>
 
-        {/* Details */}
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <span className="text-sm text-gray-600">Code de référence</span>
-            <div className="flex items-center space-x-2">
-              <span className="font-mono text-xs sm:text-sm bg-white/50 px-2 py-1 rounded break-all">
-                {payment.referenceCode}
-              </span>
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => copyReferenceCode(payment.referenceCode)}
-                className="p-1 hover:bg-white/30 rounded transition-colors"
-              >
-                {copied === payment.referenceCode ? (
-                  <CheckCircle className="h-4 w-4 text-green-600" />
-                ) : (
-                  <Copy className="h-4 w-4 text-gray-600" />
-                )}
-              </motion.button>
+        <div className="space-y-4 mb-6">
+          <div className="flex flex-col">
+            <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Référence</span>
+            <div className="flex items-center justify-between bg-gray-50 p-2 rounded-xl border border-gray-100">
+               <code className="text-[10px] font-black text-gray-700 truncate mr-2">{payment.referenceCode}</code>
+               <button onClick={() => copyText(payment.referenceCode)} className="text-gray-300 hover:text-pink-500 transition-colors">
+                 {copied === payment.referenceCode ? <Check size={14} /> : <Copy size={14} />}
+               </button>
             </div>
           </div>
 
-          <div className="flex items-center justify-between">
-            <span className="text-sm text-gray-600">Date de création</span>
-            <span className="text-sm font-medium">
-              {formatDate(payment.createdAt)}
-            </span>
-          </div>
-
-          {payment.updatedAt && payment.updatedAt !== payment.createdAt && (
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-600">Dernière mise à jour</span>
-              <span className="text-sm font-medium">
-                {formatDate(payment.updatedAt)}
-              </span>
-            </div>
-          )}
-
-          {isDetailed && payment.paymentDetails && (
-            <div className="border-t pt-3 mt-3">
-              <h4 className="text-sm font-medium text-gray-700 mb-2">Détails du paiement</h4>
-              <div className="text-sm text-gray-600 space-y-1">
-                <p><strong>Méthode :</strong> {payment.paymentDetails.method}</p>
-                {payment.paymentDetails.description && (
-                  <p><strong>Description :</strong> {payment.paymentDetails.description}</p>
-                )}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1 block">Méthode</span>
+              <div className="flex items-center gap-2 text-[10px] font-black text-gray-900 uppercase">
+                <MethodIcon size={12} /> {payment.paymentDetails?.method}
               </div>
             </div>
+            <div>
+              <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1 block">Date</span>
+              <div className="flex items-center gap-2 text-[10px] font-black text-gray-900 uppercase">
+                <Calendar size={12} /> {formatDate(payment.createdAt)}
+              </div>
+            </div>
+          </div>
+
+          {payment.type === 'gift_card' && payment.paymentDetails?.cardCode && (
+             <div className="p-3 bg-pink-50/50 rounded-2xl border border-pink-100/50 relative">
+                <div className="flex justify-between items-center mb-1">
+                  <span className="text-[9px] font-black text-pink-400 uppercase tracking-widest block">Code Transmis</span>
+                  <button 
+                    onClick={() => setShowCode(!showCode)}
+                    className="text-pink-400 hover:text-pink-600 transition-colors"
+                  >
+                    {showCode ? <EyeOff size={12} /> : <Eye size={12} />}
+                  </button>
+                </div>
+                <p className="font-mono font-black text-pink-600 text-sm tracking-widest">
+                  {showCode ? payment.paymentDetails.cardCode : '••••••••••••'}
+                </p>
+             </div>
           )}
 
           {payment.adminNote && (
-            <div className="border-t pt-3 mt-3">
-              <h4 className="text-sm font-medium text-gray-700 mb-1">Note de l'équipe</h4>
-              <p className="text-sm text-gray-600 italic">"{payment.adminNote}"</p>
+            <div className="p-4 bg-amber-50 rounded-2xl border border-amber-100 flex gap-3">
+               <AlertCircle size={16} className="text-amber-500 shrink-0 mt-0.5" />
+               <p className="text-[11px] font-bold text-amber-700 leading-relaxed uppercase tracking-wide">
+                 Note : {payment.adminNote}
+               </p>
             </div>
           )}
         </div>
 
-        {/* Actions */}
-        {!isDetailed && (
-          <div className="mt-4 pt-3 border-t">
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={() => {
-                setReferenceCode(payment.referenceCode);
-                searchPayment(payment.referenceCode);
-              }}
-              className="w-full bg-white/50 hover:bg-white/70 text-gray-700 py-2 px-4 rounded-lg transition-all text-sm font-medium"
-            >
-              Voir les détails
-            </motion.button>
-          </div>
-        )}
+        <button
+          onClick={() => {
+            navigate('/dashboard/payment-status', { 
+              state: { 
+                paymentId: payment.id,
+                referenceCode: payment.referenceCode,
+                plan: payment.plan,
+                paymentMethod: payment.type
+              } 
+            });
+          }}
+          className="w-full py-3 rounded-xl font-black text-[9px] uppercase tracking-widest transition-all bg-gray-900 text-white hover:bg-pink-600 shadow-lg shadow-gray-200 group-hover:shadow-pink-200"
+        >
+          Voir le reçu
+        </button>
       </motion.div>
     );
   };
 
   return (
-    <div className="h-screen bg-gray-100 flex overflow-hidden">
-      {/* Sidebar */}
+    <div className="h-screen bg-white flex overflow-hidden font-sans">
       <ClientSidebar
         currentUser={currentUser}
         isMobileMenuOpen={isMobileMenuOpen}
@@ -296,236 +213,99 @@ const PaymentTrackingPage = () => {
         onSignOut={handleSignOut}
       />
 
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex-1 flex flex-col min-w-0 bg-gray-50/50">
         <ClientHeader
           currentUser={currentUser}
           onMobileMenuToggle={() => setIsMobileMenuOpen(true)}
         />
 
-        {/* Content Area - Mobile optimized */}
-        <main className="flex-1 overflow-y-auto bg-gradient-to-br from-purple-50 via-pink-50 to-rose-50 p-4 sm:p-6 md:p-8 pt-[80px] lg:pt-4">
-          <div className="max-w-[1600px] mx-auto w-full">
-            {/* Header */}
-            <div className="mb-6 sm:mb-8">
-              <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-800">Suivi des Paiements</h1>
-              <p className="text-sm sm:text-base text-gray-600 mt-1">Vérifiez l'avancement de vos demandes de paiement</p>
+        <main className="flex-1 overflow-y-auto p-4 lg:p-8 pt-[80px] lg:pt-8">
+          <div className="max-w-7xl mx-auto">
+            
+            {/* Header Dashboard Style */}
+            <div className="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
+              <div>
+                <motion.div 
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  className="flex items-center gap-2 text-pink-600 mb-2"
+                >
+                  <Wallet size={16} />
+                  <span className="text-[10px] font-black uppercase tracking-[0.2em]">Finance & Abonnements</span>
+                </motion.div>
+                <h1 className="text-3xl md:text-4xl font-black text-gray-900 tracking-tight uppercase">Suivi des Paiements</h1>
+              </div>
+
+              <div className="flex items-center gap-4">
+                <div className="bg-white px-6 py-3 rounded-2xl shadow-sm border border-gray-100 flex flex-col">
+                  <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Total Investi</span>
+                  <span className="text-lg font-black text-gray-900">{userPayments.reduce((acc, p) => p.status === 'completed' ? acc + (p.amount || 0) : acc, 0)}€</span>
+                </div>
+                <div className="bg-white px-6 py-3 rounded-2xl shadow-sm border border-gray-100 flex flex-col">
+                  <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Transactions</span>
+                  <span className="text-lg font-black text-gray-900">{userPayments.length}</span>
+                </div>
+              </div>
             </div>
 
-            {/* Search Section - Mobile optimized */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="bg-white rounded-xl shadow-lg p-4 sm:p-6 mb-6 sm:mb-8"
-            >
-              <h2 className="text-base sm:text-lg font-semibold text-gray-800 mb-3 sm:mb-4">
-                Rechercher par Code de Référence
-              </h2>
+            {/* Liste des paiements - Simplifiée */}
+            <div className="space-y-6">
+              <div className="flex items-center justify-between mb-8">
+                <h2 className="text-lg font-black text-gray-900 uppercase tracking-wider">Vos Transactions</h2>
+                <div className="h-px flex-1 bg-gray-100 mx-6 hidden md:block" />
+                <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{userPayments.length} Éléments</span>
+              </div>
 
-              <div className="flex flex-col sm:flex-row gap-3">
-                <div className="flex-1">
-                  <input
-                    type="text"
-                    value={referenceCode}
-                    onChange={(e) => setReferenceCode(e.target.value.toUpperCase())}
-                    placeholder="PAY-XXXXXXX-XXXXX"
-                    className="w-full px-4 py-3 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 font-mono"
-                    maxLength={20}
-                  />
+              {loading ? (
+                <div className="flex justify-center py-20">
+                   <RefreshCw className="animate-spin text-pink-500" size={32} />
                 </div>
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={() => searchPayment()}
-                  disabled={loading || !referenceCode.trim()}
-                  className="w-full sm:w-auto px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg font-semibold hover:from-purple-700 hover:to-pink-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
-                >
-                  {loading ? (
-                    <RefreshCw className="h-5 w-5 animate-spin" />
-                  ) : (
-                    <>
-                      <Search className="h-5 w-5" />
-                      <span className="sm:inline">Rechercher</span>
-                    </>
-                  )}
-                </motion.button>
-              </div>
-
-              {error && (
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="mt-3 sm:mt-4 bg-red-50 border border-red-200 rounded-lg p-3"
-                >
-                  <p className="text-xs sm:text-sm text-red-700">{error}</p>
-                </motion.div>
+              ) : userPayments.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                  {userPayments.map((p) => (
+                    <PaymentCard key={p.id} payment={p} />
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-20 bg-white rounded-[3rem] border border-dashed border-gray-200">
+                  <Wallet size={48} className="text-gray-200 mx-auto mb-4" />
+                  <p className="text-xs font-black text-gray-400 uppercase tracking-widest">Aucune transaction trouvée</p>
+                </div>
               )}
-            </motion.div>
+            </div>
 
-            {/* Toggle User Payments */}
-            {userPayments.length > 0 && (
-              <div className="mb-6">
-                <motion.button
-                  whileHover={{ scale: 1.01 }}
-                  whileTap={{ scale: 0.99 }}
-                  onClick={() => setShowUserPayments(!showUserPayments)}
-                  className="flex items-center space-x-2 text-gray-600 hover:text-gray-800 transition-colors"
-                >
-                  {showUserPayments ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                  <span className="text-sm font-medium">
-                    {showUserPayments ? 'Masquer' : 'Afficher'} mes paiements ({userPayments.length})
-                  </span>
-                </motion.button>
-              </div>
-            )}
-
-            {/* User Payments List */}
-            <AnimatePresence>
-              {showUserPayments && userPayments.length > 0 && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: 'auto' }}
-                  exit={{ opacity: 0, height: 0 }}
-                  className="mb-8"
-                >
-                  <h2 className="text-base sm:text-lg font-semibold text-gray-800 mb-3 sm:mb-4">
-                    Mes Paiements Récents
-                  </h2>
-                  <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                    {userPayments.slice(0, 4).map((userPayment) => (
-                      <PaymentCard key={userPayment.id} payment={userPayment} />
+            {/* Aide & Support */}
+            <div className="mt-20 p-10 bg-gradient-to-br from-indigo-900 to-gray-900 rounded-[3rem] text-white relative overflow-hidden">
+               <div className="absolute top-0 right-0 p-10 opacity-10">
+                  <ShieldCheck size={140} />
+               </div>
+               <div className="relative z-10 grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+                  <div>
+                    <h3 className="text-2xl font-black uppercase tracking-tight mb-4">Un problème avec un paiement ?</h3>
+                    <p className="text-gray-400 font-medium text-sm leading-relaxed mb-8">
+                      Notre équipe de support est disponible 24h/7j pour vous accompagner. Pour toute question, munissez-vous de votre code de référence.
+                    </p>
+                    <button 
+                      onClick={() => navigate('/dashboard/messaging')}
+                      className="bg-white text-gray-900 px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-pink-500 hover:text-white transition-all flex items-center gap-3"
+                    >
+                      Ouvrir un ticket support <ChevronRight size={16} />
+                    </button>
+                  </div>
+                  <div className="grid grid-cols-1 gap-4">
+                    {[
+                      { title: "Code Perdu ?", text: "Retrouvez-le dans votre boîte mail ou via 'Mes Paiements Récents'." },
+                      { title: "Sécurité", text: "Toutes vos transactions sont protégées par cryptage SSL 256 bits." }
+                    ].map((item, i) => (
+                      <div key={i} className="bg-white/5 p-5 rounded-2xl border border-white/10 backdrop-blur-sm">
+                        <h4 className="text-[10px] font-black text-pink-400 uppercase tracking-widest mb-1">{item.title}</h4>
+                        <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">{item.text}</p>
+                      </div>
                     ))}
                   </div>
+               </div>
+            </div>
 
-                  {userPayments.length > 4 && (
-                    <motion.button
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      onClick={() => setUserPayments(userPayments.slice(0, userPayments.length))}
-                      className="mt-4 w-full bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 px-4 rounded-lg transition-all text-sm font-medium"
-                    >
-                      Voir tous mes paiements ({userPayments.length})
-                    </motion.button>
-                  )}
-                </motion.div>
-              )}
-            </AnimatePresence>
-
-            {/* Search Result */}
-            <AnimatePresence>
-              {payment && (
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
-                >
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
-                    <h2 className="text-base sm:text-lg font-semibold text-gray-800">
-                      Détails du Paiement
-                    </h2>
-                    <motion.button
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      onClick={() => {
-                        setPayment(null);
-                        setReferenceCode('');
-                        setShowUserPayments(true);
-                      }}
-                      className="text-gray-500 hover:text-gray-700 transition-colors"
-                    >
-                      <XCircle className="h-5 w-5" />
-                    </motion.button>
-                  </div>
-
-                  <PaymentCard payment={payment} isDetailed={true} />
-
-                  {/* Timeline */}
-                  {payment.notifications?.statusUpdates?.length > 0 && (
-                    <motion.div
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.2 }}
-                      className="mt-6 bg-white rounded-xl shadow-lg p-6"
-                    >
-                      <h3 className="text-base sm:text-lg font-semibold text-gray-800 mb-3 sm:mb-4">
-                        Historique des Statuts
-                      </h3>
-                      <div className="space-y-4">
-                        {payment.notifications.statusUpdates.map((update, index) => (
-                          <div key={index} className="flex items-start space-x-3">
-                            <div className="w-2 h-2 bg-purple-500 rounded-full mt-2"></div>
-                            <div className="flex-1">
-                              <div className="flex items-center space-x-2">
-                                <span className="font-medium text-gray-800">
-                                  {paymentService.getStatusDisplay(update.status).text}
-                                </span>
-                                <span className="text-xs text-gray-500">
-                                  {formatDate(update.timestamp)}
-                                </span>
-                              </div>
-                              {update.note && (
-                                <p className="text-sm text-gray-600 mt-1">
-                                  {update.note}
-                                </p>
-                              )}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </motion.div>
-                  )}
-                </motion.div>
-              )}
-            </AnimatePresence>
-
-            {/* Quick Actions */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
-              className="mt-8 bg-white rounded-xl shadow-lg p-6"
-            >
-              <h3 className="text-base sm:text-lg font-semibold text-gray-800 mb-3 sm:mb-4">Actions Rapides</h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={() => navigate('/dashboard/payment')}
-                  className="flex items-center justify-center space-x-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white py-3 px-4 rounded-lg font-medium hover:from-purple-700 hover:to-pink-700 transition-all"
-                >
-                  <CreditCard className="h-5 w-5" />
-                  <span>Nouveau Paiement</span>
-                </motion.button>
-
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={() => navigate('/dashboard/subscription')}
-                  className="flex items-center justify-center space-x-2 bg-white text-gray-700 py-3 px-4 rounded-lg font-medium border border-gray-200 hover:bg-gray-50 transition-all"
-                >
-                  <User className="h-5 w-5" />
-                  <span>Mon Abonnement</span>
-                </motion.button>
-              </div>
-            </motion.div>
-
-            {/* Help Section */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4 }}
-              className="mt-6 bg-blue-50 border border-blue-200 rounded-xl p-6"
-            >
-              <h3 className="text-base sm:text-lg font-semibold text-blue-800 mb-2 sm:mb-3">
-                💡 Besoin d'aide ?
-              </h3>
-              <div className="text-sm text-blue-700 space-y-2">
-                <p>• <strong>Code perdu ?</strong> Vérifiez vos emails ou consultez "Mes Paiements Récents"</p>
-                <p>• <strong>Paiement en attente ?</strong> Un email avec les instructions vous sera envoyé</p>
-                <p>• <strong>Problème de validation ?</strong> Contactez notre support avec votre code de référence</p>
-                <p>• <strong>Paiement expiré ?</strong> Créez une nouvelle demande de paiement</p>
-              </div>
-            </motion.div>
           </div>
         </main>
       </div>

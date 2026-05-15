@@ -9,14 +9,13 @@ const CreateAppointmentModal = ({ isOpen, onClose }) => {
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     clientName: '',
-    clientEmail: '',
     clientPhone: '',
     service: '',
     date: '',
     time: '',
-    duration: 60,
+    duration: '60',
     location: '',
-    price: '',
+    price: '150',
     notes: '',
     specialRequests: ''
   });
@@ -56,14 +55,13 @@ const CreateAppointmentModal = ({ isOpen, onClose }) => {
 
       setFormData({
         clientName: '',
-        clientEmail: '',
         clientPhone: '',
         service: '',
         date: '',
         time: '',
-        duration: 60,
+        duration: '60',
         location: '',
-        price: '',
+        price: '150',
         notes: '',
         specialRequests: ''
       });
@@ -77,10 +75,25 @@ const CreateAppointmentModal = ({ isOpen, onClose }) => {
   };
 
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
+    const { name, value } = e.target;
+    let newFormData = { ...formData, [name]: value };
+
+    // Calcul automatique du prix selon la durée
+    if (name === 'duration') {
+      const pricing = {
+        '30': 100,
+        '60': 150,
+        '120': 200,
+        '180': 300,
+        '720': 500, // Toute la journée (12h)
+        '360': 500  // Toute la soirée (6h)
+      };
+      if (pricing[value]) {
+        newFormData.price = pricing[value];
+      }
+    }
+
+    setFormData(newFormData);
   };
 
   if (!isOpen) return null;
@@ -92,110 +105,100 @@ const CreateAppointmentModal = ({ isOpen, onClose }) => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 bg-gray-900/60 backdrop-blur-sm flex items-center justify-center z-[200] p-4 sm:p-6"
+          className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-[200] p-4 sm:p-6"
           onClick={onClose}
         >
           <motion.div
-            initial={{ scale: 0.9, opacity: 0, y: 20 }}
+            initial={{ scale: 0.95, opacity: 0, y: 20 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
-            exit={{ scale: 0.9, opacity: 0, y: 20 }}
-            className="bg-white rounded-[2.5rem] shadow-2xl w-full max-w-2xl mx-auto overflow-hidden relative"
+            exit={{ scale: 0.95, opacity: 0, y: 20 }}
+            transition={{ type: 'spring', stiffness: 300, damping: 28 }}
+            className="bg-white rounded-[2.5rem] shadow-2xl w-full max-w-2xl mx-auto overflow-hidden relative border border-indigo-50"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Header Design - Soft Rose */}
-            <div className="bg-gradient-to-r from-[#FFF1F2] to-[#FFE4E6] p-8 text-rose-900 relative overflow-hidden border-b border-rose-100">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-white/40 rounded-full blur-3xl -mr-16 -mt-16" />
-              <div className="relative z-10 flex items-center justify-between">
+            <div className="bg-gradient-to-r from-[#1e1b4b] via-[#4338ca] to-[#701a75] p-5 sm:p-6 text-white relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-48 h-48 bg-white/10 rounded-full blur-[60px] -mr-16 -mt-16 pointer-events-none" />
+              <div className="relative z-10 flex items-start justify-between">
                 <div>
-                  <h2 className="text-2xl font-black tracking-tight mb-1">NOUVEAU RÉSERVÉ</h2>
-                  <p className="text-gray-400 text-xs font-medium uppercase tracking-widest">Planifiez une session exclusive</p>
+                  <h2 className="text-xl font-black uppercase tracking-tight mb-0.5">NOUVELLE RÉSERVATION</h2>
+                  <p className="text-indigo-200/80 text-[10px] font-bold uppercase tracking-widest">Planifiez une session exclusive</p>
                 </div>
                 <button
                   onClick={onClose}
-                  className="p-2 bg-white/10 hover:bg-white/20 rounded-full transition-colors"
+                  className="p-2 bg-white/10 hover:bg-white/20 rounded-xl transition-colors backdrop-blur-sm"
                 >
-                  <X className="w-5 h-5" />
+                  <X className="w-5 h-5 text-white" />
                 </button>
               </div>
             </div>
 
-            <form onSubmit={handleSubmit} className="p-8 max-h-[70dvh] overflow-y-auto scrollbar-hide space-y-8">
+            <form onSubmit={handleSubmit} className="p-5 sm:p-6 max-h-[85vh] overflow-y-auto scrollbar-hide space-y-5">
               {/* Client Info Section */}
-              <div className="space-y-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <div className="w-1.5 h-4 bg-pink-500 rounded-full" />
-                  <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">Informations Client</span>
+              <div className="space-y-3">
+                <div className="flex items-center gap-3 mb-2">
+                  <span className="text-[10px] font-black uppercase tracking-widest text-indigo-400">Informations Client</span>
+                  <div className="flex-1 h-[1px] bg-indigo-50"></div>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   <div className="relative group">
-                    <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-pink-500" />
+                    <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-[#4338ca] transition-colors" />
                     <input
                       type="text"
                       name="clientName"
                       value={formData.clientName}
                       onChange={handleChange}
                       required
-                      placeholder="Nom complet *"
-                      className="w-full pl-11 pr-4 py-4 bg-gray-50 border border-transparent rounded-2xl focus:bg-white focus:border-pink-500/30 focus:ring-4 focus:ring-pink-500/5 transition-all outline-none text-sm font-bold"
+                      placeholder="Nom, Prénom ou Pseudonyme *"
+                      className="w-full pl-10 pr-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:border-[#4338ca] focus:ring-2 focus:ring-indigo-500/10 transition-all outline-none text-sm font-bold text-gray-800 placeholder-gray-400"
                     />
                   </div>
                   <div className="relative group">
-                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-pink-500" />
+                    <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-[#4338ca] transition-colors" />
                     <input
-                      type="email"
-                      name="clientEmail"
-                      value={formData.clientEmail}
+                      type="tel"
+                      name="clientPhone"
+                      value={formData.clientPhone}
                       onChange={handleChange}
+                      placeholder="Téléphone *"
                       required
-                      placeholder="Email *"
-                      className="w-full pl-11 pr-4 py-4 bg-gray-50 border border-transparent rounded-2xl focus:bg-white focus:border-pink-500/30 focus:ring-4 focus:ring-pink-500/5 transition-all outline-none text-sm font-bold"
+                      className="w-full pl-10 pr-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:border-[#4338ca] focus:ring-2 focus:ring-indigo-500/10 transition-all outline-none text-sm font-bold text-gray-800 placeholder-gray-400"
                     />
                   </div>
-                </div>
-                <div className="relative group">
-                  <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-pink-500" />
-                  <input
-                    type="tel"
-                    name="clientPhone"
-                    value={formData.clientPhone}
-                    onChange={handleChange}
-                    placeholder="Téléphone"
-                    className="w-full pl-11 pr-4 py-4 bg-gray-50 border border-transparent rounded-2xl focus:bg-white focus:border-pink-500/30 focus:ring-4 focus:ring-pink-500/5 transition-all outline-none text-sm font-bold"
-                  />
                 </div>
               </div>
 
               {/* Service & Details */}
-              <div className="space-y-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <div className="w-1.5 h-4 bg-purple-500 rounded-full" />
-                  <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">Détails de la Session</span>
+              <div className="space-y-3">
+                <div className="flex items-center gap-3 mb-2">
+                  <span className="text-[10px] font-black uppercase tracking-widest text-purple-400">Détails de la Session</span>
+                  <div className="flex-1 h-[1px] bg-purple-50"></div>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="relative group">
-                    <Heart className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-purple-500" />
+                
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  <div className="relative group md:col-span-2">
+                    <Heart className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-[#7c3aed] transition-colors" />
                     <select
                       name="service"
                       value={formData.service}
                       onChange={handleChange}
                       required
-                      className="w-full pl-11 pr-4 py-4 bg-gray-50 border border-transparent rounded-2xl focus:bg-white focus:border-purple-500/30 transition-all outline-none text-sm font-bold appearance-none cursor-pointer"
+                      className="w-full pl-10 pr-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:border-[#7c3aed] focus:ring-2 focus:ring-purple-500/10 transition-all outline-none text-sm font-bold text-gray-800 appearance-none cursor-pointer"
                     >
-                      <option value="">Sélectionnez un service *</option>
+                      <option value="" disabled className="text-gray-400">Sélectionnez un service *</option>
                       {services.map(service => (
                         <option key={service} value={service}>{service}</option>
                       ))}
                     </select>
                   </div>
                   <div className="relative group">
-                    <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-purple-500" />
+                    <MapPin className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-[#7c3aed] transition-colors" />
                     <select
                       name="location"
                       value={formData.location}
                       onChange={handleChange}
-                      className="w-full pl-11 pr-4 py-4 bg-gray-50 border border-transparent rounded-2xl focus:bg-white focus:border-purple-500/30 transition-all outline-none text-sm font-bold appearance-none cursor-pointer"
+                      className="w-full pl-10 pr-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:border-[#7c3aed] focus:ring-2 focus:ring-purple-500/10 transition-all outline-none text-sm font-bold text-gray-800 appearance-none cursor-pointer"
                     >
-                      <option value="">Lieu de rencontre</option>
+                      <option value="" disabled className="text-gray-400">Lieu</option>
                       {locations.map(location => (
                         <option key={location} value={location}>{location}</option>
                       ))}
@@ -203,9 +206,9 @@ const CreateAppointmentModal = ({ isOpen, onClose }) => {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                   <div className="relative group">
-                    <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <Calendar className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-[#4338ca] transition-colors" />
                     <input
                       type="date"
                       name="date"
@@ -213,18 +216,18 @@ const CreateAppointmentModal = ({ isOpen, onClose }) => {
                       onChange={handleChange}
                       required
                       min={new Date().toISOString().split('T')[0]}
-                      className="w-full pl-11 pr-4 py-4 bg-gray-50 border border-transparent rounded-2xl focus:bg-white outline-none text-sm font-bold"
+                      className="w-full pl-10 pr-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:border-[#4338ca] focus:ring-2 focus:ring-indigo-500/10 transition-all outline-none text-sm font-bold text-gray-800"
                     />
                   </div>
                   <div className="relative group">
-                    <Clock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <Clock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-[#4338ca] transition-colors" />
                     <input
                       type="time"
                       name="time"
                       value={formData.time}
                       onChange={handleChange}
                       required
-                      className="w-full pl-11 pr-4 py-4 bg-gray-50 border border-transparent rounded-2xl focus:bg-white outline-none text-sm font-bold"
+                      className="w-full pl-10 pr-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:border-[#4338ca] focus:ring-2 focus:ring-indigo-500/10 transition-all outline-none text-sm font-bold text-gray-800"
                     />
                   </div>
                   <div className="relative group">
@@ -232,65 +235,66 @@ const CreateAppointmentModal = ({ isOpen, onClose }) => {
                       name="duration"
                       value={formData.duration}
                       onChange={handleChange}
-                      className="w-full px-4 py-4 bg-gray-50 border border-transparent rounded-2xl focus:bg-white outline-none text-sm font-bold appearance-none cursor-pointer"
+                      className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:border-[#4338ca] focus:ring-2 focus:ring-indigo-500/10 transition-all outline-none text-sm font-bold text-gray-800 appearance-none cursor-pointer text-center"
                     >
-                      <option value={30}>30 min</option>
-                      <option value={60}>1 heure</option>
-                      <option value={120}>2 heures</option>
-                      <option value={180}>3 heures</option>
+                      <option value="30">30 min</option>
+                      <option value="60">1 heure</option>
+                      <option value="120">2 heures</option>
+                      <option value="180">3 heures</option>
+                      <option value="720">Toute la journée</option>
+                      <option value="360">Toute la soirée</option>
                     </select>
                   </div>
-                </div>
-
-                <div className="relative group">
-                  <Euro className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-emerald-500" />
-                  <input
-                    type="number"
-                    name="price"
-                    value={formData.price}
-                    onChange={handleChange}
-                    placeholder="Prix proposé (EUR)"
-                    className="w-full pl-11 pr-4 py-4 bg-white border border-gray-100 rounded-2xl focus:border-emerald-500/30 outline-none text-sm font-bold"
-                  />
+                  <div className="relative group">
+                    <Euro className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-emerald-500" />
+                    <input
+                      type="number"
+                      name="price"
+                      value={formData.price}
+                      onChange={handleChange}
+                      placeholder="Prix (EUR)"
+                      className="w-full pl-10 pr-3 py-2.5 bg-emerald-50/30 border border-emerald-100 rounded-xl focus:bg-white focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/10 transition-all outline-none text-sm font-bold text-gray-800 placeholder-gray-400"
+                    />
+                  </div>
                 </div>
               </div>
 
               {/* Notes */}
-              <div className="space-y-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <div className="w-1.5 h-4 bg-gray-300 rounded-full" />
+              <div className="space-y-2">
+                <div className="flex items-center gap-3 mb-1">
                   <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">Notes & Demandes</span>
+                  <div className="flex-1 h-[1px] bg-gray-100"></div>
                 </div>
                 <textarea
                   name="notes"
                   value={formData.notes}
                   onChange={handleChange}
-                  rows={3}
-                  placeholder="Notes ou préférences particulières..."
-                  className="w-full p-6 bg-gray-50 border border-transparent rounded-[1.5rem] focus:bg-white focus:border-gray-200 outline-none text-sm font-medium transition-all resize-none"
+                  rows={2}
+                  placeholder="Préférences, demandes spéciales, instructions d'accès..."
+                  className="w-full p-4 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:border-[#4338ca] focus:ring-2 focus:ring-indigo-500/10 transition-all outline-none text-sm font-medium text-gray-800 placeholder-gray-400 resize-none"
                 />
               </div>
 
               {/* Action Buttons */}
-              <div className="flex flex-col sm:flex-row gap-4 pt-4">
+              <div className="flex flex-col sm:flex-row gap-3 pt-3 border-t border-gray-100">
                 <button
                   type="button"
                   onClick={onClose}
-                  className="w-full sm:w-1/3 py-5 rounded-[1.5rem] text-sm font-black text-gray-400 hover:text-gray-900 transition-colors uppercase tracking-widest"
+                  className="w-full sm:w-1/3 py-3 rounded-xl text-xs font-black text-gray-400 hover:text-gray-900 bg-gray-50 hover:bg-gray-100 transition-colors uppercase tracking-widest"
                 >
                   Annuler
                 </button>
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full sm:w-2/3 bg-rose-500 text-white py-5 rounded-[1.5rem] font-black text-sm tracking-[0.2em] shadow-lg shadow-rose-100 hover:bg-rose-600 transition-all flex items-center justify-center gap-3 active:scale-[0.98] disabled:opacity-50"
+                  className="w-full sm:w-2/3 bg-gradient-to-r from-[#4338ca] to-[#7c3aed] text-white py-3 rounded-xl font-black text-xs tracking-widest uppercase shadow-md shadow-indigo-500/20 hover:shadow-indigo-500/40 transition-all flex items-center justify-center gap-2 active:scale-[0.98] disabled:opacity-50"
                 >
                   {loading ? (
-                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                   ) : (
                     <>
-                      <Sparkles className="w-5 h-5" />
-                      CONFIRMER RDV
+                      <Sparkles className="w-4 h-4" />
+                      CONFIRMER RÉSERVATION
                     </>
                   )}
                 </button>
