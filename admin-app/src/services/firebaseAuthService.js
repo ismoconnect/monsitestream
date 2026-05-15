@@ -67,6 +67,7 @@ const firebaseAuthService = {
                         id: firebaseUser.uid,
                         email: firebaseUser.email,
                         displayName: firebaseUser.displayName,
+                        role: 'client', // Valeur par défaut
                         ...userDoc
                     };
                 } catch (e) {
