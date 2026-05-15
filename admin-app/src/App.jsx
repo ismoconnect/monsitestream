@@ -21,6 +21,7 @@ import AdminStreaming from './pages/AdminStreaming';
 import AdminUsers from './pages/AdminUsers';
 import AdminAnalytics from './pages/AdminAnalytics';
 import AdminManagement from './pages/AdminManagement';
+import AdminSettings from './pages/AdminSettings';
 
 // Styles
 import './index.css';
@@ -53,6 +54,7 @@ const App = () => {
               <Route path="/plans" element={<AdminPlans />} />
               <Route path="/gifts" element={<AdminGifts />} />
               <Route path="/streaming" element={<AdminStreaming />} />
+              <Route path="/settings" element={<AdminSettings />} />
 
               {/* Setup Route */}
               <Route path="/init-admin" element={<InitializeAdmin />} />

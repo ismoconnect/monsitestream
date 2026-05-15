@@ -46,6 +46,22 @@ const HeroSection = () => {
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/10 to-black/30"></div>
       </div>
 
+      {/* Badge de confiance flottant */}
+      <motion.div 
+        initial={{ opacity: 0, x: 20 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ delay: 0.8, duration: 1 }}
+        className="absolute top-24 right-6 z-20 hidden md:flex items-center gap-3 bg-white/5 backdrop-blur-xl border border-white/10 px-5 py-3 rounded-2xl shadow-2xl"
+      >
+        <div className="w-10 h-10 bg-emerald-500/20 border border-emerald-500/30 rounded-full flex items-center justify-center">
+          <Shield className="w-5 h-5 text-emerald-400" />
+        </div>
+        <div>
+          <p className="text-[10px] font-black text-white uppercase tracking-widest">Discrétion & Sécurité</p>
+          <p className="text-[8px] font-bold text-emerald-400/80 uppercase tracking-[0.2em] mt-0.5">100% Garantie</p>
+        </div>
+      </motion.div>
+
       {/* Contenu principal */}
       <div className="relative z-10 flex items-center justify-center h-full">
         <div className="text-center text-white px-4 sm:px-6 max-w-4xl mx-auto -mt-32 sm:mt-0">
