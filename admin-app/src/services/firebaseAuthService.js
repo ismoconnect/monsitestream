@@ -51,49 +51,69 @@ class FirebaseAuthService {
 // Recommençons avec une structure plus propre qui correspond à ce que AuthContext attend de authService
 const firebaseAuthService = {
     listeners: [],
-    currentAuthState: undefined, // undefined = pas encore su, null = déconnecté, object = connecté
+    currentAuthState: undefined,
+    isInitialized: false,
+    userDocUnsubscribe: null,
+    lastUid: null,
 
     init() {
         if (!auth) return;
         onAuthStateChanged(auth, async (firebaseUser) => {
+            if (firebaseUser && firebaseUser.uid === this.lastUid) {
+                return;
+            }
+            this.lastUid = firebaseUser ? firebaseUser.uid : null;
+
             console.log("🔥 Auth change detected:", firebaseUser ? firebaseUser.email : "no user");
-            let user = null;
+            
+            if (this.userDocUnsubscribe) {
+                this.userDocUnsubscribe();
+                this.userDocUnsubscribe = null;
+            }
+
             if (firebaseUser) {
-                try {
-                    // Récupérer le profil complet de Firestore
-                    const userDoc = await this.getUserDocument(firebaseUser.uid);
-                    console.log("📋 Firestore doc fetched:", userDoc);
-                    user = {
+                const userDocRef = doc(db, 'users', firebaseUser.uid);
+                this.userDocUnsubscribe = onSnapshot(userDocRef, (snapshot) => {
+                    let userDoc = snapshot.exists() ? snapshot.data() : {};
+                    console.log("📋 Firestore doc updated (Admin Sync):", userDoc);
+
+                    const user = {
                         id: firebaseUser.uid,
                         email: firebaseUser.email,
                         displayName: firebaseUser.displayName,
-                        role: 'client', // Valeur par défaut
+                        role: userDoc.role || 'client',
                         ...userDoc
                     };
-                } catch (e) {
-                    console.error("❌ Erreur lors de la récupération du profil:", e);
-                    user = {
+
+                    console.log(`👤 Final user for listeners: ${user.email} (Role: ${user.role})`);
+                    this.currentAuthState = user;
+                    this.isInitialized = true;
+                    this.listeners.forEach(cb => cb(user));
+                }, (error) => {
+                    console.warn("⚠️ Erreur écoute Firestore:", error);
+                    const fallbackUser = {
                         id: firebaseUser.uid,
                         email: firebaseUser.email,
                         displayName: firebaseUser.displayName,
                         role: 'client'
                     };
-                }
+                    this.currentAuthState = fallbackUser;
+                    this.isInitialized = true;
+                    this.listeners.forEach(cb => cb(fallbackUser));
+                });
+            } else {
+                this.currentAuthState = null;
+                this.isInitialized = true;
+                this.listeners.forEach(cb => cb(null));
             }
-            console.log("👤 Final user for listeners:", user ? `${user.email} (Role: ${user.role})` : "null");
-            this.currentAuthState = user;
-            this.listeners.forEach(cb => cb(user));
         });
     },
 
     onAuthStateChanged(callback) {
         this.listeners.push(callback);
-
-        // Si on connaît déjà l'état, on informe le nouveau souscripteur immédiatement
-        if (this.currentAuthState !== undefined) {
+        if (this.currentAuthState !== undefined && this.isInitialized) {
             callback(this.currentAuthState);
         }
-
         return () => {
             this.listeners = this.listeners.filter(cb => cb !== callback);
         };
