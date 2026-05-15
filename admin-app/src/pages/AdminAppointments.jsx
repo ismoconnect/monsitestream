@@ -13,7 +13,7 @@ import { useAuth } from '../contexts/AuthContext';
 
 const AdminAppointments = () => {
     const navigate = useNavigate();
-    const { currentUser, loading: authLoading } = useAuth();
+    const { currentUser, loading: authLoading, signOut } = useAuth();
     const [appointments, setAppointments] = useState([]);
     const [filteredAppointments, setFilteredAppointments] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -189,7 +189,11 @@ const AdminAppointments = () => {
 
     return (
         <div className="h-screen bg-[#0f172a] flex overflow-hidden font-sans">
-            <AdminSidebar isMobileMenuOpen={isMobileMenuOpen} setIsMobileMenuOpen={setIsMobileMenuOpen} />
+            <AdminSidebar 
+                isMobileMenuOpen={isMobileMenuOpen} 
+                setIsMobileMenuOpen={setIsMobileMenuOpen} 
+                onSignOut={signOut}
+            />
 
             <div className="flex-1 flex flex-col min-w-0 overflow-y-auto">
                 <AdminHeader 

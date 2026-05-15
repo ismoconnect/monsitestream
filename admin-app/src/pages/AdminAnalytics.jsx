@@ -13,7 +13,7 @@ import { useNavigate } from 'react-router-dom';
 
 const AdminAnalytics = () => {
   const navigate = useNavigate();
-  const { currentUser, signOut, loading: authLoading } = useAuth();
+  const { currentUser, loading: authLoading, signOut } = useAuth();
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -84,9 +84,9 @@ const AdminAnalytics = () => {
     <div className="h-screen bg-[#0f172a] flex overflow-hidden">
       <AdminSidebar
         currentAdmin={{ name: 'Liliana' }}
-        onSignOut={handleSignOut}
         isMobileMenuOpen={isMobileMenuOpen}
         setIsMobileMenuOpen={setIsMobileMenuOpen}
+        onSignOut={signOut}
       />
 
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">

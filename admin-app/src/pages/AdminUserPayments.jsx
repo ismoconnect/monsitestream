@@ -50,7 +50,7 @@ import { adminChatService } from '../services/adminChatService';
 const AdminUserPayments = () => {
   const { userEmail } = useParams();
   const navigate = useNavigate();
-  const { currentUser, loading: authLoading } = useAuth();
+  const { currentUser, loading: authLoading, signOut } = useAuth();
   const [payments, setPayments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedPayment, setSelectedPayment] = useState(null);
@@ -285,7 +285,11 @@ const AdminUserPayments = () => {
 
   return (
     <div className="flex h-screen bg-[#0f172a] text-slate-200 overflow-hidden font-sans">
-      <AdminSidebar isMobileMenuOpen={isMobileMenuOpen} setIsMobileMenuOpen={setIsMobileMenuOpen} />
+      <AdminSidebar 
+        isMobileMenuOpen={isMobileMenuOpen} 
+        setIsMobileMenuOpen={setIsMobileMenuOpen} 
+        onSignOut={signOut}
+      />
 
       <div className="flex-1 flex flex-col min-w-0 overflow-y-auto relative">
         {/* Background Gradients */}

@@ -29,7 +29,7 @@ import { db } from '../services/firebase';
 import { doc, updateDoc } from 'firebase/firestore';
 
 const AdminStreaming = () => {
-  const { currentUser } = useAuth();
+  const { currentUser, loading: authLoading, signOut } = useAuth();
   const [isLive, setIsLive] = useState(false);
   const [streamId, setStreamId] = useState(null);
   const [localStream, setLocalStream] = useState(null);
@@ -195,7 +195,11 @@ const AdminStreaming = () => {
 
   return (
     <div className="flex h-screen bg-[#0f172a] text-slate-100 overflow-hidden font-sans">
-      <AdminSidebar isMobileMenuOpen={isMobileMenuOpen} setIsMobileMenuOpen={setIsMobileMenuOpen} />
+      <AdminSidebar 
+        isMobileMenuOpen={isMobileMenuOpen} 
+        setIsMobileMenuOpen={setIsMobileMenuOpen} 
+        onSignOut={signOut}
+      />
       
       <div className="flex-1 flex flex-col min-w-0 relative">
         {/* Background Decorative Gradients - Plus prononcés */}

@@ -16,7 +16,7 @@ import { planService } from '../services/planService';
 
 const AdminUsers = () => {
   const navigate = useNavigate();
-  const { currentUser, signOut, loading: authLoading } = useAuth();
+  const { currentUser, loading: authLoading, signOut } = useAuth();
   const [activeTab, setActiveTab] = useState('all');
   const [users, setUsers] = useState([]);
   const [stats, setStats] = useState(null);
@@ -229,11 +229,10 @@ const AdminUsers = () => {
 
   return (
     <div className="h-screen bg-[#0f172a] flex overflow-hidden">
-      <AdminSidebar
-        currentAdmin={{ name: 'Liliana' }}
-        onSignOut={handleSignOut}
-        isMobileMenuOpen={isMobileMenuOpen}
-        setIsMobileMenuOpen={setIsMobileMenuOpen}
+      <AdminSidebar 
+        isMobileMenuOpen={isMobileMenuOpen} 
+        setIsMobileMenuOpen={setIsMobileMenuOpen} 
+        onSignOut={signOut}
       />
 
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">

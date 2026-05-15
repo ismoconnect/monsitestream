@@ -35,7 +35,7 @@ import { galleryService } from '../services/galleryService';
 import { useAuth } from '../contexts/AuthContext';
 
 const AdminGallery = () => {
-    const { currentUser } = useAuth();
+    const { currentUser, loading: authLoading, signOut } = useAuth();
     const [items, setItems] = useState([]);
     const [loading, setLoading] = useState(true);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -229,7 +229,11 @@ const AdminGallery = () => {
                 <div className="absolute bottom-[10%] -right-[10%] w-[40%] h-[40%] bg-pink-500/10 rounded-full blur-[140px]"></div>
             </div>
 
-            <AdminSidebar isMobileMenuOpen={isMobileMenuOpen} setIsMobileMenuOpen={setIsMobileMenuOpen} />
+            <AdminSidebar 
+                isMobileMenuOpen={isMobileMenuOpen} 
+                setIsMobileMenuOpen={setIsMobileMenuOpen} 
+                onSignOut={signOut}
+            />
 
             <div className="flex-1 flex flex-col min-w-0 relative z-10">
                 <header className="flex flex-col gap-6 px-8 py-6 backdrop-blur-xl bg-slate-900/60 border-b border-white/10 relative z-20">

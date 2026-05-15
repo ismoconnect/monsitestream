@@ -23,7 +23,7 @@ import { useAuth } from '../contexts/AuthContext';
 
 const AdminPayments = () => {
   const navigate = useNavigate();
-  const { currentUser, loading: authLoading } = useAuth();
+  const { currentUser, loading: authLoading, signOut } = useAuth();
   const [payments, setPayments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -132,7 +132,11 @@ const AdminPayments = () => {
 
   return (
     <div className="h-screen bg-[#0f172a] flex overflow-hidden font-sans text-slate-200">
-      <AdminSidebar isMobileMenuOpen={isMobileMenuOpen} setIsMobileMenuOpen={setIsMobileMenuOpen} />
+      <AdminSidebar 
+        isMobileMenuOpen={isMobileMenuOpen} 
+        setIsMobileMenuOpen={setIsMobileMenuOpen} 
+        onSignOut={signOut}
+      />
 
       <div className="flex-1 flex flex-col min-w-0 overflow-y-auto relative">
         {/* Background Decorative Gradients */}

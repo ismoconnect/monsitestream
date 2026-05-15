@@ -41,7 +41,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { adminChatService } from '../services/adminChatService';
 
 const AdminGifts = () => {
-  const { authLoading } = useAuth();
+  const { currentUser, loading: authLoading, signOut } = useAuth();
   const [gifts, setGifts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -273,6 +273,7 @@ const AdminGifts = () => {
       <AdminSidebar
         isMobileMenuOpen={isMobileMenuOpen}
         setIsMobileMenuOpen={setIsMobileMenuOpen}
+        onSignOut={signOut}
       />
 
       <div className="flex-1 flex flex-col min-w-0 overflow-y-auto relative">

@@ -22,10 +22,12 @@ import {
 } from 'lucide-react';
 import AdminSidebar from '../components/admin/AdminSidebar';
 import { planService } from '../services/planService';
+import { useAuth } from '../contexts/AuthContext';
 
 const AdminPlans = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [plans, setPlans] = useState([]);
+  const { signOut } = useAuth();
   const [loading, setLoading] = useState(true);
   
   // Modal state
@@ -127,7 +129,11 @@ const AdminPlans = () => {
 
   return (
     <div className="flex h-screen bg-white font-sans selection:bg-pink-500/30">
-      <AdminSidebar isMobileMenuOpen={isMobileMenuOpen} setIsMobileMenuOpen={setIsMobileMenuOpen} />
+      <AdminSidebar 
+        isMobileMenuOpen={isMobileMenuOpen} 
+        setIsMobileMenuOpen={setIsMobileMenuOpen} 
+        onSignOut={signOut}
+      />
       
       <div className="flex-1 flex flex-col h-screen overflow-hidden bg-gray-50/50 relative">
         {/* Header Premium */}
