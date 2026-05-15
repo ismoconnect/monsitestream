@@ -21,15 +21,11 @@ let db, storage, auth;
 try {
   app = initializeApp(firebaseConfig);
 
-  // Initialize Firebase services with robust settings
-  // experimentalForceLongPolling can help in some restricted environments
-  db = initializeFirestore(app, {
-    experimentalForceLongPolling: true,
-  });
-  
+  // Initialize Firebase services
+  db = getFirestore(app);
   storage = getStorage(app);
   auth = getAuth(app);
-  console.log('Firebase initialized successfully with Long Polling');
+  console.log('Firebase initialized successfully');
 } catch (error) {
   console.warn('Firebase initialization failed:', error);
   // Create mock services for development

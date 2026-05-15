@@ -159,13 +159,22 @@ const firebaseAuthService = {
         try {
             if (!db) return {};
             const docRef = doc(db, 'users', uid);
+            
+            // Tentative de lecture
             const snapshot = await getDoc(docRef);
             return snapshot.exists() ? snapshot.data() : {};
         } catch (e) {
-            // Ne pas logger d'erreur si c'est juste que le document n'existe pas encore (normal au premier login)
-            if (e.code !== 'permission-denied') {
-                console.error("Erreur lecture profil Firestore", e);
+            console.error("❌ Détails Erreur Firestore:", {
+                code: e.code,
+                message: e.message,
+                uid: uid
+            });
+
+            // Si on est "offline", on peut essayer de forcer la reconnexion
+            if (e.code === 'unavailable' || e.message.includes('offline')) {
+                console.warn("⚠️ Firestore semble hors ligne, tentative de reconnexion...");
             }
+            
             return {};
         }
     },
